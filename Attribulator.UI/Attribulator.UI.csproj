@@ -4,10 +4,29 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <UseWPF>true</UseWPF>
+    <PlatformTarget>x86</PlatformTarget>
   </PropertyGroup>
 
   <ItemGroup>
     <FrameworkReference Include="Microsoft.WindowsDesktop.App.WindowsForms" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="3.1.5" />
+    <PackageReference Include="VaultLib.Core" Version="1.2.0" />
+    <PackageReference Include="VaultLib.Frameworks.Speed" Version="1.2.0" />
+    <PackageReference Include="VaultLib.LegacyBase" Version="1.2.0" />
+    <PackageReference Include="VaultLib.ModernBase" Version="1.2.0" />
+    <PackageReference Include="VaultLib.Support.Carbon" Version="1.2.0" />
+    <PackageReference Include="VaultLib.Support.MostWanted" Version="1.2.0" />
+    <PackageReference Include="VaultLib.Support.ProStreet" Version="1.2.0" />
+    <PackageReference Include="VaultLib.Support.Undercover" Version="1.2.0" />
+    <PackageReference Include="VaultLib.Support.World" Version="1.2.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Attribulator.CLI\Attribulator.CLI.csproj" />
+    <ProjectReference Include="..\Attribulator.Plugins.SpeedProfiles\Attribulator.Plugins.SpeedProfiles.csproj" />
   </ItemGroup>
 
 </Project>
