@@ -16,7 +16,7 @@ namespace Attribulator.API.Data
         /// <summary>
         /// Gets the group ID of the file.
         /// </summary>
-        public string Group { get; }
+        public string Group { get; set; }
         
         /// <summary>
         /// Gets the vaults loaded from the file.

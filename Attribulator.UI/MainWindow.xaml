@@ -5,14 +5,14 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:AttribulatorUI"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="MainWindow" Height="450" Width="800" Closing="Window_Closing">
     <Grid>
         <Menu>
             <MenuItem Header="File">
                 <MenuItem Header="Open" Click="MenuItem_Open_Click"></MenuItem>
-                <MenuItem Header="Save"></MenuItem>
+                <MenuItem Header="Save" Click="MenuItem_Save_Click"></MenuItem>
                 <Separator />
-                <MenuItem Header="Exit"></MenuItem>
+                <MenuItem Header="Exit" Click="MenuItem_Exit_Click"></MenuItem>
             </MenuItem>
         </Menu>
     </Grid>

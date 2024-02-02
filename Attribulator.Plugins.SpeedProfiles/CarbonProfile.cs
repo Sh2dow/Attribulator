@@ -9,18 +9,21 @@ using VaultLib.Core.Pack;
 namespace Attribulator.Plugins.SpeedProfiles
 {
     /// <summary>
-    ///     Basic profile for PC 32-bit NFS Carbon
+    /// Basic profile for PC 32-bit NFS Carbon
     /// </summary>
     public class CarbonProfile : IProfile
     {
         public IEnumerable<LoadedFile> LoadFiles(Database database, string directory)
         {
-            return (from file in GetFilesToLoad()
-                let path = Path.Combine(directory, file)
-                let standardVaultPack = new StandardVaultPack()
-                let br = new BinaryReader(File.OpenRead(path))
-                let vaults = standardVaultPack.Load(br, database, new PackLoadingOptions())
-                select new LoadedFile(Path.GetFileNameWithoutExtension(file), "main", vaults)).ToList();
+            return GetFilesToLoad().Select(file =>
+            {
+                var path = Path.Combine(directory, file);
+                var standardVaultPack = new StandardVaultPack();
+                using var br = new BinaryReader(File.OpenRead(path));
+                var vaults = standardVaultPack.Load(br, database, new PackLoadingOptions());
+
+                return new LoadedFile(Path.GetFileNameWithoutExtension(file), "main", vaults);
+            }).ToList();
         }
 
         public void SaveFiles(Database database, string directory, IEnumerable<LoadedFile> files)
@@ -43,11 +46,11 @@ namespace Attribulator.Plugins.SpeedProfiles
                     using var inStream = new FileStream(outPath, FileMode.Open, FileAccess.Read);
                     using var outWriter = new BinaryWriter(outStream);
                     outWriter.Write(0x57574152); // RAWW
-                    outWriter.Write((byte) 0x01);
-                    outWriter.Write((byte) 0x10);
-                    outWriter.Write((ushort) 0);
-                    outWriter.Write((int) inStream.Length);
-                    outWriter.Write((int) (inStream.Length + 16));
+                    outWriter.Write((byte)0x01);
+                    outWriter.Write((byte)0x10);
+                    outWriter.Write((ushort)0);
+                    outWriter.Write((int)inStream.Length);
+                    outWriter.Write((int)(inStream.Length + 16));
                     inStream.CopyTo(outStream);
                 }
             }
@@ -75,7 +78,7 @@ namespace Attribulator.Plugins.SpeedProfiles
 
         private static IEnumerable<string> GetFilesToLoad()
         {
-            return new[] {"attributes.bin", "fe_attrib.bin", "gameplay.bin"};
+            return new[] { "attributes.bin", "fe_attrib.bin", "gameplay.bin" };
         }
     }
 }

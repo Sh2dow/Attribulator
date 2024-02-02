@@ -16,7 +16,7 @@ using Serilog;
 
 namespace Attribulator.CLI
 {
-    internal static class Program
+    public static class Program
     {
         public static async Task<int> Main(string[] args)
         {
@@ -75,7 +75,7 @@ namespace Attribulator.CLI
             }
         }
 
-        private static void LoadPlugins(IEnumerable<IPluginFactory> plugins, IServiceProvider serviceProvider)
+        public static void LoadPlugins(IEnumerable<IPluginFactory> plugins, IServiceProvider serviceProvider)
         {
             var pluginService = serviceProvider.GetRequiredService<IPluginService>();
 
@@ -87,7 +87,7 @@ namespace Attribulator.CLI
             }
         }
 
-        private static void LoadCommands(ServiceCollection services, IServiceProvider serviceProvider)
+        public static void LoadCommands(ServiceCollection services, IServiceProvider serviceProvider)
         {
             var commandService = serviceProvider.GetRequiredService<ICommandService>();
             var commandTypes = (from service in services
@@ -106,7 +106,7 @@ namespace Attribulator.CLI
             foreach (var commandType in commandTypes) commandService.RegisterCommand(commandType);
         }
 
-        private static void LoadProfiles(ServiceCollection services, IServiceProvider serviceProvider)
+        public static void LoadProfiles(ServiceCollection services, IServiceProvider serviceProvider)
         {
             var profileTypes = (from service in services
                 where typeof(IProfile).IsAssignableFrom(service.ImplementationType)
@@ -115,7 +115,7 @@ namespace Attribulator.CLI
             foreach (var profileType in profileTypes) profileService.RegisterProfile(profileType);
         }
 
-        private static void LoadStorageFormats(ServiceCollection services, IServiceProvider serviceProvider)
+		public static void LoadStorageFormats(ServiceCollection services, IServiceProvider serviceProvider)
         {
             var storageFormatTypes = (from service in services
                 where typeof(IDatabaseStorageFormat).IsAssignableFrom(service.ImplementationType)
@@ -125,7 +125,7 @@ namespace Attribulator.CLI
                 storageFormatService.RegisterStorageFormat(storageFormatType);
         }
 
-        private static IEnumerable<PluginLoader> GetPluginLoaders()
+        public static IEnumerable<PluginLoader> GetPluginLoaders()
         {
             // create plugin loaders
             var pluginsDir = Path.Combine(AppContext.BaseDirectory, "plugins");
@@ -148,7 +148,7 @@ namespace Attribulator.CLI
                 }, conf => conf.PreferSharedTypes = true)).ToList();
         }
 
-        private static IEnumerable<IPluginFactory> ConfigurePlugins(IServiceCollection services,
+        public static IEnumerable<IPluginFactory> ConfigurePlugins(IServiceCollection services,
             IEnumerable<PluginLoader> loaders)
         {
             var idToFactoryMap = new Dictionary<string, IPluginFactory>();

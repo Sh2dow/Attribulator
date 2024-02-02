@@ -1,10 +1,13 @@
-﻿using Attribulator.API.Services;
+﻿using Attribulator.API;
+using Attribulator.API.Data;
+using Attribulator.API.Services;
 using Attribulator.CLI;
 using Attribulator.CLI.Services;
 using Attribulator.Plugins.SpeedProfiles;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using System;
+using System.Collections.Generic;
 using System.Windows;
 using VaultLib.Core.DB;
 using Forms = System.Windows.Forms;
@@ -19,6 +22,9 @@ namespace AttribulatorUI
 		private string gameFolder;
 
 		private IServiceProvider serviceProvider;
+
+		private Database database;
+		private IEnumerable<LoadedFile> files;
 
 		public MainWindow()
 		{
@@ -58,19 +64,59 @@ namespace AttribulatorUI
 				if (result == Forms.DialogResult.OK)
 				{
 					this.gameFolder = dialog.SelectedPath;
-					D
-					var profile = new CarbonProfile();
-					var database = new Database(new DatabaseOptions(profile.GetGameId(), profile.GetDatabaseType()));
-					var files = profile.LoadFiles(database, this.gameFolder + "\\GLOBAL");
+
+					var profile = this.GetProfile();
+					database = new Database(new DatabaseOptions(profile.GetGameId(), profile.GetDatabaseType()));
+					files = profile.LoadFiles(database, this.gameFolder + "\\GLOBAL");
 					database.CompleteLoad();
-
-					var storageFormat = serviceProvider.GetRequiredService<IStorageFormatService>().GetStorageFormat("yml");
-					storageFormat.Serialize(database, this.gameFolder + "\\GLOBAL123", files);
-
-					int a;
-					a = 1;
-					a++;
 				}
+			}
+		}
+
+		private void MenuItem_Save_Click(object sender, RoutedEventArgs e)
+		{
+			if (this.database != null)
+			{
+				var profile = this.GetProfile();
+				foreach(var file in files)
+				{
+					file.Group = "GLOBAL";
+				}
+
+				profile.SaveFiles(database, this.gameFolder, files);
+			}
+		}
+
+		private IProfile GetProfile()
+		{
+			var ProfileName = this.DetectGame();
+			return serviceProvider.GetRequiredService<IProfileService>().GetProfile(ProfileName);
+		}
+
+		private string DetectGame()
+		{
+			return "CARBON";
+		}
+
+		private void MenuItem_Exit_Click(object sender, RoutedEventArgs e)
+		{
+			if(!this.CheckUnsaved())
+			{
+				this.Close();
+			}
+		}
+
+		private bool CheckUnsaved()
+		{
+			// add message box confirmation
+			return true;
+		}
+
+		private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+		{
+			if (!this.CheckUnsaved())
+			{
+				e.Cancel = true;
 			}
 		}
 	}
