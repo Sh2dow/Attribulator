@@ -3,11 +3,11 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:AttribulatorUI"
+        xmlns:local="clr-namespace:AttribulatorUI" xmlns:ui="clr-namespace:Attribulator.UI"
         mc:Ignorable="d"
         Title="Attribulator" Height="450" Width="800" Closing="Window_Closing">
-    <Grid>
-        <Menu>
+    <DockPanel>
+        <Menu DockPanel.Dock="Top">
             <MenuItem Header="File">
                 <MenuItem Header="Open" Click="MenuItem_Open_Click"></MenuItem>
                 <MenuItem Header="Save" Click="MenuItem_Save_Click"></MenuItem>
@@ -15,6 +15,31 @@
                 <MenuItem Header="Exit" Click="MenuItem_Exit_Click"></MenuItem>
             </MenuItem>
         </Menu>
-        <TreeView x:Name="TreeView" Margin="0,21,541,0" TreeViewItem.Selected="TreeViewItem_Selected"/>
-    </Grid>
+        <Grid DockPanel.Dock="Left">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="3*"/>
+                <RowDefinition Height="5"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="auto"/>
+            </Grid.RowDefinitions>
+
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="5"/>
+                <ColumnDefinition Width="2*"/>
+            </Grid.ColumnDefinitions>
+
+            <TreeView Grid.Row="0" Grid.RowSpan="3" Grid.Column="0" x:Name="TreeView" TreeViewItem.Selected="TreeViewItem_Selected"/>
+
+            <GridSplitter Grid.Column="1" HorizontalAlignment="Stretch" Grid.RowSpan="3" ResizeDirection="Columns"/>
+
+            <ui:PropertyGrid x:Name="PropertyGrid" Grid.Row="0" Grid.Column="2" />
+
+            <GridSplitter Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" HorizontalAlignment="Stretch"/>
+
+            <TextBox Grid.Row="2" Grid.Column="2"></TextBox>
+
+            <Label x:Name="GameFolderLabel" Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="3">No game folder selected</Label>
+        </Grid>
+    </DockPanel>
 </Window>

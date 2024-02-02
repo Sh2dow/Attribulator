@@ -1,15 +1,13 @@
 ﻿using Attribulator.API;
 using Attribulator.API.Data;
-using Attribulator.API.Serialization;
 using Attribulator.API.Services;
 using Attribulator.CLI;
 using Attribulator.CLI.Services;
-using Attribulator.Plugins.SpeedProfiles;
+using Attribulator.UI;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -69,6 +67,7 @@ namespace AttribulatorUI
                 if (result == Forms.DialogResult.OK)
                 {
                     this.gameFolder = dialog.SelectedPath;
+                    this.GameFolderLabel.Content = this.gameFolder;
 
                     var profile = this.GetProfile();
                     this.database = new Database(new DatabaseOptions(profile.GetGameId(), profile.GetDatabaseType()));
@@ -133,7 +132,7 @@ namespace AttribulatorUI
             {
                 foreach (var child in collection.Children.OrderBy(x => x.Name))
                 {
-                    var childNode = new TreeViewItem();
+                    var childNode = new VltTreeViewItem(child);
                     node.Items.Add(childNode);
                     PopulateTreeNode(child, childNode);
                 }
@@ -148,7 +147,7 @@ namespace AttribulatorUI
 
             foreach (var cls in this.database.Classes.OrderBy(x => x.Name))
             {
-                var node = new TreeViewItem();
+                var node = new VltTreeViewItem(null);
                 node.Header = cls.Name;
 
                 var collections = this.database.RowManager.GetFlattenedCollections(cls.Name).OrderBy(x => x.Name);
@@ -156,7 +155,7 @@ namespace AttribulatorUI
                 {
                     if (collection.Parent == null)
                     {
-                        var childNode = new TreeViewItem();
+                        var childNode = new VltTreeViewItem(collection);
                         node.Items.Add(childNode);
                         PopulateTreeNode(collection, childNode);
                     }
@@ -168,9 +167,12 @@ namespace AttribulatorUI
 
         private void TreeViewItem_Selected(object sender, RoutedEventArgs e)
         {
-            var item = e.Source as TreeViewItem;
-
-
+            var treeViewItem = e.Source as VltTreeViewItem;
+            if (treeViewItem != null)
+            {
+                var collection = treeViewItem.Collection;
+                this.PropertyGrid.Display(collection);
+            }
         }
     }
 }
