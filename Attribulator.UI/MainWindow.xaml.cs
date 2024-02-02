@@ -1,5 +1,6 @@
 ﻿using Attribulator.API;
 using Attribulator.API.Data;
+using Attribulator.API.Serialization;
 using Attribulator.API.Services;
 using Attribulator.CLI;
 using Attribulator.CLI.Services;
@@ -8,116 +9,161 @@ using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Windows;
+using System.Windows.Controls;
+using VaultLib.Core.Data;
 using VaultLib.Core.DB;
 using Forms = System.Windows.Forms;
 
 namespace AttribulatorUI
 {
-	/// <summary>
-	/// Interaction logic for MainWindow.xaml
-	/// </summary>
-	public partial class MainWindow : Window
-	{
-		private string gameFolder;
+    /// <summary>
+    /// Interaction logic for MainWindow.xaml
+    /// </summary>
+    public partial class MainWindow : Window
+    {
+        private string gameFolder;
 
-		private IServiceProvider serviceProvider;
+        private IServiceProvider serviceProvider;
 
-		private Database database;
-		private IEnumerable<LoadedFile> files;
+        private Database database;
+        private IEnumerable<LoadedFile> files;
 
-		public MainWindow()
-		{
-			InitializeComponent();
+        public MainWindow()
+        {
+            InitializeComponent();
 
-			// Setup
+            // Setup
 
-			var services = new ServiceCollection();
-			var loaders = Program.GetPluginLoaders();
+            var services = new ServiceCollection();
+            var loaders = Program.GetPluginLoaders();
 
-			// Register services
-			services.AddSingleton<ICommandService, CommandServiceImpl>();
-			services.AddSingleton<IProfileService, ProfileServiceImpl>();
-			services.AddSingleton<IStorageFormatService, StorageFormatServiceImpl>();
-			services.AddSingleton<IPluginService, PluginServiceImpl>();
+            // Register services
+            services.AddSingleton<ICommandService, CommandServiceImpl>();
+            services.AddSingleton<IProfileService, ProfileServiceImpl>();
+            services.AddSingleton<IStorageFormatService, StorageFormatServiceImpl>();
+            services.AddSingleton<IPluginService, PluginServiceImpl>();
 
-			// Set up logging
-			Log.Logger = new LoggerConfiguration().MinimumLevel.Debug().WriteTo.Console().CreateLogger();
-			services.AddLogging(loggingBuilder => loggingBuilder.AddSerilog(dispose: true));
+            // Set up logging
+            Log.Logger = new LoggerConfiguration().MinimumLevel.Debug().WriteTo.Console().CreateLogger();
+            services.AddLogging(loggingBuilder => loggingBuilder.AddSerilog(dispose: true));
 
-			var plugins = Program.ConfigurePlugins(services, loaders);
-			serviceProvider = services.BuildServiceProvider();
+            var plugins = Program.ConfigurePlugins(services, loaders);
+            serviceProvider = services.BuildServiceProvider();
 
-			// Load everything from DI container
-			Program.LoadCommands(services, serviceProvider);
-			Program.LoadProfiles(services, serviceProvider);
-			Program.LoadStorageFormats(services, serviceProvider);
-			Program.LoadPlugins(plugins, serviceProvider);
-		}
+            // Load everything from DI container
+            Program.LoadCommands(services, serviceProvider);
+            Program.LoadProfiles(services, serviceProvider);
+            Program.LoadStorageFormats(services, serviceProvider);
+            Program.LoadPlugins(plugins, serviceProvider);
+        }
 
-		private void MenuItem_Open_Click(object sender, RoutedEventArgs e)
-		{
-			using (var dialog = new Forms.FolderBrowserDialog())
-			{
-				Forms.DialogResult result = dialog.ShowDialog();
+        private void MenuItem_Open_Click(object sender, RoutedEventArgs e)
+        {
+            using (var dialog = new Forms.FolderBrowserDialog())
+            {
+                Forms.DialogResult result = dialog.ShowDialog();
 
-				if (result == Forms.DialogResult.OK)
-				{
-					this.gameFolder = dialog.SelectedPath;
+                if (result == Forms.DialogResult.OK)
+                {
+                    this.gameFolder = dialog.SelectedPath;
 
-					var profile = this.GetProfile();
-					database = new Database(new DatabaseOptions(profile.GetGameId(), profile.GetDatabaseType()));
-					files = profile.LoadFiles(database, this.gameFolder + "\\GLOBAL");
-					database.CompleteLoad();
-				}
-			}
-		}
+                    var profile = this.GetProfile();
+                    this.database = new Database(new DatabaseOptions(profile.GetGameId(), profile.GetDatabaseType()));
+                    this.files = profile.LoadFiles(database, this.gameFolder + "\\GLOBAL");
+                    this.database.CompleteLoad();
 
-		private void MenuItem_Save_Click(object sender, RoutedEventArgs e)
-		{
-			if (this.database != null)
-			{
-				var profile = this.GetProfile();
-				foreach(var file in files)
-				{
-					file.Group = "GLOBAL";
-				}
+                    this.PopulateTreeView();
+                }
+            }
+        }
 
-				profile.SaveFiles(database, this.gameFolder, files);
-			}
-		}
+        private void MenuItem_Save_Click(object sender, RoutedEventArgs e)
+        {
+            if (this.database != null)
+            {
+                var profile = this.GetProfile();
+                foreach (var file in files)
+                {
+                    file.Group = "GLOBAL";
+                }
 
-		private IProfile GetProfile()
-		{
-			var ProfileName = this.DetectGame();
-			return serviceProvider.GetRequiredService<IProfileService>().GetProfile(ProfileName);
-		}
+                profile.SaveFiles(database, this.gameFolder, files);
+            }
+        }
 
-		private string DetectGame()
-		{
-			return "CARBON";
-		}
+        private IProfile GetProfile()
+        {
+            var ProfileName = this.DetectGame();
+            return serviceProvider.GetRequiredService<IProfileService>().GetProfile(ProfileName);
+        }
 
-		private void MenuItem_Exit_Click(object sender, RoutedEventArgs e)
-		{
-			if(!this.CheckUnsaved())
-			{
-				this.Close();
-			}
-		}
+        private string DetectGame()
+        {
+            return "CARBON";
+        }
 
-		private bool CheckUnsaved()
-		{
-			// add message box confirmation
-			return true;
-		}
+        private void MenuItem_Exit_Click(object sender, RoutedEventArgs e)
+        {
+            if (!this.CheckUnsaved())
+            {
+                this.Close();
+            }
+        }
 
-		private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
-		{
-			if (!this.CheckUnsaved())
-			{
-				e.Cancel = true;
-			}
-		}
-	}
+        private bool CheckUnsaved()
+        {
+            // add message box confirmation
+            return true;
+        }
+
+        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            if (!this.CheckUnsaved())
+            {
+                e.Cancel = true;
+            }
+        }
+
+        void PopulateTreeNode(VltCollection collection, TreeViewItem node)
+        {
+            if (collection.Children.Count > 0)
+            {
+                foreach (var child in collection.Children.OrderBy(x => x.Name))
+                {
+                    var childNode = new TreeViewItem();
+                    node.Items.Add(childNode);
+                    PopulateTreeNode(child, childNode);
+                }
+            }
+
+            node.Header = collection.Name;
+        }
+
+        private void PopulateTreeView()
+        {
+            this.TreeView.Items.Clear();
+
+            foreach (var cls in this.database.Classes.OrderBy(x => x.Name))
+            {
+                var node = new TreeViewItem();
+                node.Header = cls.Name;
+
+                var collections = this.database.RowManager.GetFlattenedCollections(cls.Name).OrderBy(x => x.Name);
+                foreach (var collection in collections)
+                {
+                    if (collection.Parent == null)
+                    {
+                        var childNode = new TreeViewItem();
+                        node.Items.Add(childNode);
+                        PopulateTreeNode(collection, childNode);
+                    }
+                }
+
+                this.TreeView.Items.Add(node);
+            }
+        }
+    }
 }

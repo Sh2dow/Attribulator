@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:AttribulatorUI"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800" Closing="Window_Closing">
+        Title="Attribulator" Height="450" Width="800" Closing="Window_Closing">
     <Grid>
         <Menu>
             <MenuItem Header="File">
@@ -15,5 +15,6 @@
                 <MenuItem Header="Exit" Click="MenuItem_Exit_Click"></MenuItem>
             </MenuItem>
         </Menu>
+        <TreeView x:Name="TreeView" Margin="0,21,541,0"/>
     </Grid>
 </Window>
