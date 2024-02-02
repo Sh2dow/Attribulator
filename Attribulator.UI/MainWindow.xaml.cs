@@ -165,5 +165,12 @@ namespace AttribulatorUI
                 this.TreeView.Items.Add(node);
             }
         }
+
+        private void TreeViewItem_Selected(object sender, RoutedEventArgs e)
+        {
+            var item = e.Source as TreeViewItem;
+
+
+        }
     }
 }

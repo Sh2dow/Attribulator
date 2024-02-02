@@ -15,6 +15,6 @@
                 <MenuItem Header="Exit" Click="MenuItem_Exit_Click"></MenuItem>
             </MenuItem>
         </Menu>
-        <TreeView x:Name="TreeView" Margin="0,21,541,0"/>
+        <TreeView x:Name="TreeView" Margin="0,21,541,0" TreeViewItem.Selected="TreeViewItem_Selected"/>
     </Grid>
 </Window>
