@@ -33,7 +33,9 @@
 
             <GridSplitter Grid.Column="1" HorizontalAlignment="Stretch" Grid.RowSpan="3" ResizeDirection="Columns"/>
 
-            <ui:PropertyGrid x:Name="PropertyGrid" Grid.Row="0" Grid.Column="2" />
+            <ScrollViewer Grid.Row="0" Grid.Column="2">
+                <ui:PropertyGrid x:Name="PropertyGrid"  />
+            </ScrollViewer>            
 
             <GridSplitter Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" HorizontalAlignment="Stretch"/>
 

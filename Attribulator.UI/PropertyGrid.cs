@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Windows;
@@ -54,15 +56,17 @@ namespace Attribulator.UI
         private void TextBox_TextChanged(object sender, RoutedEventArgs e)
         {
             var textBox = sender as TextBox;
-
+            var type = this.prop.GetValue().GetType();
             try
             {
-                var result = float.Parse(textBox.Text, System.Globalization.CultureInfo.InvariantCulture);
+                var converter = TypeDescriptor.GetConverter(type);
+                var result = converter.ConvertFromInvariantString(textBox.Text);
                 this.collection.SetDataValue(this.name, result);
                 this.lastValue = textBox.Text;
             }
             catch
             {
+                MessageBox.Show($"{textBox.Text} is not a valid value for {type}", "Property error", MessageBoxButton.OK, MessageBoxImage.Warning);
                 textBox.Text = this.lastValue;
             }
         }
@@ -92,6 +96,14 @@ namespace Attribulator.UI
         }
     }
 
+    public class PropertyGridItemCollapse : Grid
+    {
+        public PropertyGridItemCollapse()
+        {
+
+        }
+    }
+
     public class PropertyGrid : StackPanel
     {
         public void Display(VltCollection collection)
@@ -104,15 +116,29 @@ namespace Attribulator.UI
 
                 foreach (var property in properties.OrderBy(x => x.Key))
                 {
-                    if (property.Value is EAType.Bool)
+                    var type = property.Value;
+                    if (type is EAType.Bool)
                     {
-                        this.Children.Add(new PropertyGridItemBool(property.Key, property.Value as EAType.Bool, collection));
+                        this.Children.Add(new PropertyGridItemBool(property.Key, type as EAType.Bool, collection));
                     }
-                    else if (property.Value is EAType.PrimitiveTypeBase)
+                    else if (type is EAType.PrimitiveTypeBase)
                     {
-                        this.Children.Add(new PropertyGridItem(property.Key, property.Value as EAType.PrimitiveTypeBase, collection));
+                        this.Children.Add(new PropertyGridItem(property.Key, type as EAType.PrimitiveTypeBase, collection));
+                    }
+                    else if (type is VaultLib.Core.Types.Attrib.RefSpec)
+                    {
+
+                    }
+                    else
+                    {
+                        //Debugger.Break();
                     }
                 }
+
+                var splitter = new GridSplitter();
+                splitter.SetValue(Grid.ColumnProperty, 1);
+                splitter.HorizontalAlignment = HorizontalAlignment.Stretch;
+                this.Children.Add(splitter);
             }
         }
     }
