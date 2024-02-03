@@ -6,7 +6,9 @@ using System.Linq;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Input;
+using System.Xml.Linq;
 using VaultLib.Core.Data;
 using EAType = VaultLib.Core.Types.EA.Reflection;
 
@@ -96,11 +98,132 @@ namespace Attribulator.UI
         }
     }
 
-    public class PropertyGridItemCollapse : Grid
+    public class PropertyGridExpand : Grid
     {
-        public PropertyGridItemCollapse()
-        {
+        public ToggleButton Toggle { get; private set; }
 
+        public PropertyGridExpand(string name)
+        {
+            this.RowDefinitions.Add(new RowDefinition());
+
+            this.ColumnDefinitions.Add(new ColumnDefinition());
+            this.ColumnDefinitions[0].Width = new GridLength(10, GridUnitType.Pixel);
+            this.ColumnDefinitions.Add(new ColumnDefinition());
+            this.ColumnDefinitions[1].Width = GridLength.Auto;
+
+            this.Toggle = new ToggleButton();
+            this.Toggle.SetValue(ColumnProperty, 0);
+
+            var textBlock = new TextBlock();
+            textBlock.SetValue(ColumnProperty, 1);
+            textBlock.Text = name;
+
+            this.Children.Add(Toggle);
+            this.Children.Add(textBlock);
+        }
+    }
+
+    public class PropertyGridItemClassCollection : Grid
+    {
+        private PropertyGridItemRefSpec parent;
+
+        public PropertyGridItemClassCollection(VaultLib.Core.Types.Attrib.RefSpec prop, PropertyGridItemRefSpec parent)
+        {
+            this.parent = parent;
+
+            this.RowDefinitions.Add(new RowDefinition());
+            this.RowDefinitions.Add(new RowDefinition());
+
+            this.ColumnDefinitions.Add(new ColumnDefinition());
+            this.ColumnDefinitions[0].Width = new GridLength(1, GridUnitType.Star);
+            this.ColumnDefinitions.Add(new ColumnDefinition());
+            this.ColumnDefinitions[1].Width = new GridLength(2, GridUnitType.Star);
+
+            var className = new TextBlock();
+            className.SetValue(ColumnProperty, 0);
+            className.SetValue(RowProperty, 0);
+            className.Text = "Class";
+
+            var classValue = new TextBox();
+            classValue.SetValue(ColumnProperty, 1);
+            classValue.SetValue(RowProperty, 0);
+            classValue.Text = prop.ClassKey;
+            classValue.LostFocus += (s, e) => { prop.ClassKey = classValue.Text; this.parent.UpdateHeader(); };
+
+            this.Children.Add(className);
+            this.Children.Add(classValue);
+
+            var collectionName = new TextBlock();
+            collectionName.SetValue(ColumnProperty, 0);
+            collectionName.SetValue(RowProperty, 1);
+            collectionName.Text = "Collection";
+
+            var collectionValue = new TextBox();
+            collectionValue.SetValue(ColumnProperty, 1);
+            collectionValue.SetValue(RowProperty, 1);
+            collectionValue.Text = prop.CollectionKey;
+            collectionValue.LostFocus += (s, e) => { prop.CollectionKey = collectionValue.Text; this.parent.UpdateHeader(); };
+
+            this.Children.Add(collectionName);
+            this.Children.Add(collectionValue);
+            this.parent = parent;
+        }
+    }
+
+    public class PropertyGridItemRefSpec : StackPanel
+    {
+        PropertyGridItemClassCollection collapsable;
+        TextBlock headerValue;
+        VaultLib.Core.Types.Attrib.RefSpec prop;
+
+        public PropertyGridItemRefSpec(string name, VaultLib.Core.Types.Attrib.RefSpec prop, VltCollection collection)
+        {
+            this.prop = prop;
+
+            var headerGrid = new Grid();
+
+            headerGrid.RowDefinitions.Add(new RowDefinition());
+            headerGrid.RowDefinitions.Add(new RowDefinition());
+
+            headerGrid.ColumnDefinitions.Add(new ColumnDefinition());
+            headerGrid.ColumnDefinitions[0].Width = new GridLength(1, GridUnitType.Star);
+            headerGrid.ColumnDefinitions.Add(new ColumnDefinition());
+            headerGrid.ColumnDefinitions[1].Width = new GridLength(2, GridUnitType.Star);
+
+            var header = new PropertyGridExpand(name);
+            header.SetValue(Grid.ColumnProperty, 0);
+            header.Toggle.Checked += Checked;
+            header.Toggle.Unchecked += Unchecked;
+
+            headerValue = new TextBlock();
+            headerValue.SetValue(Grid.ColumnProperty, 1);
+            headerValue.Text = prop.ToString();
+
+            headerGrid.Children.Add(header);
+            headerGrid.Children.Add(headerValue);
+
+            this.collapsable = new PropertyGridItemClassCollection(prop, this);
+            this.collapsable.SetValue(Grid.RowProperty, 1);
+            this.collapsable.SetValue(Grid.RowSpanProperty, 2);
+            this.collapsable.Visibility = Visibility.Collapsed;
+            
+            this.Children.Add(headerGrid);
+            this.Children.Add(this.collapsable);
+        }
+
+        public void UpdateHeader()
+        {
+            headerValue.Text = prop.ToString();
+        }
+
+        private void Checked(object sender, RoutedEventArgs e)
+        {
+            this.collapsable.Visibility = Visibility.Visible;
+        }
+
+        private void Unchecked(object sender, RoutedEventArgs e)
+        {
+            this.collapsable.Visibility = Visibility.Collapsed;
         }
     }
 
@@ -127,7 +250,7 @@ namespace Attribulator.UI
                     }
                     else if (type is VaultLib.Core.Types.Attrib.RefSpec)
                     {
-
+                        this.Children.Add(new PropertyGridItemRefSpec(property.Key, type as VaultLib.Core.Types.Attrib.RefSpec, collection));
                     }
                     else
                     {
