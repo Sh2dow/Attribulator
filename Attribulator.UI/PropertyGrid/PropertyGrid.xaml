@@ -27,24 +27,26 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type local:CollapseHeader}">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="{Binding ActualWidth, ElementName=EditGridLeftPanel}"/>
-                            <ColumnDefinition Width="{Binding ActualWidth, ElementName=EditGridRightPanel}"/>
-                        </Grid.ColumnDefinitions>
-
-                        <Grid Grid.Column="0">
+                    <Border BorderThickness="0 0 0 1" BorderBrush="LightGray">
+                        <Grid>
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition x:Name="PART_Padding" Width="0px"/>
-                                <ColumnDefinition Width="20px"/>
-                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="{Binding ActualWidth, ElementName=EditGridLeftPanel}"/>
+                                <ColumnDefinition Width="{Binding ActualWidth, ElementName=EditGridRightPanel}"/>
                             </Grid.ColumnDefinitions>
 
-                            <ToggleButton Grid.Column="1" x:Name="PART_ItemToggler" Template="{StaticResource ItemToggler}" />
-                            <TextBlock Grid.Column="2" x:Name="PART_HeaderText" />
+                            <Grid Grid.Column="0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition x:Name="PART_Padding" Width="0px"/>
+                                    <ColumnDefinition Width="20px"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <ToggleButton Grid.Column="1" x:Name="PART_ItemToggler" Template="{StaticResource ItemToggler}" />
+                                <TextBlock Grid.Column="2" x:Name="PART_HeaderText" />
+                            </Grid>
+                            <TextBlock Grid.Column="1" x:Name="PART_ValueText" Margin="10,0,0,0"/>
                         </Grid>
-                        <TextBlock Grid.Column="1" x:Name="PART_ValueText" Margin="10,0,0,0"/>
-                    </Grid>
+                    </Border>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
@@ -54,15 +56,17 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type local:PrimitiveItem}">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="{Binding ActualWidth, ElementName=EditGridLeftPanel}"/>
-                            <ColumnDefinition Width="{Binding ActualWidth, ElementName=EditGridRightPanel}"/>
-                        </Grid.ColumnDefinitions>
+                    <Border BorderThickness="0 0 0 1" BorderBrush="LightGray">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="{Binding ActualWidth, ElementName=EditGridLeftPanel}"/>
+                                <ColumnDefinition Width="{Binding ActualWidth, ElementName=EditGridRightPanel}"/>
+                            </Grid.ColumnDefinitions>
 
-                        <TextBlock Grid.Column="0" x:Name="PART_TextBlock"/>
-                        <TextBox Grid.Column="1" x:Name="PART_TextBox" Padding="10,0,0,0"/>
-                    </Grid>
+                            <TextBlock Grid.Column="0" x:Name="PART_TextBlock"/>
+                            <TextBox Grid.Column="1" x:Name="PART_TextBox" Padding="10,0,0,0" BorderThickness="0"/>
+                        </Grid>
+                    </Border>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
@@ -72,15 +76,17 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type local:PropertyItem}">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="{Binding ActualWidth, ElementName=EditGridLeftPanel}"/>
-                            <ColumnDefinition Width="{Binding ActualWidth, ElementName=EditGridRightPanel}"/>
-                        </Grid.ColumnDefinitions>
+                    <Border BorderThickness="0 0 0 1" BorderBrush="LightGray">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="{Binding ActualWidth, ElementName=EditGridLeftPanel}"/>
+                                <ColumnDefinition Width="{Binding ActualWidth, ElementName=EditGridRightPanel}"/>
+                            </Grid.ColumnDefinitions>
 
-                        <TextBlock Grid.Column="0" x:Name="PART_TextBlock"/>
-                        <TextBox Grid.Column="1" x:Name="PART_TextBox" Padding="10,0,0,0"/>
-                    </Grid>
+                            <TextBlock Grid.Column="0" x:Name="PART_TextBlock"/>
+                            <TextBox Grid.Column="1" x:Name="PART_TextBox" Padding="10,0,0,0" BorderThickness="0"/>
+                        </Grid>
+                    </Border>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
