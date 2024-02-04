@@ -212,7 +212,10 @@ namespace Attribulator.UI.PropertyGrid
         public override void Update()
         {
             base.Update();
-            this.parent.Update();
+            if (this.parent != null)
+            {
+                this.parent.Update();
+            }
         }
     }
 
