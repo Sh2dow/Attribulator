@@ -171,7 +171,7 @@ namespace AttribulatorUI
             if (treeViewItem != null)
             {
                 var collection = treeViewItem.Collection;
-                this.PropertyGrid.Display(collection);
+                this.EditGrid.Display(collection);
             }
         }
     }

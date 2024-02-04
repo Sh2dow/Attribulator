@@ -3,9 +3,18 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:AttribulatorUI" xmlns:ui="clr-namespace:Attribulator.UI"
+        xmlns:local="clr-namespace:AttribulatorUI" xmlns:ui="clr-namespace:Attribulator.UI" xmlns:propertygrid="clr-namespace:Attribulator.UI.PropertyGrid"
         mc:Ignorable="d"
         Title="Attribulator" Height="450" Width="800" Closing="Window_Closing">
+
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="PropertyGrid/PropertyGrid.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
+
     <DockPanel>
         <Menu DockPanel.Dock="Top">
             <MenuItem Header="File">
@@ -34,8 +43,8 @@
             <GridSplitter Grid.Column="1" HorizontalAlignment="Stretch" Grid.RowSpan="3" ResizeDirection="Columns"/>
 
             <ScrollViewer Grid.Row="0" Grid.Column="2">
-                <ui:PropertyGrid x:Name="PropertyGrid"  />
-            </ScrollViewer>            
+                <propertygrid:MainGrid x:Name="EditGrid"  />
+            </ScrollViewer>
 
             <GridSplitter Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" HorizontalAlignment="Stretch"/>
 

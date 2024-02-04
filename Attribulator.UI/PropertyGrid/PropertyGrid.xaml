@@ -1,0 +1,71 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:local="clr-namespace:Attribulator.UI.PropertyGrid">
+    <ControlTemplate x:Key="ItemToggler" TargetType="{x:Type ToggleButton}">
+        <Border Background="Transparent" Height="16" Padding="5" Width="16">
+            <Path x:Name="ExpandPath" Fill="Gray">
+                <Path.Data>
+                    <PathGeometry Figures="M0,0 L0,6 L6,0 z"/>
+                </Path.Data>
+                <Path.RenderTransform>
+                    <RotateTransform Angle="135" CenterY="3" CenterX="3"/>
+                </Path.RenderTransform>
+            </Path>
+        </Border>
+        <ControlTemplate.Triggers>
+            <Trigger Property="IsChecked" Value="True">
+                <Setter Property="RenderTransform" TargetName="ExpandPath">
+                    <Setter.Value>
+                        <RotateTransform Angle="180" CenterY="3" CenterX="3"/>
+                    </Setter.Value>
+                </Setter>
+            </Trigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
+
+    <Style TargetType="{x:Type local:CollapseHeader}">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type local:CollapseHeader}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="2*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <Grid Grid.Column="0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="20px"/>
+                                <ColumnDefinition />
+                            </Grid.ColumnDefinitions>
+
+                            <ToggleButton Grid.Column="0" x:Name="PART_ItemToggler" Template="{StaticResource ItemToggler}" />
+                            <TextBlock Grid.Column="1" x:Name="PART_HeaderText" />
+                        </Grid>
+                        <TextBlock Grid.Column="1" x:Name="PART_ValueText" />
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style TargetType="{x:Type local:PrimitiveItem}">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type local:PrimitiveItem}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="20px"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="2*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Grid.Column="1" x:Name="PART_TextBlock"/>
+                        <TextBox Grid.Column="2" x:Name="PART_TextBox"/>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    
+</ResourceDictionary>
