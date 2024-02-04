@@ -20,6 +20,8 @@ namespace AttribulatorUI
 {
     public partial class MainWindow : Window
     {
+        public static bool UnsavedChanges = false;
+
         private string gameExe;
         private string gameFolder;
 
@@ -28,7 +30,9 @@ namespace AttribulatorUI
         private Database database;
         private IEnumerable<LoadedFile> files;
 
-        private MenuItem[] gameMenuItems;
+        private List<MenuItem> gameMenuItems = new List<MenuItem>();
+
+        private Settings settings;
 
         public MainWindow()
         {
@@ -58,7 +62,34 @@ namespace AttribulatorUI
             Program.LoadStorageFormats(services, serviceProvider);
             Program.LoadPlugins(plugins, serviceProvider);
 
-            this.gameMenuItems = new MenuItem[] { this.MenuItemMostWanted, this.MenuItemCarbon, this.MenuItemProStreet, this.MenuItemUndercover, this.MenuItemWorld };
+            this.settings = new Settings();
+            this.PopulateGameMenuItems();
+        }
+
+        private void PopulateGameMenuItems()
+        {
+            var games = this.settings.Root.Games;
+            foreach (var game in games)
+            {
+                var gameMenuItem = new MenuItem();
+                gameMenuItem.Header = game.Header;
+                gameMenuItem.Tag = game;
+                gameMenuItem.IsChecked = game.Selected;
+                gameMenuItem.Click += MenuItem_Game_Click;
+                this.GamesMenuItem.Items.Add(gameMenuItem);
+                this.gameMenuItems.Add(gameMenuItem);
+            }
+
+            this.CheckSelectedGame();
+        }
+
+        private void CheckSelectedGame()
+        {
+            var selectedGame = this.settings.Root.SelectedGame;
+            if (selectedGame != null && !string.IsNullOrWhiteSpace(selectedGame.ExePath))
+            {
+                this.Open(selectedGame.ExePath);
+            }
         }
 
         private void MenuItem_Open_Click(object sender, RoutedEventArgs e)
@@ -74,18 +105,31 @@ namespace AttribulatorUI
 
                     if (result == Forms.DialogResult.OK)
                     {
-                        this.gameExe = dialog.FileName;
-                        this.gameFolder = System.IO.Path.GetDirectoryName(dialog.FileName);
-                        this.GameFolderLabel.Content = this.gameFolder;
-
-                        var profile = this.GetProfile();
-                        this.database = new Database(new DatabaseOptions(profile.GetGameId(), profile.GetDatabaseType()));
-                        this.files = profile.LoadFiles(database, this.gameFolder + "\\GLOBAL");
-                        this.database.CompleteLoad();
-
-                        this.PopulateTreeView();
+                        this.Open(dialog.FileName);
                     }
                 }
+            }
+        }
+
+        private void Open(string exePath)
+        {
+            this.gameExe = exePath;
+            this.gameFolder = System.IO.Path.GetDirectoryName(exePath);
+            this.GameFolderLabel.Content = this.gameFolder;
+
+            try
+            {
+                var profile = this.GetProfile();
+                this.database = new Database(new DatabaseOptions(profile.GetGameId(), profile.GetDatabaseType()));
+                this.files = profile.LoadFiles(database, this.gameFolder + "\\GLOBAL");
+                this.database.CompleteLoad();
+
+                this.PopulateTreeView();
+                this.settings.Root.SelectedGame.ExePath = this.gameExe;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Error loading game profile", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
         }
 
@@ -101,6 +145,8 @@ namespace AttribulatorUI
 
                 profile.SaveFiles(database, this.gameFolder, files);
             }
+
+            MainWindow.UnsavedChanges = false;
         }
 
         private IProfile GetProfile()
@@ -111,27 +157,32 @@ namespace AttribulatorUI
 
         private string DetectGame()
         {
-            var checkedGame = this.gameMenuItems.FirstOrDefault(x => x.IsChecked);
-            return checkedGame?.Tag as string;
+            var selectedGame = this.settings.Root.Games.FirstOrDefault(x => x.Selected);
+            return selectedGame?.Profile;
         }
 
         private void MenuItem_Exit_Click(object sender, RoutedEventArgs e)
         {
-            if (!this.CheckUnsaved())
+            if (!this.IsUnsaved())
             {
                 this.Close();
             }
         }
 
-        private bool CheckUnsaved()
+        private bool IsUnsaved()
         {
-            // add message box confirmation
-            return true;
+            if (MainWindow.UnsavedChanges)
+            {
+                var result = MessageBox.Show("There are unsaved changes. Do you really want to procede?", "Unsaved changes", MessageBoxButton.YesNo, MessageBoxImage.Question);
+                return result == MessageBoxResult.No;
+            }
+
+            return false;
         }
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            if (!this.CheckUnsaved())
+            if (this.IsUnsaved())
             {
                 e.Cancel = true;
             }
@@ -188,20 +239,39 @@ namespace AttribulatorUI
 
         private void MenuItem_Game_Click(object sender, RoutedEventArgs e)
         {
-            var s = sender as MenuItem;
-            if (this.database != null)
+            var senderItem = sender as MenuItem;
+            if(senderItem.IsChecked)
             {
-                s.IsChecked = false;
+                return;
+            }
+
+            if (this.IsUnsaved())
+            {
                 return;
             }
 
             foreach (var item in gameMenuItems)
             {
                 item.IsChecked = false;
+                (item.Tag as GameSettings).Selected = false;
             }
-
-            s.IsChecked = true;
+            
+            senderItem.IsChecked = true;
+            (senderItem.Tag as GameSettings).Selected = true;
             this.GameFolderLabel.Content = "No game exe selected";
+
+            this.CloseGame();
+
+            this.CheckSelectedGame();
+        }
+
+        private void CloseGame()
+        {
+            this.database = null;
+            this.files = null;
+            MainWindow.UnsavedChanges = false;
+            this.TreeView.Items.Clear();
+            this.EditGrid.Children.Clear();
         }
 
         private void MenuItemGameRun_Click(object sender, RoutedEventArgs e)
@@ -215,6 +285,11 @@ namespace AttribulatorUI
         private void MenuItem_About_Click(object sender, RoutedEventArgs e)
         {
             new AboutWindow().ShowDialog();
+        }
+
+        private void Window_Closed(object sender, EventArgs e)
+        {
+            this.settings.Save();
         }
     }
 }

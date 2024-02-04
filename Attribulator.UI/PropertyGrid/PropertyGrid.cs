@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AttribulatorUI;
+using System;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
@@ -105,6 +106,7 @@ namespace Attribulator.UI.PropertyGrid
                     var result = converter.ConvertFromInvariantString(textBox.Text);
                     this.SetValue(result as IConvertible);
                     this.lastValue = textBox.Text;
+                    MainWindow.UnsavedChanges = true;
                     if (this.parent != null)
                     {
                         this.parent.Update();
