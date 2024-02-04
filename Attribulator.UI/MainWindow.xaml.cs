@@ -8,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -22,12 +23,15 @@ namespace AttribulatorUI
     /// </summary>
     public partial class MainWindow : Window
     {
+        private string gameExe;
         private string gameFolder;
 
         private IServiceProvider serviceProvider;
 
         private Database database;
         private IEnumerable<LoadedFile> files;
+
+        private MenuItem[] gameMenuItems;
 
         public MainWindow()
         {
@@ -56,25 +60,34 @@ namespace AttribulatorUI
             Program.LoadProfiles(services, serviceProvider);
             Program.LoadStorageFormats(services, serviceProvider);
             Program.LoadPlugins(plugins, serviceProvider);
+
+            this.gameMenuItems = new MenuItem[] { this.MenuItemMostWanted, this.MenuItemCarbon, this.MenuItemProStreet, this.MenuItemUndercover, this.MenuItemWorld };
         }
 
         private void MenuItem_Open_Click(object sender, RoutedEventArgs e)
         {
-            using (var dialog = new Forms.FolderBrowserDialog())
+            if (this.gameMenuItems.Any(x => x.IsChecked))
             {
-                Forms.DialogResult result = dialog.ShowDialog();
-
-                if (result == Forms.DialogResult.OK)
+                using (var dialog = new Forms.OpenFileDialog())
                 {
-                    this.gameFolder = dialog.SelectedPath;
-                    this.GameFolderLabel.Content = this.gameFolder;
+                    dialog.Filter = "Game executable|*.exe";
+                    dialog.Title = "Open game executable";
 
-                    var profile = this.GetProfile();
-                    this.database = new Database(new DatabaseOptions(profile.GetGameId(), profile.GetDatabaseType()));
-                    this.files = profile.LoadFiles(database, this.gameFolder + "\\GLOBAL");
-                    this.database.CompleteLoad();
+                    Forms.DialogResult result = dialog.ShowDialog();
 
-                    this.PopulateTreeView();
+                    if (result == Forms.DialogResult.OK)
+                    {
+                        this.gameExe = dialog.FileName;
+                        this.gameFolder = System.IO.Path.GetDirectoryName(dialog.FileName);
+                        this.GameFolderLabel.Content = this.gameFolder;
+
+                        var profile = this.GetProfile();
+                        this.database = new Database(new DatabaseOptions(profile.GetGameId(), profile.GetDatabaseType()));
+                        this.files = profile.LoadFiles(database, this.gameFolder + "\\GLOBAL");
+                        this.database.CompleteLoad();
+
+                        this.PopulateTreeView();
+                    }
                 }
             }
         }
@@ -101,7 +114,8 @@ namespace AttribulatorUI
 
         private string DetectGame()
         {
-            return "CARBON";
+            var checkedGame = this.gameMenuItems.FirstOrDefault(x => x.IsChecked);
+            return checkedGame?.Tag as string;
         }
 
         private void MenuItem_Exit_Click(object sender, RoutedEventArgs e)
@@ -172,6 +186,32 @@ namespace AttribulatorUI
             {
                 var collection = treeViewItem.Collection;
                 this.EditGrid.Display(collection);
+            }
+        }
+
+        private void MenuItem_Game_Click(object sender, RoutedEventArgs e)
+        {
+            var s = sender as MenuItem;
+            if (this.database != null)
+            {
+                s.IsChecked = false;
+                return;
+            }
+
+            foreach (var item in gameMenuItems)
+            {
+                item.IsChecked = false;
+            }
+
+            s.IsChecked = true;
+            this.GameFolderLabel.Content = "No game exe selected";
+        }
+
+        private void MenuItemGameRun_Click(object sender, RoutedEventArgs e)
+        {
+            if (!string.IsNullOrEmpty(this.gameExe))
+            {
+                Process.Start(new ProcessStartInfo(this.gameExe) { WorkingDirectory = this.gameFolder });
             }
         }
     }

@@ -18,10 +18,19 @@
     <DockPanel>
         <Menu DockPanel.Dock="Top">
             <MenuItem Header="File">
-                <MenuItem Header="Open" Click="MenuItem_Open_Click"></MenuItem>
-                <MenuItem Header="Save" Click="MenuItem_Save_Click"></MenuItem>
+                <MenuItem Header="Open" Click="MenuItem_Open_Click"/>
+                <MenuItem Header="Save" Click="MenuItem_Save_Click"/>
                 <Separator />
-                <MenuItem Header="Exit" Click="MenuItem_Exit_Click"></MenuItem>
+                <MenuItem Header="Exit" Click="MenuItem_Exit_Click"/>
+            </MenuItem>
+            <MenuItem Header="Game">
+                <MenuItem Header="Run" Click="MenuItemGameRun_Click"/>
+                <Separator />
+                <MenuItem x:Name="MenuItemMostWanted" Header="Most Wanted" IsCheckable="True" Click="MenuItem_Game_Click" Tag="MOST_WANTED"/>
+                <MenuItem x:Name="MenuItemCarbon" Header="Carbon" IsCheckable="True" Click="MenuItem_Game_Click" Tag="CARBON"/>
+                <MenuItem x:Name="MenuItemProStreet" Header="Pro Street" IsCheckable="True" Click="MenuItem_Game_Click" Tag="PROSTREET"/>
+                <MenuItem x:Name="MenuItemUndercover" Header="Undercover" IsCheckable="True" Click="MenuItem_Game_Click" Tag="UNDERCOVER"/>
+                <MenuItem x:Name="MenuItemWorld" Header="World" IsCheckable="True" Click="MenuItem_Game_Click" Tag="WORLD"/>
             </MenuItem>
         </Menu>
         <Grid DockPanel.Dock="Left">
@@ -51,19 +60,19 @@
 
                 <Border Grid.Column="0" x:Name="EditGridLeftPanel"/>
                 <Border Grid.Column="2" x:Name="EditGridRightPanel"/>
-                
+
                 <ScrollViewer Grid.ColumnSpan="3">
                     <propertygrid:MainGrid x:Name="EditGrid"  />
                 </ScrollViewer>
-                
-                <GridSplitter Grid.Column="1" HorizontalAlignment="Stretch" ResizeDirection="Columns"/>               
+
+                <GridSplitter Grid.Column="1" HorizontalAlignment="Stretch" ResizeDirection="Columns"/>
             </Grid>
 
             <GridSplitter Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" HorizontalAlignment="Stretch"/>
 
-            <TextBox Grid.Row="2" Grid.Column="2"></TextBox>
+            <TextBox Grid.Row="2" Grid.Column="2" IsEnabled="False"></TextBox>
 
-            <Label x:Name="GameFolderLabel" Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="3">No game folder selected</Label>
+            <Label x:Name="GameFolderLabel" Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="3">No game selected</Label>
         </Grid>
     </DockPanel>
 </Window>
