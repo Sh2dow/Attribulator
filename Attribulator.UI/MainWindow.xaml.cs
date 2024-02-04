@@ -39,25 +39,17 @@ namespace AttribulatorUI
             InitializeComponent();
 
             // Setup
-
             var services = new ServiceCollection();
             var loaders = Program.GetPluginLoaders();
 
             // Register services
-            services.AddSingleton<ICommandService, CommandServiceImpl>();
             services.AddSingleton<IProfileService, ProfileServiceImpl>();
             services.AddSingleton<IStorageFormatService, StorageFormatServiceImpl>();
             services.AddSingleton<IPluginService, PluginServiceImpl>();
 
-            // Set up logging
-            Log.Logger = new LoggerConfiguration().MinimumLevel.Debug().WriteTo.Console().CreateLogger();
-            services.AddLogging(loggingBuilder => loggingBuilder.AddSerilog(dispose: true));
-
             var plugins = Program.ConfigurePlugins(services, loaders);
             serviceProvider = services.BuildServiceProvider();
 
-            // Load everything from DI container
-            Program.LoadCommands(services, serviceProvider);
             Program.LoadProfiles(services, serviceProvider);
             Program.LoadStorageFormats(services, serviceProvider);
             Program.LoadPlugins(plugins, serviceProvider);
