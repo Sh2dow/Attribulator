@@ -42,9 +42,22 @@
 
             <GridSplitter Grid.Column="1" HorizontalAlignment="Stretch" Grid.RowSpan="3" ResizeDirection="Columns"/>
 
-            <ScrollViewer Grid.Row="0" Grid.Column="2">
-                <propertygrid:MainGrid x:Name="EditGrid"  />
-            </ScrollViewer>
+            <Grid Grid.Row="0" Grid.Column="2">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="5"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <Border Grid.Column="0" x:Name="EditGridLeftPanel"/>
+                <Border Grid.Column="2" x:Name="EditGridRightPanel"/>
+                
+                <ScrollViewer Grid.ColumnSpan="3">
+                    <propertygrid:MainGrid x:Name="EditGrid"  />
+                </ScrollViewer>
+                
+                <GridSplitter Grid.Column="1" HorizontalAlignment="Stretch" ResizeDirection="Columns"/>               
+            </Grid>
 
             <GridSplitter Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" HorizontalAlignment="Stretch"/>
 

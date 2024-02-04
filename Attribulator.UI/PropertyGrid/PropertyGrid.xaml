@@ -29,8 +29,8 @@
                 <ControlTemplate TargetType="{x:Type local:CollapseHeader}">
                     <Grid>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="2*"/>
+                            <ColumnDefinition Width="{Binding ActualWidth, ElementName=EditGridLeftPanel}"/>
+                            <ColumnDefinition Width="{Binding ActualWidth, ElementName=EditGridRightPanel}"/>
                         </Grid.ColumnDefinitions>
 
                         <Grid Grid.Column="0">
@@ -42,7 +42,7 @@
                             <ToggleButton Grid.Column="0" x:Name="PART_ItemToggler" Template="{StaticResource ItemToggler}" />
                             <TextBlock Grid.Column="1" x:Name="PART_HeaderText" />
                         </Grid>
-                        <TextBlock Grid.Column="1" x:Name="PART_ValueText" />
+                        <TextBlock Grid.Column="1" x:Name="PART_ValueText" Margin="10,0,0,0"/>
                     </Grid>
                 </ControlTemplate>
             </Setter.Value>
@@ -55,13 +55,12 @@
                 <ControlTemplate TargetType="{x:Type local:PrimitiveItem}">
                     <Grid>
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="20px"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="2*"/>
+                            <ColumnDefinition Width="{Binding ActualWidth, ElementName=EditGridLeftPanel}"/>
+                            <ColumnDefinition Width="{Binding ActualWidth, ElementName=EditGridRightPanel}"/>
                         </Grid.ColumnDefinitions>
 
-                        <TextBlock Grid.Column="1" x:Name="PART_TextBlock"/>
-                        <TextBox Grid.Column="2" x:Name="PART_TextBox"/>
+                        <TextBlock Grid.Column="0" x:Name="PART_TextBlock"/>
+                        <TextBox Grid.Column="1" x:Name="PART_TextBox" Margin="10,0,0,0"/>
                     </Grid>
                 </ControlTemplate>
             </Setter.Value>
