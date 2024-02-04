@@ -2,10 +2,10 @@
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
-using System.Xml.Linq;
 using VaultLib.Core.Data;
 
 namespace Attribulator.UI.PropertyGrid
@@ -63,41 +63,38 @@ namespace Attribulator.UI.PropertyGrid
         void Update();
     }
 
-    public class PrimitiveItem : Control
+    public abstract class BaseEditItem : Control
     {
         private string name;
-        private VaultLib.Core.Types.EA.Reflection.PrimitiveTypeBase prop;
-        private TextBox textBox;
         private string lastValue;
         private IParent parent;
 
-        public PrimitiveItem(IParent parent, string name, VaultLib.Core.Types.EA.Reflection.PrimitiveTypeBase prop)
+        public BaseEditItem(IParent parent, string name)
         {
-            this.name = name;
-            this.prop = prop;
             this.parent = parent;
+            this.name = name;
         }
 
         public override void OnApplyTemplate()
         {
             base.OnApplyTemplate();
 
-            var headerText = GetTemplateChild("PART_TextBlock") as TextBlock;
+            var headerText = this.GetTemplateChild("PART_TextBlock") as TextBlock;
             headerText.Text = this.name;
 
-            this.textBox = GetTemplateChild("PART_TextBox") as TextBox;
-            var val = this.prop.GetValue();
-            this.textBox.Text = val.ToString(System.Globalization.CultureInfo.InvariantCulture);
-            this.lastValue = this.textBox.Text;
-            this.textBox.LostFocus += (s, e) =>
+            TextBox textBox = this.GetTemplateChild("PART_TextBox") as TextBox;
+            var val = this.GetValue();
+            textBox.Text = val.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            this.lastValue = textBox.Text;
+            textBox.LostFocus += (s, e) =>
             {
                 var textBox = s as TextBox;
-                var type = this.prop.GetValue().GetType();
+                var type = this.GetValue().GetType();
                 try
                 {
                     var converter = TypeDescriptor.GetConverter(type);
                     var result = converter.ConvertFromInvariantString(textBox.Text);
-                    this.prop.SetValue(result as IConvertible);
+                    this.SetValue(result as IConvertible);
                     this.lastValue = textBox.Text;
                     if (this.parent != null)
                     {
@@ -110,6 +107,51 @@ namespace Attribulator.UI.PropertyGrid
                     textBox.Text = this.lastValue;
                 }
             };
+        }
+
+        public abstract IConvertible GetValue();
+        public abstract void SetValue(IConvertible value);
+    }
+
+    public class PrimitiveItem : BaseEditItem
+    {
+        private VaultLib.Core.Types.EA.Reflection.PrimitiveTypeBase prop;
+
+        public PrimitiveItem(IParent parent, string name, VaultLib.Core.Types.EA.Reflection.PrimitiveTypeBase prop) : base(parent, name)
+        {
+            this.prop = prop;
+        }
+
+        public override IConvertible GetValue()
+        {
+            return this.prop.GetValue();
+        }
+
+        public override void SetValue(IConvertible value)
+        {
+            this.prop.SetValue(value);
+        }
+    }
+
+    public class PropertyItem : BaseEditItem
+    {
+        private VaultLib.Core.Types.VLTBaseType prop;
+        PropertyInfo propertyInfo;
+
+        public PropertyItem(IParent parent, PropertyInfo propertyInfo, VaultLib.Core.Types.VLTBaseType prop) : base(parent, propertyInfo.Name)
+        {
+            this.prop = prop;
+            this.propertyInfo = propertyInfo;
+        }
+
+        public override IConvertible GetValue()
+        {
+            return this.propertyInfo.GetValue(this.prop) as IConvertible;
+        }
+
+        public override void SetValue(IConvertible value)
+        {
+            this.propertyInfo.SetValue(this.prop, value);
         }
     }
 
@@ -164,8 +206,7 @@ namespace Attribulator.UI.PropertyGrid
             var props = prop.GetType().GetProperties();
             for (int i = 0; i < props.Length; i++)
             {
-                var property = props[i];
-                this.AddChild(new TextBlock { Text = property.Name });
+                this.AddChild(new PropertyItem(this, props[i], prop));
             }
         }
     }
