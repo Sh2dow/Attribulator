@@ -188,7 +188,7 @@ namespace Attribulator.UI.PropertyGrid
             this.collapsePanel.Visibility = Visibility.Collapsed;
         }
 
-        public void Update()
+        public virtual void Update()
         {
             this.headerItem.UpdateValueText(this.prop.ToString());
         }
@@ -196,18 +196,23 @@ namespace Attribulator.UI.PropertyGrid
 
     public class ClassItem : CollapseItem
     {
-        private CollapseHeader headerItem;
         private IParent parent;
 
         public ClassItem(IParent parent, string name, VaultLib.Core.Types.VLTBaseType prop) : base(prop, name, prop.ToString())
         {
-            this.headerItem = new CollapseHeader(this, name, prop.ToString());
+            this.parent = parent;
 
             var props = prop.GetType().GetProperties();
             for (int i = 0; i < props.Length; i++)
             {
                 this.AddChild(new PropertyItem(this, props[i], prop));
             }
+        }
+
+        public override void Update()
+        {
+            base.Update();
+            this.parent.Update();
         }
     }
 
