@@ -29,26 +29,32 @@ namespace Attribulator.UI.PropertyGrid
 
         private IExpandCollapse parent;
 
-        public CollapseHeader(IExpandCollapse parent, string headerName, string value)
+        private int padding;
+
+        public CollapseHeader(IExpandCollapse parent, string headerName, string value, int padding)
         {
             this.name = headerName;
             this.value = value;
             this.parent = parent;
+            this.padding = padding;
         }
 
         public override void OnApplyTemplate()
         {
             base.OnApplyTemplate();
 
-            this.toggleButton = GetTemplateChild("PART_ItemToggler") as ToggleButton;
+            this.toggleButton = this.GetTemplateChild("PART_ItemToggler") as ToggleButton;
             this.toggleButton.Checked += (s, e) => this.parent.Expand();
             this.toggleButton.Unchecked += (s, e) => this.parent.Collapse();
 
-            var headerText = GetTemplateChild("PART_HeaderText") as TextBlock;
+            var headerText = this.GetTemplateChild("PART_HeaderText") as TextBlock;
             headerText.Text = this.name;
 
-            this.valueTextBlock = GetTemplateChild("PART_ValueText") as TextBlock;
+            this.valueTextBlock = this.GetTemplateChild("PART_ValueText") as TextBlock;
             this.valueTextBlock.Text = this.value;
+
+            var paddingColumn = this.GetTemplateChild("PART_Padding") as ColumnDefinition;
+            paddingColumn.Width = new GridLength(this.padding, GridUnitType.Pixel);
         }
 
         public void UpdateValueText(string value)
@@ -68,11 +74,13 @@ namespace Attribulator.UI.PropertyGrid
         private string name;
         private string lastValue;
         private IParent parent;
+        private int padding;
 
-        public BaseEditItem(IParent parent, string name)
+        public BaseEditItem(IParent parent, string name, int padding)
         {
             this.parent = parent;
             this.name = name;
+            this.padding = padding;
         }
 
         public override void OnApplyTemplate()
@@ -81,6 +89,7 @@ namespace Attribulator.UI.PropertyGrid
 
             var headerText = this.GetTemplateChild("PART_TextBlock") as TextBlock;
             headerText.Text = this.name;
+            headerText.Padding = new Thickness(this.padding, 0, 0, 0);
 
             TextBox textBox = this.GetTemplateChild("PART_TextBox") as TextBox;
             var val = this.GetValue();
@@ -117,7 +126,7 @@ namespace Attribulator.UI.PropertyGrid
     {
         private VaultLib.Core.Types.EA.Reflection.PrimitiveTypeBase prop;
 
-        public PrimitiveItem(IParent parent, string name, VaultLib.Core.Types.EA.Reflection.PrimitiveTypeBase prop) : base(parent, name)
+        public PrimitiveItem(IParent parent, string name, VaultLib.Core.Types.EA.Reflection.PrimitiveTypeBase prop, int padding) : base(parent, name, padding)
         {
             this.prop = prop;
         }
@@ -138,7 +147,7 @@ namespace Attribulator.UI.PropertyGrid
         private VaultLib.Core.Types.VLTBaseType prop;
         PropertyInfo propertyInfo;
 
-        public PropertyItem(IParent parent, PropertyInfo propertyInfo, VaultLib.Core.Types.VLTBaseType prop) : base(parent, propertyInfo.Name)
+        public PropertyItem(IParent parent, PropertyInfo propertyInfo, VaultLib.Core.Types.VLTBaseType prop, int padding) : base(parent, propertyInfo.Name, padding)
         {
             this.prop = prop;
             this.propertyInfo = propertyInfo;
@@ -161,11 +170,11 @@ namespace Attribulator.UI.PropertyGrid
         private StackPanel collapsePanel;
         private object prop;
 
-        public CollapseItem(object prop, string name, string value)
+        public CollapseItem(object prop, string name, string value, int padding)
         {
             this.prop = prop;
             this.collapsePanel = new StackPanel();
-            this.headerItem = new CollapseHeader(this, name, value);
+            this.headerItem = new CollapseHeader(this, name, value, padding);
 
             this.Children.Add(this.headerItem);
             this.Children.Add(this.collapsePanel);
@@ -198,14 +207,14 @@ namespace Attribulator.UI.PropertyGrid
     {
         private IParent parent;
 
-        public ClassItem(IParent parent, string name, VaultLib.Core.Types.VLTBaseType prop) : base(prop, name, prop.ToString())
+        public ClassItem(IParent parent, string name, VaultLib.Core.Types.VLTBaseType prop, int padding) : base(prop, name, prop.ToString(), padding)
         {
             this.parent = parent;
 
             var props = prop.GetType().GetProperties();
             for (int i = 0; i < props.Length; i++)
             {
-                this.AddChild(new PropertyItem(this, props[i], prop));
+                this.AddChild(new PropertyItem(this, props[i], prop, padding + 21));
             }
         }
 
@@ -221,7 +230,9 @@ namespace Attribulator.UI.PropertyGrid
 
     public class ArrayItem : CollapseItem
     {
-        public ArrayItem(string name, VaultLib.Core.Types.VLTArrayType prop) : base(prop, name, prop.ToString())
+        private int padding;
+
+        public ArrayItem(string name, VaultLib.Core.Types.VLTArrayType prop, int padding) : base(prop, name, prop.ToString(), padding)
         {
             for (int i = 0; i < prop.Items.Count; i++)
             {
@@ -229,11 +240,11 @@ namespace Attribulator.UI.PropertyGrid
                 if (prop.ItemType.IsSubclassOf(typeof(VaultLib.Core.Types.EA.Reflection.PrimitiveTypeBase)))
                 {
                     var primitive = prop.Items[i] as VaultLib.Core.Types.EA.Reflection.PrimitiveTypeBase;
-                    this.AddChild(new PrimitiveItem(this, itemName, primitive));
+                    this.AddChild(new PrimitiveItem(this, itemName, primitive, this.padding + 21));
                 }
                 else
                 {
-                    this.AddChild(new ClassItem(this, itemName, prop.Items[i]));
+                    this.AddChild(new ClassItem(this, itemName, prop.Items[i], this.padding + 21));
                 }
             }
         }
@@ -255,15 +266,15 @@ namespace Attribulator.UI.PropertyGrid
                     var type = property.Value;
                     if (type is VaultLib.Core.Types.VLTArrayType)
                     {
-                        child = new ArrayItem(property.Key, type as VaultLib.Core.Types.VLTArrayType);
+                        child = new ArrayItem(property.Key, type as VaultLib.Core.Types.VLTArrayType, 0);
                     }
                     else if (type is VaultLib.Core.Types.EA.Reflection.PrimitiveTypeBase)
                     {
-                        child = new PrimitiveItem(null, property.Key, type as VaultLib.Core.Types.EA.Reflection.PrimitiveTypeBase);
+                        child = new PrimitiveItem(null, property.Key, type as VaultLib.Core.Types.EA.Reflection.PrimitiveTypeBase, 21);
                     }
                     else if (type is VaultLib.Core.Types.VLTBaseType)
                     {
-                        child = new ClassItem(null, property.Key, type);
+                        child = new ClassItem(null, property.Key, type, 0);
                     }
 
                     if (child != null)
