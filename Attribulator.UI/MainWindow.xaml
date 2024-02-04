@@ -5,7 +5,8 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:AttribulatorUI" xmlns:ui="clr-namespace:Attribulator.UI" xmlns:propertygrid="clr-namespace:Attribulator.UI.PropertyGrid"
         mc:Ignorable="d"
-        Title="Attribulator" Height="450" Width="800" Closing="Window_Closing">
+        WindowStartupLocation="CenterScreen"
+        Title="Attribulator" Height="768" Width="1024" Closing="Window_Closing">
 
     <Window.Resources>
         <ResourceDictionary>
@@ -32,6 +33,7 @@
                 <MenuItem x:Name="MenuItemUndercover" Header="Undercover" IsCheckable="True" Click="MenuItem_Game_Click" Tag="UNDERCOVER"/>
                 <MenuItem x:Name="MenuItemWorld" Header="World" IsCheckable="True" Click="MenuItem_Game_Click" Tag="WORLD"/>
             </MenuItem>
+            <MenuItem Header="About" Click="MenuItem_About_Click" />
         </Menu>
         <Grid DockPanel.Dock="Left">
             <Grid.RowDefinitions>

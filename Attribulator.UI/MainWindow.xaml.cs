@@ -18,9 +18,6 @@ using Forms = System.Windows.Forms;
 
 namespace AttribulatorUI
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
     public partial class MainWindow : Window
     {
         private string gameExe;
@@ -213,6 +210,11 @@ namespace AttribulatorUI
             {
                 Process.Start(new ProcessStartInfo(this.gameExe) { WorkingDirectory = this.gameFolder });
             }
+        }
+
+        private void MenuItem_About_Click(object sender, RoutedEventArgs e)
+        {
+            new AboutWindow().ShowDialog();
         }
     }
 }
