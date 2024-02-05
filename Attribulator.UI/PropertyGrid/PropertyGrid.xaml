@@ -112,10 +112,50 @@
         </Setter>
     </Style>
 
+    <Style TargetType="{x:Type local:PropertyBoolItem}">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type local:PropertyBoolItem}">
+                    <Border BorderThickness="0 0 0 1" BorderBrush="LightGray">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="{Binding ActualWidth, ElementName=EditGridLeftPanel}"/>
+                                <ColumnDefinition Width="{Binding ActualWidth, ElementName=EditGridRightPanel}"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Grid.Column="0" x:Name="PART_TextBlock"/>
+                            <CheckBox Grid.Column="1" x:Name="PART_CheckBox" Margin="10,0,0,0"/>
+                        </Grid>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
     <Style TargetType="{x:Type local:PrimitiveEnumItem}">
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type local:PrimitiveEnumItem}">
+                    <Border BorderThickness="0 0 0 1" BorderBrush="LightGray">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="{Binding ActualWidth, ElementName=EditGridLeftPanel}"/>
+                                <ColumnDefinition Width="{Binding ActualWidth, ElementName=EditGridRightPanel}"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Grid.Column="0" x:Name="PART_TextBlock" VerticalAlignment="Center"/>
+                            <ComboBox Grid.Column="1" x:Name="PART_ComboBox" BorderThickness="0" FontWeight="Bold"/>
+                        </Grid>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style TargetType="{x:Type local:PropertyEnumItem}">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type local:PropertyEnumItem}">
                     <Border BorderThickness="0 0 0 1" BorderBrush="LightGray">
                         <Grid>
                             <Grid.ColumnDefinitions>

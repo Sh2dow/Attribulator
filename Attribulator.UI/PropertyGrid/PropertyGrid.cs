@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
+using System.Xml.Linq;
 using VaultLib.Core.Data;
 
 namespace Attribulator.UI.PropertyGrid
@@ -141,19 +142,17 @@ namespace Attribulator.UI.PropertyGrid
         }
     }
 
-    public class PrimitiveBoolItem : Control
+    public abstract class BaseBoolItem : Control
     {
         private string name;
         private IParent parent;
         private int padding;
-        private VaultLib.Core.Types.EA.Reflection.Bool prop;
 
-        public PrimitiveBoolItem(IParent parent, string name, VaultLib.Core.Types.EA.Reflection.Bool prop, int padding)
+        public BaseBoolItem(IParent parent, string name, int padding)
         {
             this.parent = parent;
             this.name = name;
             this.padding = padding;
-            this.prop = prop;
         }
 
         public override void OnApplyTemplate()
@@ -165,25 +164,69 @@ namespace Attribulator.UI.PropertyGrid
             headerText.Padding = new Thickness(this.padding, 0, 0, 0);
 
             var checkBox = this.GetTemplateChild("PART_CheckBox") as CheckBox;
-            checkBox.IsChecked = this.prop.Value;
-            checkBox.Checked += (s, e) => { this.prop.Value = true; this.parent?.Update(); };
-            checkBox.Unchecked += (s, e) => { this.prop.Value = false; this.parent?.Update(); };
+            checkBox.IsChecked = this.GetValue();
+            checkBox.Checked += (s, e) => { this.SetValue(true); this.parent?.Update(); };
+            checkBox.Unchecked += (s, e) => { this.SetValue(false); this.parent?.Update(); };
+        }
+
+        public abstract bool GetValue();
+
+        public abstract void SetValue(bool val);
+    }
+
+    public class PrimitiveBoolItem : BaseBoolItem
+    {
+        private VaultLib.Core.Types.EA.Reflection.Bool prop;
+
+        public PrimitiveBoolItem(IParent parent, string name, VaultLib.Core.Types.EA.Reflection.Bool prop, int padding) : base(parent, name, padding)
+        {
+            this.prop = prop;
+        }
+
+        public override bool GetValue()
+        {
+            return this.prop.Value;
+        }
+
+        public override void SetValue(bool val)
+        {
+            this.prop.Value = val;
         }
     }
 
-    public class PrimitiveEnumItem : Control
+    public class PropertyBoolItem : BaseBoolItem
+    {
+        private VaultLib.Core.Types.VLTBaseType prop;
+        private PropertyInfo propertyInfo;
+
+        public PropertyBoolItem(IParent parent, PropertyInfo propertyInfo, VaultLib.Core.Types.VLTBaseType prop, int padding) : base(parent, propertyInfo.Name, padding)
+        {
+            this.prop = prop;
+            this.propertyInfo = propertyInfo;
+        }
+
+        public override bool GetValue()
+        {
+            return (bool)this.propertyInfo.GetValue(this.prop);
+        }
+
+        public override void SetValue(bool value)
+        {
+            this.propertyInfo.SetValue(this.prop, value);
+        }
+    }
+
+    public abstract class BaseEnumItem : Control
     {
         private string name;
         private IParent parent;
         private int padding;
-        private VaultLib.Core.Types.EA.Reflection.PrimitiveTypeBase prop;
 
-        public PrimitiveEnumItem(IParent parent, string name, VaultLib.Core.Types.EA.Reflection.PrimitiveTypeBase prop, int padding)
+        public BaseEnumItem(IParent parent, string name, int padding)
         {
             this.parent = parent;
             this.name = name;
             this.padding = padding;
-            this.prop = prop;
         }
 
         public override void OnApplyTemplate()
@@ -195,7 +238,7 @@ namespace Attribulator.UI.PropertyGrid
             headerText.Padding = new Thickness(this.padding, 0, 0, 0);
 
             var comboBox = this.GetTemplateChild("PART_ComboBox") as ComboBox;
-            var val = this.prop.GetValue();
+            var val = this.GetValue();
             var type = val.GetType();
             var enumNames = type.GetEnumNames();
             foreach (var enumName in enumNames)
@@ -206,16 +249,62 @@ namespace Attribulator.UI.PropertyGrid
             comboBox.SelectionChanged += (s, e) =>
             {
                 var item = comboBox.SelectedItem as ComboBoxItem;
-                this.prop.SetValue(Enum.Parse(type, item.Content as string) as IConvertible);
+                this.SetValue(Enum.Parse(type, item.Content as string) as Enum);
                 this.parent?.Update();
             };
+        }
+
+        public abstract Enum GetValue();
+
+        public abstract void SetValue(Enum val);
+    }
+
+    public class PrimitiveEnumItem : BaseEnumItem
+    {
+        private VaultLib.Core.Types.EA.Reflection.PrimitiveTypeBase prop;
+
+        public PrimitiveEnumItem(IParent parent, string name, VaultLib.Core.Types.EA.Reflection.PrimitiveTypeBase prop, int padding) : base(parent, name, padding)
+        {
+            this.prop = prop;
+        }
+
+        public override Enum GetValue()
+        {
+            return this.prop.GetValue() as Enum;
+        }
+
+        public override void SetValue(Enum val)
+        {
+            this.prop.SetValue(val);
+        }
+    }
+
+    public class PropertyEnumItem : BaseEnumItem
+    {
+        private VaultLib.Core.Types.VLTBaseType prop;
+        private PropertyInfo propertyInfo;
+
+        public PropertyEnumItem(IParent parent, PropertyInfo propertyInfo, VaultLib.Core.Types.VLTBaseType prop, int padding) : base(parent, propertyInfo.Name, padding)
+        {
+            this.prop = prop;
+            this.propertyInfo = propertyInfo;
+        }
+
+        public override Enum GetValue()
+        {
+            return (Enum)this.propertyInfo.GetValue(this.prop);
+        }
+
+        public override void SetValue(Enum value)
+        {
+            this.propertyInfo.SetValue(this.prop, value);
         }
     }
 
     public class PropertyItem : BaseEditItem
     {
         private VaultLib.Core.Types.VLTBaseType prop;
-        PropertyInfo propertyInfo;
+        private PropertyInfo propertyInfo;
 
         public PropertyItem(IParent parent, PropertyInfo propertyInfo, VaultLib.Core.Types.VLTBaseType prop, int padding) : base(parent, propertyInfo.Name, padding)
         {
@@ -281,18 +370,27 @@ namespace Attribulator.UI.PropertyGrid
         {
             this.parent = parent;
 
-            var props = prop.GetType().GetProperties();
-            for (int i = 0; i < props.Length; i++)
+            var props = prop.GetType().GetProperties().OrderBy(x => x.Name).ToList();
+            for (int i = 0; i < props.Count; i++)
             {
                 var pi = props[i];
                 var type = pi.PropertyType;
+                int subPadding = padding + 40;
                 if (type.IsSubclassOf(typeof(VaultLib.Core.Types.VLTBaseType)))
                 {
-                    this.AddChild(new ClassItem(this, pi.Name, pi.GetValue(prop) as VaultLib.Core.Types.VLTBaseType, padding + 21));
+                    this.AddChild(new ClassItem(this, pi.Name, pi.GetValue(prop) as VaultLib.Core.Types.VLTBaseType, subPadding));
+                }
+                else if (type == typeof(bool))
+                {
+                    this.AddChild(new PropertyBoolItem(this, pi, prop, subPadding));
+                }
+                else if (type.IsEnum)
+                {
+                    this.AddChild(new PropertyEnumItem(this, pi, prop, subPadding));
                 }
                 else
                 {
-                    this.AddChild(new PropertyItem(this, pi, prop, padding + 21));
+                    this.AddChild(new PropertyItem(this, pi, prop, subPadding));
                 }
             }
         }
