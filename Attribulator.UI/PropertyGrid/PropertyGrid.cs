@@ -6,6 +6,24 @@ using VaultLib.Core.Data;
 
 namespace Attribulator.UI.PropertyGrid
 {
+    public static class GridHelper
+    {
+        public static Control ResolvePrimitiveItem(IParent parent, string name, VaultLib.Core.Types.EA.Reflection.PrimitiveTypeBase prop, int padding)
+        {
+            if (prop is VaultLib.Core.Types.EA.Reflection.Bool)
+            {
+                return new PrimitiveBoolItem(parent, name, prop as VaultLib.Core.Types.EA.Reflection.Bool, padding);
+            }
+
+            if (prop.GetType().IsGenericType && prop.GetType().GetGenericTypeDefinition() == typeof(VaultLib.Core.Types.VLTEnumType<>))
+            {
+                return new PrimitiveEnumItem(parent, name, prop, padding);
+            }
+
+            return new PrimitiveItem(parent, name, prop, padding);
+        }
+    }
+
     public class ClassItem : CollapseItem
     {
         private IParent parent;
@@ -34,7 +52,7 @@ namespace Attribulator.UI.PropertyGrid
                 }
                 else if (type.IsArray)
                 {
-
+                    this.AddChild(new PropertyArrayItem(this, pi, prop, subPadding));
                 }
                 else
                 {
@@ -65,7 +83,7 @@ namespace Attribulator.UI.PropertyGrid
                 if (prop.ItemType.IsSubclassOf(typeof(VaultLib.Core.Types.EA.Reflection.PrimitiveTypeBase)))
                 {
                     var primitive = prop.Items[i] as VaultLib.Core.Types.EA.Reflection.PrimitiveTypeBase;
-                    this.AddChild(MainGrid.ResolvePrimitiveItem(this, itemName, primitive, this.padding + 21));
+                    this.AddChild(GridHelper.ResolvePrimitiveItem(this, itemName, primitive, this.padding + 21));
                 }
                 else
                 {
@@ -77,21 +95,6 @@ namespace Attribulator.UI.PropertyGrid
 
     public class MainGrid : StackPanel
     {
-        public static Control ResolvePrimitiveItem(IParent parent, string name, VaultLib.Core.Types.EA.Reflection.PrimitiveTypeBase prop, int padding)
-        {
-            if (prop is VaultLib.Core.Types.EA.Reflection.Bool)
-            {
-                return new PrimitiveBoolItem(parent, name, prop as VaultLib.Core.Types.EA.Reflection.Bool, padding);
-            }
-
-            if (prop.GetType().IsGenericType && prop.GetType().GetGenericTypeDefinition() == typeof(VaultLib.Core.Types.VLTEnumType<>))
-            {
-                return new PrimitiveEnumItem(parent, name, prop, padding);
-            }
-
-            return new PrimitiveItem(parent, name, prop, padding);
-        }
-
         public void Display(VltCollection collection)
         {
             this.Children.Clear();
@@ -102,15 +105,15 @@ namespace Attribulator.UI.PropertyGrid
 
                 foreach (var property in properties)
                 {
-                    UIElement child = null;
                     var type = property.Value;
+                    UIElement child = null;
                     if (type is VaultLib.Core.Types.VLTArrayType)
                     {
                         child = new ArrayItem(property.Key, type as VaultLib.Core.Types.VLTArrayType, 0);
                     }
                     else if (type is VaultLib.Core.Types.EA.Reflection.PrimitiveTypeBase)
                     {
-                        child = ResolvePrimitiveItem(null, property.Key, type as VaultLib.Core.Types.EA.Reflection.PrimitiveTypeBase, 21);
+                        child = GridHelper.ResolvePrimitiveItem(null, property.Key, type as VaultLib.Core.Types.EA.Reflection.PrimitiveTypeBase, 21);
                     }
                     else if (type is VaultLib.Core.Types.VLTBaseType)
                     {

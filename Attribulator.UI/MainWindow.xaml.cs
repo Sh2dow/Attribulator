@@ -165,7 +165,7 @@ namespace AttribulatorUI
         {
             if (MainWindow.UnsavedChanges)
             {
-                var result = MessageBox.Show("There are unsaved changes. Do you really want to procede?", "Unsaved changes", MessageBoxButton.YesNo, MessageBoxImage.Question);
+                var result = MessageBox.Show("There are unsaved changes. Do you really want to proceed?", "Unsaved changes", MessageBoxButton.YesNo, MessageBoxImage.Question);
                 return result == MessageBoxResult.No;
             }
 
