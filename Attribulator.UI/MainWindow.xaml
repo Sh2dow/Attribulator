@@ -20,14 +20,28 @@
         <Menu DockPanel.Dock="Top">
             <MenuItem Header="File">
                 <MenuItem Header="Open" Click="MenuItem_Open_Click"/>
+                <MenuItem Header="Reload" Click="MenuItem_Reload_Click" />
                 <MenuItem Header="Save" Click="MenuItem_Save_Click"/>
+                <Separator />
+                <MenuItem Header="Import ModScript"/>
+                <MenuItem Header="Export ModScript"/>
                 <Separator />
                 <MenuItem Header="Exit" Click="MenuItem_Exit_Click"/>
             </MenuItem>
             <MenuItem x:Name="GamesMenuItem" Header="Game">
                 <MenuItem Header="Run" Click="MenuItemGameRun_Click"/>
                 <Separator />
-
+                <!--Here go games from settings-->
+            </MenuItem>
+            <MenuItem Header="Script">
+                <MenuItem Header="Execute current line"/>
+                <MenuItem Header="Execute all"/>
+                <Separator />
+                <MenuItem Header="Clear"/>
+            </MenuItem>
+            <MenuItem Header="Backup">
+                <MenuItem Header="Create" Click="MenuItem_CreateBackup_Click" ToolTip="Creates backup of currently loaded files, make sure to save changes if you want them in the backup"/>
+                <MenuItem Header="Restore latest" Click="MenuItem_RestoreBackup_Click"/>
             </MenuItem>
             <MenuItem Header="About" Click="MenuItem_About_Click" />
         </Menu>
@@ -68,7 +82,7 @@
 
             <GridSplitter Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" HorizontalAlignment="Stretch"/>
 
-            <TextBox Grid.Row="2" Grid.Column="2" IsEnabled="False"></TextBox>
+            <RichTextBox Grid.Row="2" Grid.Column="2"></RichTextBox>
 
             <Label x:Name="GameFolderLabel" Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="3">No game selected</Label>
         </Grid>

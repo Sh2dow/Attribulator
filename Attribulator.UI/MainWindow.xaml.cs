@@ -9,6 +9,7 @@ using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -232,7 +233,7 @@ namespace AttribulatorUI
         private void MenuItem_Game_Click(object sender, RoutedEventArgs e)
         {
             var senderItem = sender as MenuItem;
-            if(senderItem.IsChecked)
+            if (senderItem.IsChecked)
             {
                 return;
             }
@@ -247,7 +248,7 @@ namespace AttribulatorUI
                 item.IsChecked = false;
                 (item.Tag as GameSettings).Selected = false;
             }
-            
+
             senderItem.IsChecked = true;
             (senderItem.Tag as GameSettings).Selected = true;
             this.GameFolderLabel.Content = "No game exe selected";
@@ -259,6 +260,8 @@ namespace AttribulatorUI
 
         private void CloseGame()
         {
+            this.gameExe = null;
+            this.gameFolder = null;
             this.database = null;
             this.files = null;
             MainWindow.UnsavedChanges = false;
@@ -282,6 +285,57 @@ namespace AttribulatorUI
         private void Window_Closed(object sender, EventArgs e)
         {
             this.settings.Save();
+        }
+
+        private void MenuItem_Reload_Click(object sender, RoutedEventArgs e)
+        {
+            if (!string.IsNullOrEmpty(this.gameExe))
+            {
+                var gameExe = this.gameExe;
+                this.CloseGame();
+                this.Open(gameExe);
+            }
+        }
+
+        private void MenuItem_CreateBackup_Click(object sender, RoutedEventArgs e)
+        {
+            if (this.files != null && this.files.Any() && !string.IsNullOrEmpty(this.gameFolder))
+            {
+                var targetPath = Path.Combine(this.gameFolder, "GLOBAL", "AttribulatorBackups", DateTime.Now.ToString("yyyy-MM-dd-H-m-ss"));
+                Directory.CreateDirectory(targetPath);
+
+                foreach (var file in this.files)
+                {
+                    var extensions = new[] { ".bin", ".lzc" };
+                    foreach (var extension in extensions)
+                    {
+                        var original = Path.Combine(this.gameFolder, "GLOBAL", file.Name + extension);
+                        if (File.Exists(original))
+                        {
+                            File.Copy(original, Path.Combine(targetPath, file.Name + extension));
+                        }
+                    }
+                }
+            }
+        }
+
+        private void MenuItem_RestoreBackup_Click(object sender, RoutedEventArgs e)
+        {
+            var backupsDir = Path.Combine(this.gameFolder, "GLOBAL", "AttribulatorBackups");
+            if (Directory.Exists(backupsDir))
+            {
+                var dirs = Directory.GetDirectories(backupsDir);
+                if (dirs.Length > 0)
+                {
+                    string backup = dirs.OrderByDescending(x => Path.GetFileName(x)).First();
+                    var files = Directory.GetFiles(backup);
+                    foreach (var file in files)
+                    {
+                        var fileName = Path.GetFileName(file);
+                        File.Copy(file, Path.Combine(this.gameFolder, "GLOBAL", fileName), true);
+                    }
+                }
+            }
         }
     }
 }
