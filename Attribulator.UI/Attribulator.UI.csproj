@@ -31,6 +31,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Attribulator.CLI\Attribulator.CLI.csproj" />
+    <ProjectReference Include="..\Attribulator.ModScript.API\Attribulator.ModScript.API.csproj" />
     <ProjectReference Include="..\Attribulator.Plugins.SpeedProfiles\Attribulator.Plugins.SpeedProfiles.csproj" />
   </ItemGroup>
 

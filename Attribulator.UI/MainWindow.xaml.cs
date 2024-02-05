@@ -3,6 +3,7 @@ using Attribulator.API.Data;
 using Attribulator.API.Services;
 using Attribulator.CLI;
 using Attribulator.CLI.Services;
+using Attribulator.ModScript.API;
 using Attribulator.UI;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
@@ -27,6 +28,7 @@ namespace AttribulatorUI
         private string gameFolder;
 
         private IServiceProvider serviceProvider;
+        private IModScriptService modScriptService;
 
         private Database database;
         private IEnumerable<LoadedFile> files;
@@ -55,8 +57,11 @@ namespace AttribulatorUI
             Program.LoadStorageFormats(services, serviceProvider);
             Program.LoadPlugins(plugins, serviceProvider);
 
+            this.modScriptService = this.serviceProvider.GetRequiredService<IModScriptService>();
+
             this.settings = new Settings();
             this.PopulateGameMenuItems();
+            this.ScriptEditor.Text = this.settings.Root.Srcipt;
         }
 
         private void PopulateGameMenuItems()
@@ -199,6 +204,7 @@ namespace AttribulatorUI
         private void PopulateTreeView()
         {
             this.TreeView.Items.Clear();
+            this.EditGrid.Children.Clear();
 
             foreach (var cls in this.database.Classes.OrderBy(x => x.Name))
             {
@@ -284,6 +290,7 @@ namespace AttribulatorUI
 
         private void Window_Closed(object sender, EventArgs e)
         {
+            this.settings.Root.Srcipt = this.ScriptEditor.Text;
             this.settings.Save();
         }
 
@@ -335,6 +342,29 @@ namespace AttribulatorUI
                         File.Copy(file, Path.Combine(this.gameFolder, "GLOBAL", fileName), true);
                     }
                 }
+            }
+        }
+
+        private void MenuItem_Script_ExeculteAll_Click(object sender, RoutedEventArgs args)
+        {
+            if (this.database != null && this.ScriptEditor.Text.Length > 0)
+            {
+                var modScriptDatabase = new DatabaseHelper(this.database);
+
+                var lines = this.ScriptEditor.Text.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries);
+                try
+                {
+                    foreach (var command in this.modScriptService.ParseCommands(lines))
+                    {
+                        command.Execute(modScriptDatabase);
+                    }
+                }
+                catch (Exception e)
+                {
+                    MessageBox.Show(e.Message, "Failed to execute script", MessageBoxButton.OK, MessageBoxImage.Warning);
+                }
+
+                this.PopulateTreeView();
             }
         }
     }

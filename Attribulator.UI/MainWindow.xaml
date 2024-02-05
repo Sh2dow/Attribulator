@@ -34,8 +34,7 @@
                 <!--Here go games from settings-->
             </MenuItem>
             <MenuItem Header="Script">
-                <MenuItem Header="Execute current line"/>
-                <MenuItem Header="Execute all"/>
+                <MenuItem Header="Execute all" Click="MenuItem_Script_ExeculteAll_Click"/>
                 <Separator />
                 <MenuItem Header="Clear"/>
             </MenuItem>
@@ -82,7 +81,7 @@
 
             <GridSplitter Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" HorizontalAlignment="Stretch"/>
 
-            <RichTextBox Grid.Row="2" Grid.Column="2"></RichTextBox>
+            <TextBox x:Name="ScriptEditor" Grid.Row="2" Grid.Column="2" AcceptsReturn="True"></TextBox>
 
             <Label x:Name="GameFolderLabel" Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="3">No game selected</Label>
         </Grid>

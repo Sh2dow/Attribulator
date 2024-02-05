@@ -33,6 +33,9 @@ namespace Attribulator.UI
 
         [XmlIgnore]
         public GameSettings SelectedGame => Games.FirstOrDefault(x=>x.Selected);
+
+        [XmlElement("script")]
+        public string Srcipt { get; set; }
     }
 
     public class Settings
