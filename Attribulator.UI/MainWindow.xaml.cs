@@ -41,27 +41,38 @@ namespace AttribulatorUI
         {
             InitializeComponent();
 
-            // Setup
-            var services = new ServiceCollection();
-            var loaders = Program.GetPluginLoaders();
+            try
+            {
+                // Setup
+                var services = new ServiceCollection();
+                var loaders = Program.GetPluginLoaders();
 
-            // Register services
-            services.AddSingleton<IProfileService, ProfileServiceImpl>();
-            services.AddSingleton<IStorageFormatService, StorageFormatServiceImpl>();
-            services.AddSingleton<IPluginService, PluginServiceImpl>();
+                // Register services
+                services.AddSingleton<IProfileService, ProfileServiceImpl>();
+                services.AddSingleton<IStorageFormatService, StorageFormatServiceImpl>();
+                services.AddSingleton<IPluginService, PluginServiceImpl>();
 
-            var plugins = Program.ConfigurePlugins(services, loaders);
-            serviceProvider = services.BuildServiceProvider();
+                var plugins = Program.ConfigurePlugins(services, loaders);
+                serviceProvider = services.BuildServiceProvider();
 
-            Program.LoadProfiles(services, serviceProvider);
-            Program.LoadStorageFormats(services, serviceProvider);
-            Program.LoadPlugins(plugins, serviceProvider);
+                Program.LoadProfiles(services, serviceProvider);
+                Program.LoadStorageFormats(services, serviceProvider);
+                Program.LoadPlugins(plugins, serviceProvider);
 
-            this.modScriptService = this.serviceProvider.GetRequiredService<IModScriptService>();
+                this.modScriptService = this.serviceProvider.GetRequiredService<IModScriptService>();
 
-            this.settings = new Settings();
-            this.PopulateGameMenuItems();
-            this.ScriptEditor.Text = this.settings.Root.Srcipt;
+                this.settings = new Settings();
+                this.ScriptEditor.Text = this.settings.Root.Srcipt;
+
+                this.PopulateGameMenuItems();
+
+                this.CheckSelectedGame();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                throw ex;
+            }
         }
 
         private void PopulateGameMenuItems()
@@ -77,8 +88,6 @@ namespace AttribulatorUI
                 this.GamesMenuItem.Items.Add(gameMenuItem);
                 this.gameMenuItems.Add(gameMenuItem);
             }
-
-            this.CheckSelectedGame();
         }
 
         private void CheckSelectedGame()
@@ -328,18 +337,21 @@ namespace AttribulatorUI
 
         private void MenuItem_RestoreBackup_Click(object sender, RoutedEventArgs e)
         {
-            var backupsDir = Path.Combine(this.gameFolder, "GLOBAL", "AttribulatorBackups");
-            if (Directory.Exists(backupsDir))
+            if (!string.IsNullOrEmpty(this.gameFolder))
             {
-                var dirs = Directory.GetDirectories(backupsDir);
-                if (dirs.Length > 0)
+                var backupsDir = Path.Combine(this.gameFolder, "GLOBAL", "AttribulatorBackups");
+                if (Directory.Exists(backupsDir))
                 {
-                    string backup = dirs.OrderByDescending(x => Path.GetFileName(x)).First();
-                    var files = Directory.GetFiles(backup);
-                    foreach (var file in files)
+                    var dirs = Directory.GetDirectories(backupsDir);
+                    if (dirs.Length > 0)
                     {
-                        var fileName = Path.GetFileName(file);
-                        File.Copy(file, Path.Combine(this.gameFolder, "GLOBAL", fileName), true);
+                        string backup = dirs.OrderByDescending(x => Path.GetFileName(x)).First();
+                        var files = Directory.GetFiles(backup);
+                        foreach (var file in files)
+                        {
+                            var fileName = Path.GetFileName(file);
+                            File.Copy(file, Path.Combine(this.gameFolder, "GLOBAL", fileName), true);
+                        }
                     }
                 }
             }
@@ -349,22 +361,55 @@ namespace AttribulatorUI
         {
             if (this.database != null && this.ScriptEditor.Text.Length > 0)
             {
-                var modScriptDatabase = new DatabaseHelper(this.database);
-
                 var lines = this.ScriptEditor.Text.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries);
+                this.ExecuteScript(lines);
+            }
+        }
+
+        private void ExecuteScript(IEnumerable<string> lines)
+        {
+            var errors = new List<string>();
+
+            var modScriptDatabase = new DatabaseHelper(this.database);
+            foreach (var command in this.modScriptService.ParseCommands(lines))
+            {
                 try
                 {
-                    foreach (var command in this.modScriptService.ParseCommands(lines))
-                    {
-                        command.Execute(modScriptDatabase);
-                    }
+                    command.Execute(modScriptDatabase);
                 }
                 catch (Exception e)
                 {
-                    MessageBox.Show(e.Message, "Failed to execute script", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    errors.Add(e.Message);
                 }
+            }
 
-                this.PopulateTreeView();
+            if (errors.Count > 0)
+            {
+                MessageBox.Show(string.Join("\n", errors.Take(5)), "Failed to execute script", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+
+            this.PopulateTreeView();
+        }
+
+        private void MenuItem_ImportModScript_Click(object sender, RoutedEventArgs e)
+        {
+            if (this.database != null)
+            {
+                using (var dialog = new Forms.OpenFileDialog())
+                {
+                    dialog.Filter = "ModScript|*.nfsms";
+                    dialog.Title = "Import ModScript file";
+
+                    Forms.DialogResult result = dialog.ShowDialog();
+
+                    if (result == Forms.DialogResult.OK)
+                    {
+                        var importWindow = new ImportModScriptWindow(dialog.FileName);
+                        importWindow.ShowDialog();
+                        var resultScript = importWindow.ResultScript;
+                        this.ExecuteScript(resultScript);
+                    }
+                }
             }
         }
     }

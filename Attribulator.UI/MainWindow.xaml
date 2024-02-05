@@ -23,7 +23,7 @@
                 <MenuItem Header="Reload" Click="MenuItem_Reload_Click" />
                 <MenuItem Header="Save" Click="MenuItem_Save_Click"/>
                 <Separator />
-                <MenuItem Header="Import ModScript"/>
+                <MenuItem Header="Import ModScript" Click="MenuItem_ImportModScript_Click"/>
                 <MenuItem Header="Export ModScript"/>
                 <Separator />
                 <MenuItem Header="Exit" Click="MenuItem_Exit_Click"/>
