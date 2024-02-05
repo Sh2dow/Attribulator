@@ -107,10 +107,7 @@ namespace Attribulator.UI.PropertyGrid
                     this.SetValue(result as IConvertible);
                     this.lastValue = textBox.Text;
                     MainWindow.UnsavedChanges = true;
-                    if (this.parent != null)
-                    {
-                        this.parent.Update();
-                    }
+                    this.parent?.Update();
                 }
                 catch
                 {
@@ -141,6 +138,77 @@ namespace Attribulator.UI.PropertyGrid
         public override void SetValue(IConvertible value)
         {
             this.prop.SetValue(value);
+        }
+    }
+
+    public class PrimitiveBoolItem : Control
+    {
+        private string name;
+        private IParent parent;
+        private int padding;
+        private VaultLib.Core.Types.EA.Reflection.Bool prop;
+
+        public PrimitiveBoolItem(IParent parent, string name, VaultLib.Core.Types.EA.Reflection.Bool prop, int padding)
+        {
+            this.parent = parent;
+            this.name = name;
+            this.padding = padding;
+            this.prop = prop;
+        }
+
+        public override void OnApplyTemplate()
+        {
+            base.OnApplyTemplate();
+
+            var headerText = this.GetTemplateChild("PART_TextBlock") as TextBlock;
+            headerText.Text = this.name;
+            headerText.Padding = new Thickness(this.padding, 0, 0, 0);
+
+            var checkBox = this.GetTemplateChild("PART_CheckBox") as CheckBox;
+            checkBox.IsChecked = this.prop.Value;
+            checkBox.Checked += (s, e) => { this.prop.Value = true; this.parent?.Update(); };
+            checkBox.Unchecked += (s, e) => { this.prop.Value = false; this.parent?.Update(); };
+        }
+    }
+
+    public class PrimitiveEnumItem : Control
+    {
+        private string name;
+        private IParent parent;
+        private int padding;
+        private VaultLib.Core.Types.EA.Reflection.PrimitiveTypeBase prop;
+
+        public PrimitiveEnumItem(IParent parent, string name, VaultLib.Core.Types.EA.Reflection.PrimitiveTypeBase prop, int padding)
+        {
+            this.parent = parent;
+            this.name = name;
+            this.padding = padding;
+            this.prop = prop;
+        }
+
+        public override void OnApplyTemplate()
+        {
+            base.OnApplyTemplate();
+
+            var headerText = this.GetTemplateChild("PART_TextBlock") as TextBlock;
+            headerText.Text = this.name;
+            headerText.Padding = new Thickness(this.padding, 0, 0, 0);
+
+            var comboBox = this.GetTemplateChild("PART_ComboBox") as ComboBox;
+            var val = this.prop.GetValue();
+            var type = val.GetType();
+            var enumNames = type.GetEnumNames();
+            foreach (var enumName in enumNames)
+            {
+                comboBox.Items.Add(new ComboBoxItem { Content = enumName, IsSelected = val.ToString() == enumName });
+            }
+
+            comboBox.SelectionChanged += (s, e) =>
+            {
+                var item = comboBox.SelectedItem as ComboBoxItem;
+                this.prop.SetValue(Enum.Parse(type, item.Content as string) as IConvertible);
+                this.parent?.Update();
+            };
         }
     }
 
@@ -216,7 +284,16 @@ namespace Attribulator.UI.PropertyGrid
             var props = prop.GetType().GetProperties();
             for (int i = 0; i < props.Length; i++)
             {
-                this.AddChild(new PropertyItem(this, props[i], prop, padding + 21));
+                var pi = props[i];
+                var type = pi.PropertyType;
+                if (type.IsSubclassOf(typeof(VaultLib.Core.Types.VLTBaseType)))
+                {
+                    this.AddChild(new ClassItem(this, pi.Name, pi.GetValue(prop) as VaultLib.Core.Types.VLTBaseType, padding + 21));
+                }
+                else
+                {
+                    this.AddChild(new PropertyItem(this, pi, prop, padding + 21));
+                }
             }
         }
 
@@ -242,7 +319,7 @@ namespace Attribulator.UI.PropertyGrid
                 if (prop.ItemType.IsSubclassOf(typeof(VaultLib.Core.Types.EA.Reflection.PrimitiveTypeBase)))
                 {
                     var primitive = prop.Items[i] as VaultLib.Core.Types.EA.Reflection.PrimitiveTypeBase;
-                    this.AddChild(new PrimitiveItem(this, itemName, primitive, this.padding + 21));
+                    this.AddChild(MainGrid.ResolvePrimitiveItem(this, itemName, primitive, this.padding + 21));
                 }
                 else
                 {
@@ -254,6 +331,21 @@ namespace Attribulator.UI.PropertyGrid
 
     public class MainGrid : StackPanel
     {
+        public static Control ResolvePrimitiveItem(IParent parent, string name, VaultLib.Core.Types.EA.Reflection.PrimitiveTypeBase prop, int padding)
+        {
+            if (prop is VaultLib.Core.Types.EA.Reflection.Bool)
+            {
+                return new PrimitiveBoolItem(parent, name, prop as VaultLib.Core.Types.EA.Reflection.Bool, padding);
+            }
+
+            if (prop.GetType().IsGenericType && prop.GetType().GetGenericTypeDefinition() == typeof(VaultLib.Core.Types.VLTEnumType<>))
+            {
+                return new PrimitiveEnumItem(parent, name, prop, padding);
+            }
+
+            return new PrimitiveItem(parent, name, prop, padding);
+        }
+
         public void Display(VltCollection collection)
         {
             this.Children.Clear();
@@ -272,7 +364,7 @@ namespace Attribulator.UI.PropertyGrid
                     }
                     else if (type is VaultLib.Core.Types.EA.Reflection.PrimitiveTypeBase)
                     {
-                        child = new PrimitiveItem(null, property.Key, type as VaultLib.Core.Types.EA.Reflection.PrimitiveTypeBase, 21);
+                        child = ResolvePrimitiveItem(null, property.Key, type as VaultLib.Core.Types.EA.Reflection.PrimitiveTypeBase, 21);
                     }
                     else if (type is VaultLib.Core.Types.VLTBaseType)
                     {
