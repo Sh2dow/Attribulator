@@ -6,13 +6,19 @@ using VaultLib.Core.Data;
 
 namespace Attribulator.UI
 {
-    public class VltTreeViewItem : TreeViewItem
+    public class CollectionTreeViewItem : TreeViewItem
     {
         public VltCollection Collection { get; private set; }
 
-        public VltTreeViewItem(VltCollection collection)
+        public CollectionTreeViewItem(VltCollection collection)
         {
             this.Collection = collection;
+
+            var contextMenu = new ContextMenu();
+
+            contextMenu.Items.Add(new MenuItem { Header = "Edit fields" });
+
+            this.ContextMenu = contextMenu;
         }
     }
 }

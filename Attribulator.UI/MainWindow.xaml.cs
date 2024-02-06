@@ -201,7 +201,7 @@ namespace AttribulatorUI
             {
                 foreach (var child in collection.Children.OrderBy(x => x.Name))
                 {
-                    var childNode = new VltTreeViewItem(child);
+                    var childNode = new CollectionTreeViewItem(child);
                     node.Items.Add(childNode);
                     PopulateTreeNode(child, childNode);
                 }
@@ -217,7 +217,7 @@ namespace AttribulatorUI
 
             foreach (var cls in this.database.Classes.OrderBy(x => x.Name))
             {
-                var node = new VltTreeViewItem(null);
+                var node = new TreeViewItem();
                 node.Header = cls.Name;
 
                 var collections = this.database.RowManager.GetFlattenedCollections(cls.Name).OrderBy(x => x.Name);
@@ -225,7 +225,7 @@ namespace AttribulatorUI
                 {
                     if (collection.Parent == null)
                     {
-                        var childNode = new VltTreeViewItem(collection);
+                        var childNode = new CollectionTreeViewItem(collection);
                         node.Items.Add(childNode);
                         PopulateTreeNode(collection, childNode);
                     }
@@ -237,11 +237,15 @@ namespace AttribulatorUI
 
         private void TreeViewItem_Selected(object sender, RoutedEventArgs e)
         {
-            var treeViewItem = e.Source as VltTreeViewItem;
+            var treeViewItem = e.Source as CollectionTreeViewItem;
             if (treeViewItem != null)
             {
                 var collection = treeViewItem.Collection;
                 this.EditGrid.Display(collection);
+            }
+            else
+            {
+                this.EditGrid.Children.Clear();
             }
         }
 
@@ -411,6 +415,11 @@ namespace AttribulatorUI
                     }
                 }
             }
+        }
+
+        private void MenuItem_ScriptsClear_Click(object sender, RoutedEventArgs e)
+        {
+            this.ScriptEditor.Clear();
         }
     }
 }

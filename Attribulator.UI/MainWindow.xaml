@@ -36,7 +36,7 @@
             <MenuItem Header="Script">
                 <MenuItem Header="Execute all" Click="MenuItem_Script_ExeculteAll_Click"/>
                 <Separator />
-                <MenuItem Header="Clear"/>
+                <MenuItem Header="Clear" Click="MenuItem_ScriptsClear_Click"/>
             </MenuItem>
             <MenuItem Header="Backup">
                 <MenuItem Header="Create" Click="MenuItem_CreateBackup_Click" ToolTip="Creates backup of currently loaded files, make sure to save changes if you want them in the backup"/>

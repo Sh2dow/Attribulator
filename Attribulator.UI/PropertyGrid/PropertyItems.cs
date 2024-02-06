@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Reflection;
-using System.Text;
 
 namespace Attribulator.UI.PropertyGrid
 {
@@ -98,10 +96,18 @@ namespace Attribulator.UI.PropertyGrid
     {
         public PropertyArrayItem(IParent parent, PropertyInfo propertyInfo, VaultLib.Core.Types.VLTBaseType prop, int padding) : base(prop, propertyInfo.Name, prop.ToString(), padding)
         {
-            var array = propertyInfo.GetValue(prop) as Array;
-            for (int i = 0; i < array.Length; i++)
+            var array = propertyInfo.GetValue(prop) as IList;
+            for (int i = 0; i < array.Count; i++)
             {
-                this.AddChild(new PropertyArraySubItem(parent, array, i, padding + 21));
+                var type = array[i].GetType();
+                if (type.IsSubclassOf(typeof(VaultLib.Core.Types.VLTBaseType)))
+                {
+                    this.AddChild(new ClassItem(this, $"[{i}]", array[i] as VaultLib.Core.Types.VLTBaseType, padding + 21));
+                }
+                else
+                {
+                    this.AddChild(new PropertyArraySubItem(parent, array, i, padding + 21));
+                }
             }
         }
     }
