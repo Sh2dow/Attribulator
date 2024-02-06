@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AttribulatorUI;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Windows.Controls;
@@ -16,7 +17,16 @@ namespace Attribulator.UI
 
             var contextMenu = new ContextMenu();
 
-            contextMenu.Items.Add(new MenuItem { Header = "Edit fields" });
+            var menuItem = new MenuItem();
+            menuItem.Header = "Rename";
+            menuItem.Click += (s, e) => {
+                new CollectionRenameWindow(this.Collection).ShowDialog();
+                this.Header = this.Collection.Name;
+            };
+            contextMenu.Items.Add(menuItem);
+
+            //menuItem = new MenuItem();
+            //contextMenu.Items.Add(menuItem);
 
             this.ContextMenu = contextMenu;
         }
