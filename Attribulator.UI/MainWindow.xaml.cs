@@ -215,14 +215,14 @@ namespace AttribulatorUI
             node.Header = collection.Name;
         }
 
-        private void PopulateTreeView()
+        public void PopulateTreeView()
         {
             this.TreeView.Items.Clear();
             this.EditGrid.Children.Clear();
 
             foreach (var cls in this.database.Classes.OrderBy(x => x.Name))
             {
-                var node = new TreeViewItem();
+                var node = new ClassTreeViewItem(cls);
                 node.Header = cls.Name;
 
                 var collections = this.database.RowManager.GetFlattenedCollections(cls.Name).OrderBy(x => x.Name);
