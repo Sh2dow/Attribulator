@@ -6,7 +6,6 @@ using Attribulator.CLI.Services;
 using Attribulator.ModScript.API;
 using Attribulator.UI;
 using Microsoft.Extensions.DependencyInjection;
-using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -31,14 +30,19 @@ namespace AttribulatorUI
         private IModScriptService modScriptService;
 
         private Database database;
+        private DatabaseHelper modScriptDatabase;
         private IEnumerable<LoadedFile> files;
 
         private List<MenuItem> gameMenuItems = new List<MenuItem>();
 
         private Settings settings;
 
+        public static MainWindow Instance { get; private set; }
+
         public MainWindow()
         {
+            MainWindow.Instance = this;
+
             InitializeComponent();
 
             try
@@ -130,6 +134,7 @@ namespace AttribulatorUI
                 this.database = new Database(new DatabaseOptions(profile.GetGameId(), profile.GetDatabaseType()));
                 this.files = profile.LoadFiles(database, this.gameFolder + "\\GLOBAL");
                 this.database.CompleteLoad();
+                this.modScriptDatabase = new DatabaseHelper(this.database);
 
                 this.PopulateTreeView();
                 this.settings.Root.SelectedGame.ExePath = this.gameExe;
@@ -282,6 +287,7 @@ namespace AttribulatorUI
             this.gameExe = null;
             this.gameFolder = null;
             this.database = null;
+            this.modScriptDatabase = null;
             this.files = null;
             MainWindow.UnsavedChanges = false;
             this.TreeView.Items.Clear();
@@ -374,12 +380,11 @@ namespace AttribulatorUI
         {
             var errors = new List<string>();
 
-            var modScriptDatabase = new DatabaseHelper(this.database);
             foreach (var command in this.modScriptService.ParseCommands(lines))
             {
                 try
                 {
-                    command.Execute(modScriptDatabase);
+                    command.Execute(this.modScriptDatabase);
                 }
                 catch (Exception e)
                 {
@@ -393,6 +398,21 @@ namespace AttribulatorUI
             }
 
             this.PopulateTreeView();
+        }
+
+        public void ExecuteScriptInternal(IEnumerable<string> lines)
+        {
+            foreach (var command in this.modScriptService.ParseCommands(lines))
+            {
+                try
+                {
+                    command.Execute(this.modScriptDatabase);
+                }
+                catch (Exception e)
+                {
+                    throw e;
+                }
+            }
         }
 
         private void MenuItem_ImportModScript_Click(object sender, RoutedEventArgs e)
@@ -420,6 +440,19 @@ namespace AttribulatorUI
         private void MenuItem_ScriptsClear_Click(object sender, RoutedEventArgs e)
         {
             this.ScriptEditor.Clear();
+        }
+
+        public void AddScriptLines(IEnumerable<string> lines)
+        {
+            foreach (var line in lines)
+            {
+                this.AddScriptLine(line);
+            }
+        }
+
+        public void AddScriptLine(string line)
+        {
+            this.ScriptEditor.Text += "\n" + line;
         }
     }
 }

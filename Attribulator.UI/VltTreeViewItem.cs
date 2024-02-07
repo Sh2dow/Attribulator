@@ -1,8 +1,4 @@
-﻿using AttribulatorUI;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Windows.Controls;
+﻿using System.Windows.Controls;
 using VaultLib.Core.Data;
 
 namespace Attribulator.UI
@@ -19,14 +15,20 @@ namespace Attribulator.UI
 
             var menuItem = new MenuItem();
             menuItem.Header = "Rename";
-            menuItem.Click += (s, e) => {
+            menuItem.Click += (s, e) =>
+            {
                 new CollectionRenameWindow(this.Collection).ShowDialog();
                 this.Header = this.Collection.Name;
             };
             contextMenu.Items.Add(menuItem);
 
-            //menuItem = new MenuItem();
-            //contextMenu.Items.Add(menuItem);
+            menuItem = new MenuItem();
+            menuItem.Header = "Edit fields";
+            menuItem.Click += (s, e) =>
+            {
+                new EditFieldsWindow(this.Collection).ShowDialog();
+            };
+            contextMenu.Items.Add(menuItem);
 
             this.ContextMenu = contextMenu;
         }

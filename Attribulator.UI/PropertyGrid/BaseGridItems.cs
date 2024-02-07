@@ -48,12 +48,15 @@ namespace Attribulator.UI.PropertyGrid
                 var type = this.GetValue().GetType();
                 try
                 {
-                    var converter = TypeDescriptor.GetConverter(type);
-                    var result = converter.ConvertFromInvariantString(textBox.Text);
-                    this.SetValue(result as IConvertible);
-                    this.lastValue = textBox.Text;
-                    MainWindow.UnsavedChanges = true;
-                    this.parent?.Update();
+                    if (textBox.Text != this.lastValue)
+                    {
+                        var converter = TypeDescriptor.GetConverter(type);
+                        var result = converter.ConvertFromInvariantString(textBox.Text);
+                        this.SetValue(result as IConvertible);
+                        this.lastValue = textBox.Text;
+                        MainWindow.UnsavedChanges = true;
+                        this.parent?.Update();
+                    }
                 }
                 catch
                 {
