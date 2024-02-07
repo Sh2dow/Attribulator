@@ -41,8 +41,10 @@ namespace AttribulatorUI
 
         private ClassTreeViewItem currentClass = null;
         private CollectionTreeViewItem currentCollection = null;
+        private CollectionTreeViewItem collectionToCopy = null;
         private ContextMenu classContextMenu = null;
         private ContextMenu collectionContextMenu = null;
+        private bool cutNode = false;
 
         public MainWindow()
         {
@@ -68,8 +70,8 @@ namespace AttribulatorUI
                 Program.LoadStorageFormats(services, serviceProvider);
                 Program.LoadPlugins(plugins, serviceProvider);
 
-                this.CreateClassContextMenu();
-                this.CreateCollectionContextMenu();
+                this.classContextMenu = new ContextMenu();
+                this.collectionContextMenu = new ContextMenu();
 
                 this.modScriptService = this.serviceProvider.GetRequiredService<IModScriptService>();
 
@@ -221,85 +223,6 @@ namespace AttribulatorUI
                     PopulateTreeNode(child, childNode);
                 }
             }
-        }
-
-        private void CreateClassContextMenu()
-        {
-            var contextMenu = new ContextMenu();
-
-            var menuItem = new MenuItem();
-            menuItem.Header = "Add";
-            menuItem.Click += (s, e) =>
-            {
-                var newNodeWindow = new NewNodeNameWindow();
-                newNodeWindow.ShowDialog();
-                var result = newNodeWindow.Result;
-                if (!string.IsNullOrEmpty(result))
-                {
-                    string command = $"add_node {this.currentClass.Class.Name} {result}";
-                    this.ExecuteScriptInternal(new[] { command });
-                    this.AddScriptLine(command);
-                    this.PopulateTreeView();
-                }
-            };
-            contextMenu.Items.Add(menuItem);
-
-            this.classContextMenu = contextMenu;
-        }
-
-        private void CreateCollectionContextMenu()
-        {
-            var contextMenu = new ContextMenu();
-
-            var menuItem = new MenuItem();
-            menuItem.Header = "Add";
-            menuItem.Click += (s, e) =>
-            {
-                var newNodeWindow = new NewNodeNameWindow();
-                newNodeWindow.ShowDialog();
-                var result = newNodeWindow.Result;
-                if (!string.IsNullOrEmpty(result))
-                {
-                    var collection = this.currentCollection.Collection;
-                    string command = $"add_node {collection.Class.Name} {collection.Name} {result}";
-                    this.ExecuteScriptInternal(new[] { command });
-                    this.AddScriptLine(command);
-                    this.PopulateTreeView();
-                }
-            };
-            contextMenu.Items.Add(menuItem);
-
-            menuItem = new MenuItem();
-            menuItem.Header = "Delete";
-            menuItem.Click += (s, e) =>
-            {
-                var collection = this.currentCollection.Collection;
-                string command = $"delete_node {collection.Class.Name} {collection.Name}";
-                this.ExecuteScriptInternal(new[] { command });
-                this.AddScriptLine(command);
-                this.PopulateTreeView();
-            };
-            contextMenu.Items.Add(menuItem);
-
-            menuItem = new MenuItem();
-            menuItem.Header = "Rename";
-            menuItem.Click += (s, e) =>
-            {
-                var collection = this.currentCollection.Collection;
-                new CollectionRenameWindow(collection).ShowDialog();
-                this.currentCollection.Header = collection.Name;
-            };
-            contextMenu.Items.Add(menuItem);
-
-            menuItem = new MenuItem();
-            menuItem.Header = "Edit fields";
-            menuItem.Click += (s, e) =>
-            {
-                new EditFieldsWindow(this.currentCollection.Collection).ShowDialog();
-            };
-            contextMenu.Items.Add(menuItem);
-
-            this.collectionContextMenu = contextMenu;
         }
 
         public void PopulateTreeView()
@@ -496,7 +419,7 @@ namespace AttribulatorUI
                 }
                 catch (Exception e)
                 {
-                    throw e;
+                    MessageBox.Show(e.Message, "Error executing script",MessageBoxButton.OK, MessageBoxImage.Warning);
                 }
             }
         }
@@ -541,16 +464,167 @@ namespace AttribulatorUI
             this.ScriptEditor.Text += "\n" + line;
         }
 
+        private void CreateClassContextMenu()
+        {
+            var contextMenu = this.classContextMenu;
+
+            var menuItem = new MenuItem();
+            menuItem.Header = "Add";
+            menuItem.Click += (s, e) =>
+            {
+                var newNodeWindow = new NewNodeNameWindow();
+                newNodeWindow.ShowDialog();
+                var result = newNodeWindow.Result;
+                if (!string.IsNullOrEmpty(result))
+                {
+                    string command = $"add_node {this.currentClass.Class.Name} {result}";
+                    this.ExecuteScriptInternal(new[] { command });
+                    this.AddScriptLine(command);
+                    this.PopulateTreeView();
+                }
+            };
+            contextMenu.Items.Add(menuItem);
+
+            if (this.collectionToCopy != null && this.collectionToCopy.Collection.Class == this.currentCollection.Collection.Class)
+            {
+                contextMenu.Items.Add(new Separator());
+
+                menuItem = new MenuItem();
+                menuItem.Header = $"Paste ({this.collectionToCopy.Header})";
+                menuItem.Click += (s, e) =>
+                {
+                    var collection = this.collectionToCopy.Collection;
+                    string command;
+                    if (this.cutNode)
+                    {
+                        command = $"move_node {collection.Class.Name} {collection.Name}";
+                    }
+                    else
+                    {
+                        command = $"copy_node {collection.Class.Name} {collection.Name} {collection.Name}_copy";
+                    }
+                    this.collectionToCopy = null;
+                    this.ExecuteScriptInternal(new[] { command });
+                    this.AddScriptLine(command);
+                    this.PopulateTreeView();
+                };
+                contextMenu.Items.Add(menuItem);
+            }
+        }
+
+        private void CreateCollectionContextMenu()
+        {
+            var contextMenu = this.collectionContextMenu;
+            contextMenu.Items.Clear();
+
+            var menuItem = new MenuItem();
+            menuItem.Header = "Add";
+            menuItem.Click += (s, e) =>
+            {
+                var newNodeWindow = new NewNodeNameWindow();
+                newNodeWindow.ShowDialog();
+                var result = newNodeWindow.Result;
+                if (!string.IsNullOrEmpty(result))
+                {
+                    var collection = this.currentCollection.Collection;
+                    string command = $"add_node {collection.Class.Name} {collection.Name} {result}";
+                    this.ExecuteScriptInternal(new[] { command });
+                    this.AddScriptLine(command);
+                    this.PopulateTreeView();
+                }
+            };
+            contextMenu.Items.Add(menuItem);
+
+            menuItem = new MenuItem();
+            menuItem.Header = "Delete";
+            menuItem.Click += (s, e) =>
+            {
+                var collection = this.currentCollection.Collection;
+                string command = $"delete_node {collection.Class.Name} {collection.Name}";
+                this.ExecuteScriptInternal(new[] { command });
+                this.AddScriptLine(command);
+                this.PopulateTreeView();
+            };
+            contextMenu.Items.Add(menuItem);
+
+            contextMenu.Items.Add(new Separator());
+
+            menuItem = new MenuItem();
+            menuItem.Header = "Copy";
+            menuItem.Click += (s, e) =>
+            {
+                this.collectionToCopy = this.currentCollection;
+                this.cutNode = false;
+            };
+            contextMenu.Items.Add(menuItem);
+
+            menuItem = new MenuItem();
+            menuItem.Header = "Cut";
+            menuItem.Click += (s, e) =>
+            {
+                this.collectionToCopy = this.currentCollection;
+                this.cutNode = true;
+            };
+            contextMenu.Items.Add(menuItem);
+
+            if (this.collectionToCopy != null && this.collectionToCopy.Collection.Class == this.currentCollection.Collection.Class)
+            {
+                menuItem = new MenuItem();
+                menuItem.Header = $"Paste ({this.collectionToCopy.Header})";
+                menuItem.Click += (s, e) =>
+                {
+                    var collection = this.collectionToCopy.Collection;
+                    string command;
+                    if (this.cutNode)
+                    {
+                        command = $"move_node {collection.Class.Name} {collection.Name} {this.currentCollection.Header}";
+                    }
+                    else
+                    {
+                        command = $"copy_node {collection.Class.Name} {collection.Name} {this.currentCollection.Header} {collection.Name}_copy";
+                    }
+
+                    this.collectionToCopy = null;
+                    this.ExecuteScriptInternal(new[] { command });
+                    this.AddScriptLine(command);
+                    this.PopulateTreeView();
+                };
+                contextMenu.Items.Add(menuItem);
+            }
+
+            contextMenu.Items.Add(new Separator());
+
+            menuItem = new MenuItem();
+            menuItem.Header = "Rename";
+            menuItem.Click += (s, e) =>
+            {
+                var collection = this.currentCollection.Collection;
+                new CollectionRenameWindow(collection).ShowDialog();
+                this.currentCollection.Header = collection.Name;
+            };
+            contextMenu.Items.Add(menuItem);
+
+            menuItem = new MenuItem();
+            menuItem.Header = "Edit fields";
+            menuItem.Click += (s, e) =>
+            {
+                new EditFieldsWindow(this.currentCollection.Collection).ShowDialog();
+            };
+            contextMenu.Items.Add(menuItem);
+        }
+
         private void TreeView_PreviewMouseRightButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
             if (e.Source is ClassTreeViewItem)
             {
                 this.currentClass = (ClassTreeViewItem)e.Source;
+                this.CreateClassContextMenu();
             }
 
             if (e.Source is CollectionTreeViewItem)
             {
                 this.currentCollection = (CollectionTreeViewItem)e.Source;
+                this.CreateCollectionContextMenu();
             }
         }
     }
