@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -8,6 +9,20 @@ namespace Attribulator.UI.PropertyGrid
 {
     public static class GridHelper
     {
+        public static Type GetBaseType(this VaultLib.Core.Types.EA.Reflection.PrimitiveTypeBase prop)
+        {
+            var attributes = prop.GetType().GetCustomAttributes(false);
+            foreach (var attribute in attributes)
+            {
+                if (attribute is VaultLib.Core.Types.EA.Reflection.PrimitiveInfoAttribute primitiveInfoAttribute)
+                {
+                    return primitiveInfoAttribute.PrimitiveType;
+                }
+            }
+
+            return prop.GetValue()?.GetType();
+        }
+
         public static Control ResolvePrimitiveItem(IParent parent, string name, VaultLib.Core.Types.EA.Reflection.PrimitiveTypeBase prop, int padding)
         {
             if (prop is VaultLib.Core.Types.EA.Reflection.Bool)
@@ -20,7 +35,7 @@ namespace Attribulator.UI.PropertyGrid
                 return new PrimitiveEnumItem(parent, name, prop, padding);
             }
 
-            return new PrimitiveItem(parent, name, prop, prop.GetType(), padding);
+            return new PrimitiveItem(parent, name, prop, prop.GetBaseType(), padding);
         }
     }
 
