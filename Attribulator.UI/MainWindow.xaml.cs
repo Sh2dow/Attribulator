@@ -595,20 +595,20 @@ namespace AttribulatorUI
             contextMenu.Items.Add(new Separator());
 
             menuItem = new MenuItem();
+            menuItem.Header = "Edit fields";
+            menuItem.Click += (s, e) =>
+            {
+                new EditFieldsWindow(this.currentCollection.Collection).ShowDialog();
+            };
+            contextMenu.Items.Add(menuItem);
+
+            menuItem = new MenuItem();
             menuItem.Header = "Rename";
             menuItem.Click += (s, e) =>
             {
                 var collection = this.currentCollection.Collection;
                 new CollectionRenameWindow(collection).ShowDialog();
                 this.currentCollection.Header = collection.Name;
-            };
-            contextMenu.Items.Add(menuItem);
-
-            menuItem = new MenuItem();
-            menuItem.Header = "Edit fields";
-            menuItem.Click += (s, e) =>
-            {
-                new EditFieldsWindow(this.currentCollection.Collection).ShowDialog();
             };
             contextMenu.Items.Add(menuItem);
         }
