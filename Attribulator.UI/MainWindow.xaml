@@ -58,7 +58,8 @@
                 <ColumnDefinition Width="2*"/>
             </Grid.ColumnDefinitions>
 
-            <TreeView Grid.Row="0" Grid.RowSpan="3" Grid.Column="0" x:Name="TreeView" TreeViewItem.Selected="TreeViewItem_Selected"/>
+            <TreeView Grid.Row="0" Grid.RowSpan="3" Grid.Column="0" x:Name="TreeView" TreeViewItem.Selected="TreeViewItem_Selected"
+                      TreeViewItem.PreviewMouseRightButtonDown="TreeView_PreviewMouseRightButtonDown"/>
 
             <GridSplitter Grid.Column="1" HorizontalAlignment="Stretch" Grid.RowSpan="3" ResizeDirection="Columns"/>
 

@@ -39,6 +39,11 @@ namespace AttribulatorUI
 
         public static MainWindow Instance { get; private set; }
 
+        private ClassTreeViewItem currentClass = null;
+        private CollectionTreeViewItem currentCollection = null;
+        private ContextMenu classContextMenu = null;
+        private ContextMenu collectionContextMenu = null;
+
         public MainWindow()
         {
             MainWindow.Instance = this;
@@ -62,6 +67,9 @@ namespace AttribulatorUI
                 Program.LoadProfiles(services, serviceProvider);
                 Program.LoadStorageFormats(services, serviceProvider);
                 Program.LoadPlugins(plugins, serviceProvider);
+
+                this.CreateClassContextMenu();
+                this.CreateCollectionContextMenu();
 
                 this.modScriptService = this.serviceProvider.GetRequiredService<IModScriptService>();
 
@@ -200,43 +208,109 @@ namespace AttribulatorUI
             }
         }
 
-        void PopulateTreeNode(VltCollection collection, TreeViewItem node)
+        private void PopulateTreeNode(VltCollection collection, TreeViewItem node)
         {
             if (collection.Children.Count > 0)
             {
                 foreach (var child in collection.Children.OrderBy(x => x.Name))
                 {
                     var childNode = new CollectionTreeViewItem(child);
+                    childNode.ContextMenu = this.collectionContextMenu;
                     node.Items.Add(childNode);
                     PopulateTreeNode(child, childNode);
                 }
             }
-
-            node.Header = collection.Name;
         }
+
+        private void CreateClassContextMenu()
+        {
+            var contextMenu = new ContextMenu();
+
+            var menuItem = new MenuItem();
+            menuItem.Header = "Add";
+            menuItem.Click += (s, e) =>
+            {
+                var newNodeWindow = new NewNodeNameWindow();
+                newNodeWindow.ShowDialog();
+                var result = newNodeWindow.Result;
+                if (!string.IsNullOrEmpty(result))
+                {
+                    string command = $"add_node {this.currentClass.Class.Name} {result}";
+                    this.ExecuteScriptInternal(new[] { command });
+                    this.AddScriptLine(command);
+                    this.PopulateTreeView();
+                }
+            };
+            contextMenu.Items.Add(menuItem);
+
+            this.classContextMenu = contextMenu;
+        }
+
+        private void CreateCollectionContextMenu()
+        {
+            var contextMenu = new ContextMenu();
+
+            var menuItem = new MenuItem();
+            menuItem.Header = "Add";
+            menuItem.Click += (s, e) =>
+            {
+                var newNodeWindow = new NewNodeNameWindow();
+                newNodeWindow.ShowDialog();
+                var result = newNodeWindow.Result;
+                if (!string.IsNullOrEmpty(result))
+                {
+                    var collection = this.currentCollection.Collection;
+                    string command = $"add_node {collection.Class.Name} {collection.Name} {result}";
+                    this.ExecuteScriptInternal(new[] { command });
+                    this.AddScriptLine(command);
+                    this.PopulateTreeView();
+                }
+            };
+            contextMenu.Items.Add(menuItem);
+
+            menuItem = new MenuItem();
+            menuItem.Header = "Rename";
+            menuItem.Click += (s, e) =>
+            {
+                var collection = this.currentCollection.Collection;
+                new CollectionRenameWindow(collection).ShowDialog();
+                this.currentCollection.Header = collection.Name;
+            };
+            contextMenu.Items.Add(menuItem);
+
+            menuItem = new MenuItem();
+            menuItem.Header = "Edit fields";
+            menuItem.Click += (s, e) =>
+            {
+                new EditFieldsWindow(this.currentCollection.Collection).ShowDialog();
+            };
+            contextMenu.Items.Add(menuItem);
+
+            this.collectionContextMenu = contextMenu;
+        }
+
 
         public void PopulateTreeView()
         {
             this.TreeView.Items.Clear();
             this.EditGrid.Children.Clear();
 
-            foreach (var cls in this.database.Classes.OrderBy(x => x.Name))
+            var classes = this.database.Classes.OrderBy(x => x.Name);
+            foreach (var cls in classes)
             {
-                var node = new ClassTreeViewItem(cls);
-                node.Header = cls.Name;
+                var classNode = new ClassTreeViewItem(cls);
+                classNode.ContextMenu = this.classContextMenu;
 
-                var collections = this.database.RowManager.GetFlattenedCollections(cls.Name).OrderBy(x => x.Name);
+                var collections = this.database.RowManager.EnumerateCollections(cls.Name);
                 foreach (var collection in collections)
                 {
-                    if (collection.Parent == null)
-                    {
-                        var childNode = new CollectionTreeViewItem(collection);
-                        node.Items.Add(childNode);
-                        PopulateTreeNode(collection, childNode);
-                    }
+                    var childNode = new CollectionTreeViewItem(collection);
+                    childNode.ContextMenu = this.collectionContextMenu; ;
+                    classNode.Items.Add(childNode);
+                    PopulateTreeNode(collection, childNode);
                 }
 
-                this.TreeView.Items.Add(node);
+                this.TreeView.Items.Add(classNode);
             }
         }
 
@@ -453,6 +527,19 @@ namespace AttribulatorUI
         public void AddScriptLine(string line)
         {
             this.ScriptEditor.Text += "\n" + line;
+        }
+
+        private void TreeView_PreviewMouseRightButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            if (e.Source is ClassTreeViewItem)
+            {
+                this.currentClass = (ClassTreeViewItem)e.Source;
+            }
+
+            if (e.Source is CollectionTreeViewItem)
+            {
+                this.currentCollection = (CollectionTreeViewItem)e.Source;
+            }
         }
     }
 }
