@@ -33,7 +33,7 @@ namespace AttribulatorUI
         private DatabaseHelper modScriptDatabase;
         private IEnumerable<LoadedFile> files;
 
-        private List<MenuItem> gameMenuItems = new List<MenuItem>();
+        private List<MenuItem> gameMenuItems;
 
         private Settings settings;
 
@@ -89,6 +89,7 @@ namespace AttribulatorUI
 
         private void PopulateGameMenuItems()
         {
+            this.gameMenuItems = new List<MenuItem>();
             var games = this.settings.Root.Games;
             foreach (var game in games)
             {
@@ -269,6 +270,18 @@ namespace AttribulatorUI
             contextMenu.Items.Add(menuItem);
 
             menuItem = new MenuItem();
+            menuItem.Header = "Delete";
+            menuItem.Click += (s, e) =>
+            {
+                var collection = this.currentCollection.Collection;
+                string command = $"delete_node {collection.Class.Name} {collection.Name}";
+                this.ExecuteScriptInternal(new[] { command });
+                this.AddScriptLine(command);
+                this.PopulateTreeView();
+            };
+            contextMenu.Items.Add(menuItem);
+
+            menuItem = new MenuItem();
             menuItem.Header = "Rename";
             menuItem.Click += (s, e) =>
             {
@@ -288,7 +301,6 @@ namespace AttribulatorUI
 
             this.collectionContextMenu = contextMenu;
         }
-
 
         public void PopulateTreeView()
         {
