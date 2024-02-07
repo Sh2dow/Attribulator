@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Attribulator.UI.PropertyGrid
 {
@@ -8,7 +6,7 @@ namespace Attribulator.UI.PropertyGrid
     {
         private VaultLib.Core.Types.EA.Reflection.PrimitiveTypeBase prop;
 
-        public PrimitiveItem(IParent parent, string name, VaultLib.Core.Types.EA.Reflection.PrimitiveTypeBase prop, int padding) : base(parent, name, padding)
+        public PrimitiveItem(IParent parent, string name, VaultLib.Core.Types.EA.Reflection.PrimitiveTypeBase prop, Type type, int padding) : base(parent, name, type, padding)
         {
             this.prop = prop;
         }

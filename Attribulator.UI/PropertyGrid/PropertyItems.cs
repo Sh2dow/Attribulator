@@ -53,7 +53,7 @@ namespace Attribulator.UI.PropertyGrid
         private VaultLib.Core.Types.VLTBaseType prop;
         private PropertyInfo propertyInfo;
 
-        public PropertyItem(IParent parent, PropertyInfo propertyInfo, VaultLib.Core.Types.VLTBaseType prop, int padding) : base(parent, propertyInfo.Name, padding)
+        public PropertyItem(IParent parent, PropertyInfo propertyInfo, VaultLib.Core.Types.VLTBaseType prop, Type type, int padding) : base(parent, propertyInfo.Name, type, padding)
         {
             this.prop = prop;
             this.propertyInfo = propertyInfo;
@@ -75,7 +75,7 @@ namespace Attribulator.UI.PropertyGrid
         private int index;
         private IList array;
 
-        public PropertyArraySubItem(IParent parent, IList array, int index, int padding) : base(parent, $"[{index}]", padding)
+        public PropertyArraySubItem(IParent parent, IList array, int index, Type type, int padding) : base(parent, $"[{index}]", type, padding)
         {
             this.index = index;
             this.array = array;
@@ -106,7 +106,7 @@ namespace Attribulator.UI.PropertyGrid
                 }
                 else
                 {
-                    this.AddChild(new PropertyArraySubItem(parent, array, i, padding + 21));
+                    this.AddChild(new PropertyArraySubItem(parent, array, i, type, padding + 21));
                 }
             }
         }

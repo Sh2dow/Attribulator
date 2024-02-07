@@ -1,5 +1,4 @@
-﻿using Attribulator.UI.PropertyGrid;
-using AttribulatorUI;
+﻿using AttribulatorUI;
 using System.Windows.Controls;
 using VaultLib.Core.Data;
 

@@ -1,13 +1,8 @@
 ﻿using AttribulatorUI;
 using System;
 using System.ComponentModel;
-using System.Diagnostics;
-using System.Linq;
-using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Controls.Primitives;
-using VaultLib.Core.Data;
 
 namespace Attribulator.UI.PropertyGrid
 {
@@ -22,12 +17,14 @@ namespace Attribulator.UI.PropertyGrid
         private string lastValue;
         private IParent parent;
         private int padding;
+        private Type type;
 
-        public BaseEditItem(IParent parent, string name, int padding)
+        public BaseEditItem(IParent parent, string name, Type type, int padding)
         {
             this.parent = parent;
             this.name = name;
             this.padding = padding;
+            this.type = type;
         }
 
         public override void OnApplyTemplate()
@@ -40,17 +37,16 @@ namespace Attribulator.UI.PropertyGrid
 
             TextBox textBox = this.GetTemplateChild("PART_TextBox") as TextBox;
             var val = this.GetValue();
-            textBox.Text = val.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            textBox.Text = val?.ToString(System.Globalization.CultureInfo.InvariantCulture);
             this.lastValue = textBox.Text;
             textBox.LostFocus += (s, e) =>
             {
                 var textBox = s as TextBox;
-                var type = this.GetValue().GetType();
                 try
                 {
                     if (textBox.Text != this.lastValue)
                     {
-                        var converter = TypeDescriptor.GetConverter(type);
+                        var converter = TypeDescriptor.GetConverter(this.type);
                         var result = converter.ConvertFromInvariantString(textBox.Text);
                         this.SetValue(result as IConvertible);
                         this.lastValue = textBox.Text;
@@ -60,7 +56,7 @@ namespace Attribulator.UI.PropertyGrid
                 }
                 catch
                 {
-                    MessageBox.Show($"{textBox.Text} is not a valid value for {type}", "Property error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    MessageBox.Show($"{textBox.Text} is not a valid value for {this.type}", "Property error", MessageBoxButton.OK, MessageBoxImage.Warning);
                     textBox.Text = this.lastValue;
                 }
             };
