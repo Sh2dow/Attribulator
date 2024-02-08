@@ -9,7 +9,7 @@
         Title="New node name" Height="151" Width="341" WindowStartupLocation="CenterScreen">
     <Grid>
         <Label Content="New node name:" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"/>
-        <TextBox x:Name="NameTextBox" HorizontalAlignment="Left" Margin="16,36,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="315" Height="18"/>
+        <TextBox x:Name="NameTextBox" HorizontalAlignment="Center" Margin="0,36,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="309" Height="18"/>
         <Button Content="Cancel" HorizontalAlignment="Right" Margin="0,0,10,10" VerticalAlignment="Bottom" Height="30" Width="75" Click="Button_Cancel_Click"/>
         <Button Content="OK" HorizontalAlignment="Right" Margin="0,0,104,10" VerticalAlignment="Bottom" Height="30" Width="75" Click="Button_Ok_Click"/>
     </Grid>

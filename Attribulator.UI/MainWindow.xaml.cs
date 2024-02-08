@@ -510,7 +510,7 @@ namespace AttribulatorUI
             menuItem.Header = "Add";
             menuItem.Click += (s, e) =>
             {
-                var newNodeWindow = new NewNodeNameWindow();
+                var newNodeWindow = new NewNodeNameWindow(this.currentClass.Class.Name);
                 newNodeWindow.ShowDialog();
                 var result = newNodeWindow.Result;
                 if (!string.IsNullOrEmpty(result))
@@ -559,12 +559,12 @@ namespace AttribulatorUI
             menuItem.Header = "Add";
             menuItem.Click += (s, e) =>
             {
-                var newNodeWindow = new NewNodeNameWindow();
+                var collection = this.currentCollection.Collection;
+                var newNodeWindow = new NewNodeNameWindow(collection.Name);
                 newNodeWindow.ShowDialog();
                 var result = newNodeWindow.Result;
                 if (!string.IsNullOrEmpty(result))
-                {
-                    var collection = this.currentCollection.Collection;
+                {                    
                     string command = $"add_node {collection.Class.Name} {collection.Name} {result}";
                     this.ExecuteScriptInternal(new[] { command });
                     this.AddScriptLine(command);
