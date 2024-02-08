@@ -3,7 +3,6 @@ using AttribulatorUI;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
-using System.Windows.Documents;
 using VaultLib.Core.Data;
 
 namespace Attribulator.UI
