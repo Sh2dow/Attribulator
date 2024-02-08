@@ -160,13 +160,23 @@ namespace AttribulatorUI
         {
             if (this.database != null)
             {
+                this.Backup("SaveBackup");
+
                 var profile = this.GetProfile();
                 foreach (var file in files)
                 {
                     file.Group = "GLOBAL";
                 }
 
-                profile.SaveFiles(database, this.gameFolder, files);
+                try
+                {
+                    profile.SaveFiles(database, this.gameFolder, files);
+                }
+                catch(Exception ex)
+                {
+                    MessageBox.Show(ex.Message, "Error saving file", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    this.Restore(Path.Combine(this.gameFolder, "GLOBAL", "AttribulatorBackups", "SaveBackup"));
+                }
             }
 
             MainWindow.UnsavedChanges = false;
@@ -336,19 +346,24 @@ namespace AttribulatorUI
         {
             if (this.files != null && this.files.Any() && !string.IsNullOrEmpty(this.gameFolder))
             {
-                var targetPath = Path.Combine(this.gameFolder, "GLOBAL", "AttribulatorBackups", DateTime.Now.ToString("yyyy-MM-dd-H-m-ss"));
-                Directory.CreateDirectory(targetPath);
+                this.Backup(DateTime.Now.ToString("yyyy-MM-dd-H-m-ss"));
+            }
+        }
 
-                foreach (var file in this.files)
+        private void Backup(string folderName)
+        {
+            var targetPath = Path.Combine(this.gameFolder, "GLOBAL", "AttribulatorBackups", folderName);
+            Directory.CreateDirectory(targetPath);
+
+            foreach (var file in this.files)
+            {
+                var extensions = new[] { ".bin", ".lzc" };
+                foreach (var extension in extensions)
                 {
-                    var extensions = new[] { ".bin", ".lzc" };
-                    foreach (var extension in extensions)
+                    var original = Path.Combine(this.gameFolder, "GLOBAL", file.Name + extension);
+                    if (File.Exists(original))
                     {
-                        var original = Path.Combine(this.gameFolder, "GLOBAL", file.Name + extension);
-                        if (File.Exists(original))
-                        {
-                            File.Copy(original, Path.Combine(targetPath, file.Name + extension));
-                        }
+                        File.Copy(original, Path.Combine(targetPath, file.Name + extension), true);
                     }
                 }
             }
@@ -364,15 +379,20 @@ namespace AttribulatorUI
                     var dirs = Directory.GetDirectories(backupsDir);
                     if (dirs.Length > 0)
                     {
-                        string backup = dirs.OrderByDescending(x => Path.GetFileName(x)).First();
-                        var files = Directory.GetFiles(backup);
-                        foreach (var file in files)
-                        {
-                            var fileName = Path.GetFileName(file);
-                            File.Copy(file, Path.Combine(this.gameFolder, "GLOBAL", fileName), true);
-                        }
+                        string backup = dirs.Where(x => x != "SaveBackup").OrderByDescending(x => Path.GetFileName(x)).First();
+                        this.Restore(backup);
                     }
                 }
+            }
+        }
+
+        private void Restore(string folderName)
+        {
+            var files = Directory.GetFiles(folderName);
+            foreach (var file in files)
+            {
+                var fileName = Path.GetFileName(file);
+                File.Copy(file, Path.Combine(this.gameFolder, "GLOBAL", fileName), true);
             }
         }
 
@@ -419,7 +439,7 @@ namespace AttribulatorUI
                 }
                 catch (Exception e)
                 {
-                    MessageBox.Show(e.Message, "Error executing script",MessageBoxButton.OK, MessageBoxImage.Warning);
+                    MessageBox.Show(e.Message, "Error executing script", MessageBoxButton.OK, MessageBoxImage.Warning);
                 }
             }
         }
