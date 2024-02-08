@@ -134,14 +134,13 @@ namespace Attribulator.UI.PropertyGrid
         private VaultLib.Core.Types.VLTArrayType prop;
         private int maxCount;
 
-        public ArrayItem(ICommandName parent, string name, VaultLib.Core.Types.VLTArrayType prop, int padding) : base(prop, name, prop.ToString(), padding)
+        public ArrayItem(ICommandName parent, string name, VaultLib.Core.Types.VLTArrayType prop, int maxCount, int padding) : base(prop, name, prop.ToString(), padding)
         {
             this.name = name;
             this.parent = parent;
             this.prop = prop;
 
-            var field = this.prop.Class.FindField(this.name);
-            this.maxCount = field.MaxCount;
+            this.maxCount = maxCount;
 
             this.Draw();
         }
@@ -213,7 +212,9 @@ namespace Attribulator.UI.PropertyGrid
                     UIElement child = null;
                     if (type is VaultLib.Core.Types.VLTArrayType)
                     {
-                        child = new ArrayItem(this, property.Key, type as VaultLib.Core.Types.VLTArrayType, 0);
+                        var field = collection.Class.FindField(property.Key);
+                        var maxCount = field.MaxCount;
+                        child = new ArrayItem(this, property.Key, type as VaultLib.Core.Types.VLTArrayType, maxCount, 0);
                     }
                     else if (type is VaultLib.Core.Types.EA.Reflection.PrimitiveTypeBase)
                     {
