@@ -442,6 +442,8 @@ namespace AttribulatorUI
                     MessageBox.Show(e.Message, "Error executing script", MessageBoxButton.OK, MessageBoxImage.Warning);
                 }
             }
+
+            MainWindow.UnsavedChanges = true;
         }
 
         private void MenuItem_ImportModScript_Click(object sender, RoutedEventArgs e)
