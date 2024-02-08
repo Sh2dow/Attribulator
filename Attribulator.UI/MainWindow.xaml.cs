@@ -446,6 +446,22 @@ namespace AttribulatorUI
             }
         }
 
+        private void MenuItem_Export_Click(object sender, RoutedEventArgs e)
+        {
+            using (var dialog = new Forms.SaveFileDialog())
+            {
+                dialog.Filter = "ModScript|*.nfsms";
+                dialog.Title = "Import ModScript file";
+
+                Forms.DialogResult result = dialog.ShowDialog();
+
+                if (result == Forms.DialogResult.OK)
+                {
+                    File.WriteAllText(dialog.FileName, this.ScriptEditor.Text);
+                }
+            }
+        }
+
         private void MenuItem_ScriptsClear_Click(object sender, RoutedEventArgs e)
         {
             this.ScriptEditor.Clear();

@@ -24,7 +24,7 @@
                 <MenuItem Header="Save" Click="MenuItem_Save_Click"/>
                 <Separator />
                 <MenuItem Header="Import ModScript" Click="MenuItem_ImportModScript_Click"/>
-                <MenuItem Header="Export ModScript"/>
+                <MenuItem Header="Export ModScript" Click="MenuItem_Export_Click"/>
                 <Separator />
                 <MenuItem Header="Exit" Click="MenuItem_Exit_Click"/>
             </MenuItem>
