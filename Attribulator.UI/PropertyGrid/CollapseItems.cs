@@ -1,17 +1,21 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Windows.Controls.Primitives;
+﻿using System.Windows.Controls.Primitives;
 using System.Windows.Controls;
 using System.Windows;
 
 namespace Attribulator.UI.PropertyGrid
 {
-    public interface IExpandCollapse
+    public interface IExpandCollapse : IParent
     {
         void Expand();
 
         void Collapse();
+    }
+
+    public interface IItemAddRemove : IParent
+    {
+        void AddItem();
+
+        void RemoveItem();
     }
 
     public class CollapseHeader : Control
@@ -24,7 +28,7 @@ namespace Attribulator.UI.PropertyGrid
 
         private ToggleButton toggleButton;
 
-        private IExpandCollapse parent;
+        protected IExpandCollapse parent;
 
         private int padding;
 
@@ -61,11 +65,34 @@ namespace Attribulator.UI.PropertyGrid
         }
     }
 
-    public class CollapseItem : StackPanel, IExpandCollapse, IParent
+    public class ArrayCollapseHeader : CollapseHeader
     {
-        private CollapseHeader headerItem;
-        private StackPanel collapsePanel;
-        private object prop;
+        public ArrayCollapseHeader(IExpandCollapse parent, string headerName, string value, int padding) : base(parent, headerName, value, padding)
+        {
+        }
+
+        public override void OnApplyTemplate()
+        {
+            base.OnApplyTemplate();
+
+            var removeButton = this.GetTemplateChild("PART_RemoveButton") as Button;
+            removeButton.Click += (s, e) => { (this.parent as IItemAddRemove).RemoveItem(); };
+
+            var addButton = this.GetTemplateChild("PART_AddButton") as Button;
+            addButton.Click += (s, e) => { (this.parent as IItemAddRemove).AddItem(); };
+        }
+    }
+
+    public class CollapseItem : StackPanel, IExpandCollapse, IParentUpdate
+    {
+        protected CollapseHeader headerItem;
+        protected StackPanel collapsePanel;
+        protected object prop;
+
+        public CollapseItem()
+        {
+            
+        }
 
         public CollapseItem(object prop, string name, string value, int padding)
         {
@@ -97,6 +124,26 @@ namespace Attribulator.UI.PropertyGrid
         public virtual void Update()
         {
             this.headerItem.UpdateValueText(this.prop.ToString());
+        }
+
+        protected void ClearChildren()
+        {
+            this.collapsePanel.Children.Clear();
+        }
+    }
+
+    public class ArrayCollapseItem : CollapseItem
+    {
+        public ArrayCollapseItem(object prop, string name, string value, int padding)
+        {
+            this.prop = prop;
+            this.collapsePanel = new StackPanel();
+            this.headerItem = new ArrayCollapseHeader(this, name, value, padding);
+
+            this.Children.Add(this.headerItem);
+            this.Children.Add(this.collapsePanel);
+
+            this.Collapse();
         }
     }
 }

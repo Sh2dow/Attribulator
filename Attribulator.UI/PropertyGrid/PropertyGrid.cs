@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AttribulatorUI;
+using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Windows;
@@ -125,17 +126,58 @@ namespace Attribulator.UI.PropertyGrid
         }
     }
 
-    public class ArrayItem : CollapseItem, ICommandName
+    public class ArrayItem : ArrayCollapseItem, ICommandName, IItemAddRemove
     {
         private int padding;
         private ICommandName parent;
         private string name;
+        private VaultLib.Core.Types.VLTArrayType prop;
+        private int maxCount;
 
         public ArrayItem(ICommandName parent, string name, VaultLib.Core.Types.VLTArrayType prop, int padding) : base(prop, name, prop.ToString(), padding)
         {
             this.name = name;
             this.parent = parent;
+            this.prop = prop;
 
+            var field = this.prop.Class.FindField(this.name);
+            this.maxCount = field.MaxCount;
+
+            this.Draw();
+        }
+
+        public string GetName()
+        {
+            return $"{this.parent.GetName()} {this.name}";
+        }
+
+        public void AddItem()
+        {
+            if (this.prop.Items.Count < this.maxCount)
+            {
+                this.Resize(this.prop.Items.Count + 1);
+            }
+        }
+
+        public void RemoveItem()
+        {
+            if (this.prop.Items.Count > 0)
+            {
+                this.Resize(this.prop.Items.Count - 1);
+            }
+        }
+
+        private void Resize(int size)
+        {
+            var command = $"resize_field {this.parent.GetName()} {this.name} {size}";
+            MainWindow.Instance.ExecuteScriptInternal(new[] { command });
+            MainWindow.Instance.AddScriptLine(command);
+            this.Draw();
+        }
+
+        private void Draw()
+        {
+            this.ClearChildren();
             for (int i = 0; i < prop.Items.Count; i++)
             {
                 string itemName = $"[{i}]";
@@ -149,11 +191,6 @@ namespace Attribulator.UI.PropertyGrid
                     this.AddChild(new ClassItem(this, itemName, prop.Items[i], this.padding + 21));
                 }
             }
-        }
-
-        public string GetName()
-        {
-            return $"{this.parent.GetName()} {this.name}";
         }
     }
 

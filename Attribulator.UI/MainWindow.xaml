@@ -71,7 +71,7 @@
                 </Grid.ColumnDefinitions>
 
                 <Border Grid.Column="0" x:Name="EditGridLeftPanel"/>
-                <Border Grid.Column="2" x:Name="EditGridRightPanel"/>
+                <Border Grid.Column="2" x:Name="EditGridRightPanel" Margin="0,0,20,0"/>
 
                 <ScrollViewer Grid.ColumnSpan="3">
                     <propertygrid:MainGrid x:Name="EditGrid"  />

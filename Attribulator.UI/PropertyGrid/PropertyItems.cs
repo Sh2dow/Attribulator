@@ -107,7 +107,7 @@ namespace Attribulator.UI.PropertyGrid
         }
     }
 
-    public class PropertyArrayItem : CollapseItem
+    public class PropertyArrayItem : ArrayCollapseItem
     {
         public PropertyArrayItem(IParent parent, PropertyInfo propertyInfo, VaultLib.Core.Types.VLTBaseType prop, int padding) : base(prop, propertyInfo.Name, prop.ToString(), padding)
         {
