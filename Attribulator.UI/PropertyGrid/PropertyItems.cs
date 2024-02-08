@@ -48,7 +48,7 @@ namespace Attribulator.UI.PropertyGrid
         }
     }
 
-    public class PropertyItem : BaseEditItem
+    public class PropertyItem : BaseEditItem, ICommandName
     {
         private VaultLib.Core.Types.VLTBaseType prop;
         private PropertyInfo propertyInfo;
@@ -57,6 +57,11 @@ namespace Attribulator.UI.PropertyGrid
         {
             this.prop = prop;
             this.propertyInfo = propertyInfo;
+        }
+
+        public string GetName()
+        {
+            return propertyInfo.Name;
         }
 
         public override IConvertible GetValue()

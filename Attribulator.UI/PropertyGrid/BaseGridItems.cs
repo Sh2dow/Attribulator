@@ -29,7 +29,9 @@ namespace Attribulator.UI.PropertyGrid
             if (parent is ICommandName commandName)
             {
                 var icm = this as ICommandName;
-                MainWindow.Instance.AddScriptLine($"update_field {commandName.GetName()} {icm.GetName()} {val}");
+                string command = $"update_field {commandName.GetName()} {icm.GetName()} {val}";
+                command = command.Replace(" [", "["); // TODO find a better way
+                MainWindow.Instance.AddScriptLine(command);
             }
         }
     }

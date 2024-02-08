@@ -65,13 +65,15 @@ namespace Attribulator.UI.PropertyGrid
         }
     }
 
-    public class ClassItem : CollapseItem
+    public class ClassItem : CollapseItem, ICommandName
     {
         private IParent parent;
+        private string name;
 
         public ClassItem(IParent parent, string name, VaultLib.Core.Types.VLTBaseType prop, int padding) : base(prop, name, prop.ToString(), padding)
         {
             this.parent = parent;
+            this.name = name;
 
             var props = prop.GetType().GetProperties().OrderBy(x => x.Name).ToList();
             for (int i = 0; i < props.Count; i++)
@@ -102,6 +104,17 @@ namespace Attribulator.UI.PropertyGrid
             }
         }
 
+        public string GetName()
+        {
+            string name = "";
+            if (this.parent is ICommandName icm)
+            {
+                name = $"{icm.GetName()} ";
+            }
+
+            return name + this.name;
+        }
+
         public override void Update()
         {
             base.Update();
@@ -112,12 +125,17 @@ namespace Attribulator.UI.PropertyGrid
         }
     }
 
-    public class ArrayItem : CollapseItem
+    public class ArrayItem : CollapseItem, ICommandName
     {
         private int padding;
+        private ICommandName parent;
+        private string name;
 
-        public ArrayItem(string name, VaultLib.Core.Types.VLTArrayType prop, int padding) : base(prop, name, prop.ToString(), padding)
+        public ArrayItem(ICommandName parent, string name, VaultLib.Core.Types.VLTArrayType prop, int padding) : base(prop, name, prop.ToString(), padding)
         {
+            this.name = name;
+            this.parent = parent;
+
             for (int i = 0; i < prop.Items.Count; i++)
             {
                 string itemName = $"[{i}]";
@@ -131,6 +149,11 @@ namespace Attribulator.UI.PropertyGrid
                     this.AddChild(new ClassItem(this, itemName, prop.Items[i], this.padding + 21));
                 }
             }
+        }
+
+        public string GetName()
+        {
+            return $"{this.parent.GetName()} {this.name}";
         }
     }
 
@@ -153,7 +176,7 @@ namespace Attribulator.UI.PropertyGrid
                     UIElement child = null;
                     if (type is VaultLib.Core.Types.VLTArrayType)
                     {
-                        child = new ArrayItem(property.Key, type as VaultLib.Core.Types.VLTArrayType, 0);
+                        child = new ArrayItem(this, property.Key, type as VaultLib.Core.Types.VLTArrayType, 0);
                     }
                     else if (type is VaultLib.Core.Types.EA.Reflection.PrimitiveTypeBase)
                     {
@@ -161,7 +184,7 @@ namespace Attribulator.UI.PropertyGrid
                     }
                     else if (type is VaultLib.Core.Types.VLTBaseType)
                     {
-                        child = new ClassItem(null, property.Key, type, 0);
+                        child = new ClassItem(this, property.Key, type, 0);
                     }
 
                     if (child != null)
