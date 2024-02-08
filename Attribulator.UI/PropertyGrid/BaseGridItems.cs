@@ -8,14 +8,36 @@ namespace Attribulator.UI.PropertyGrid
 {
     public interface IParent
     {
+    }
+
+    public interface IParentUpdate : IParent
+    {
         void Update();
     }
 
-    public abstract class BaseEditItem : Control
+    public interface ICommandName : IParent
+    {
+        string GetName();
+    }
+
+    public class BaseItem : Control
+    {
+        protected IParent parent;
+
+        protected void GenerateUpdateCommand(string val)
+        {
+            if (parent is ICommandName commandName)
+            {
+                var icm = this as ICommandName;
+                MainWindow.Instance.AddScriptLine($"update_field {commandName.GetName()} {icm.GetName()} {val}");
+            }
+        }
+    }
+
+    public abstract class BaseEditItem : BaseItem
     {
         private string name;
         private string lastValue;
-        private IParent parent;
         private int padding;
         private Type type;
 
@@ -51,7 +73,8 @@ namespace Attribulator.UI.PropertyGrid
                         this.SetValue(result as IConvertible);
                         this.lastValue = textBox.Text;
                         MainWindow.UnsavedChanges = true;
-                        this.parent?.Update();
+                        this.GenerateUpdateCommand(textBox.Text);
+                        (this.parent as IParentUpdate)?.Update();
                     }
                 }
                 catch
@@ -66,10 +89,9 @@ namespace Attribulator.UI.PropertyGrid
         public abstract void SetValue(IConvertible value);
     }
 
-    public abstract class BaseBoolItem : Control
+    public abstract class BaseBoolItem : BaseItem
     {
         private string name;
-        private IParent parent;
         private int padding;
 
         public BaseBoolItem(IParent parent, string name, int padding)
@@ -89,8 +111,18 @@ namespace Attribulator.UI.PropertyGrid
 
             var checkBox = this.GetTemplateChild("PART_CheckBox") as CheckBox;
             checkBox.IsChecked = this.GetValue();
-            checkBox.Checked += (s, e) => { this.SetValue(true); this.parent?.Update(); };
-            checkBox.Unchecked += (s, e) => { this.SetValue(false); this.parent?.Update(); };
+            checkBox.Checked += (s, e) =>
+            {
+                this.SetValue(true);
+                (this.parent as IParentUpdate)?.Update();
+                this.GenerateUpdateCommand("true");
+            };
+            checkBox.Unchecked += (s, e) =>
+            {
+                this.SetValue(false);
+                (this.parent as IParentUpdate)?.Update();
+                this.GenerateUpdateCommand("false");
+            };
         }
 
         public abstract bool GetValue();
@@ -98,10 +130,9 @@ namespace Attribulator.UI.PropertyGrid
         public abstract void SetValue(bool val);
     }
 
-    public abstract class BaseEnumItem : Control
+    public abstract class BaseEnumItem : BaseItem
     {
         private string name;
-        private IParent parent;
         private int padding;
 
         public BaseEnumItem(IParent parent, string name, int padding)
@@ -132,7 +163,8 @@ namespace Attribulator.UI.PropertyGrid
             {
                 var item = comboBox.SelectedItem as ComboBoxItem;
                 this.SetValue(Enum.Parse(type, item.Content as string) as Enum);
-                this.parent?.Update();
+                this.GenerateUpdateCommand(item.Content as string);
+                (this.parent as IParentUpdate)?.Update();
             };
         }
 

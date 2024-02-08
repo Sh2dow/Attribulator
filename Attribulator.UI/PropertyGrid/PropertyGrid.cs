@@ -107,7 +107,7 @@ namespace Attribulator.UI.PropertyGrid
             base.Update();
             if (this.parent != null)
             {
-                this.parent.Update();
+                (this.parent as IParentUpdate)?.Update();
             }
         }
     }
@@ -134,10 +134,13 @@ namespace Attribulator.UI.PropertyGrid
         }
     }
 
-    public class MainGrid : StackPanel
+    public class MainGrid : StackPanel, ICommandName
     {
+        private VltCollection collection;
+
         public void Display(VltCollection collection)
         {
+            this.collection = collection;
             this.Children.Clear();
 
             if (collection != null)
@@ -154,7 +157,7 @@ namespace Attribulator.UI.PropertyGrid
                     }
                     else if (type is VaultLib.Core.Types.EA.Reflection.PrimitiveTypeBase)
                     {
-                        child = GridHelper.ResolvePrimitiveItem(null, property.Key, type as VaultLib.Core.Types.EA.Reflection.PrimitiveTypeBase, 21);
+                        child = GridHelper.ResolvePrimitiveItem(this, property.Key, type as VaultLib.Core.Types.EA.Reflection.PrimitiveTypeBase, 21);
                     }
                     else if (type is VaultLib.Core.Types.VLTBaseType)
                     {
@@ -171,6 +174,11 @@ namespace Attribulator.UI.PropertyGrid
                     }
                 }
             }
+        }
+
+        public string GetName()
+        {
+            return $"{this.collection.Class.Name} {this.collection.Name}";
         }
     }
 }
