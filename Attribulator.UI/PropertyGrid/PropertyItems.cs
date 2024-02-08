@@ -4,7 +4,7 @@ using System.Reflection;
 
 namespace Attribulator.UI.PropertyGrid
 {
-    public class PropertyBoolItem : BaseBoolItem
+    public class PropertyBoolItem : BaseBoolItem, ICommandName
     {
         private VaultLib.Core.Types.VLTBaseType prop;
         private PropertyInfo propertyInfo;
@@ -13,6 +13,11 @@ namespace Attribulator.UI.PropertyGrid
         {
             this.prop = prop;
             this.propertyInfo = propertyInfo;
+        }
+
+        public string GetName()
+        {
+            return this.propertyInfo.Name;
         }
 
         public override bool GetValue()
@@ -26,7 +31,7 @@ namespace Attribulator.UI.PropertyGrid
         }
     }
 
-    public class PropertyEnumItem : BaseEnumItem
+    public class PropertyEnumItem : BaseEnumItem, ICommandName
     {
         private VaultLib.Core.Types.VLTBaseType prop;
         private PropertyInfo propertyInfo;
@@ -35,6 +40,11 @@ namespace Attribulator.UI.PropertyGrid
         {
             this.prop = prop;
             this.propertyInfo = propertyInfo;
+        }
+
+        public string GetName()
+        {
+            return this.propertyInfo.Name;
         }
 
         public override Enum GetValue()
@@ -61,7 +71,7 @@ namespace Attribulator.UI.PropertyGrid
 
         public string GetName()
         {
-            return propertyInfo.Name;
+            return this.propertyInfo.Name;
         }
 
         public override IConvertible GetValue()
