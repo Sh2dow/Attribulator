@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Media.Imaging;
 
 namespace Attribulator.UI
@@ -13,9 +13,12 @@ namespace Attribulator.UI
 
         private string[] initialScript;
 
-        private static string[] ignoreCommands = new[] { "version", "game", "ui_text", "ui_image", "#" };
+        private static string[] ignoreCommands = new[] { "version", "game", "ui_text", "ui_image", "file_copy", "folder_create", "ui_control", "#" };
 
         private string scriptFolder;
+
+        private Dictionary<string, Dictionary<string, RadioButton>> radioButtonGroups = new Dictionary<string, Dictionary<string, RadioButton>>();
+        private Dictionary<string, CheckBox> checkboxes = new Dictionary<string, CheckBox>();
 
         public ImportModScriptWindow(string scriptPath)
         {
@@ -28,7 +31,7 @@ namespace Attribulator.UI
             {
                 if (line.StartsWith("ui_text", StringComparison.OrdinalIgnoreCase))
                 {
-                    this.ModDescription.Text += line.Substring("ui_text".Length) + "\n";
+                    this.MainPanel.Children.Add(new TextBlock { Text = line.Substring("ui_text".Length), TextWrapping = TextWrapping.Wrap });
                 }
 
                 if (line.StartsWith("ui_image", StringComparison.OrdinalIgnoreCase))
@@ -36,14 +39,78 @@ namespace Attribulator.UI
                     var imagePath = Path.Combine(this.scriptFolder, line.Substring("ui_image ".Length));
                     if (File.Exists(imagePath))
                     {
-                        this.ModImage.Source = new BitmapImage(new Uri(imagePath));
+                        var bitmap = new BitmapImage(new Uri(imagePath));
+
+                        this.ImagePanel.Children.Add(new Image
+                        {
+                            Width = 200,
+                            Height = (float)bitmap.PixelHeight / (float)bitmap.PixelWidth * 200.0,
+                            Stretch = System.Windows.Media.Stretch.Uniform,
+                            Source = bitmap,
+                            Margin = new Thickness(0, 0, 0, 5)
+                        });
                     }
                 }
+
+                if (line.StartsWith("ui_control", StringComparison.OrdinalIgnoreCase))
+                {
+                    var uiControl = line.Split(' ');
+                    var controlType = uiControl[1];
+                    int start = line.IndexOf("\"") + 1;
+                    var controlText = line.Substring(start, line.Length - 1 - start);
+
+                    if (controlType == "radiobutton")
+                    {
+                        var controlGroup = uiControl[2];
+                        var controlName = uiControl[3];
+
+                        var radioButton = new RadioButton
+                        {
+                            GroupName = controlGroup,
+                            Name = controlName,
+                            Content = controlText,
+                            Margin = new Thickness(5, 5, 0, 0)
+                        };
+
+                        this.MainPanel.Children.Add(radioButton);
+                        if (!this.radioButtonGroups.TryGetValue(controlGroup, out var radioButtonGroup))
+                        {
+                            radioButtonGroup = new Dictionary<string, RadioButton>();
+                            this.radioButtonGroups[controlGroup] = radioButtonGroup;
+                            radioButton.IsChecked = true;
+                        }
+                        radioButtonGroup.Add(controlName, radioButton);
+                    }
+
+                    if (controlType == "checkbox")
+                    {
+                        var controlName = uiControl[2];
+                        var controlValue = uiControl[3];
+
+                        var checkbox = new CheckBox
+                        {
+                            Name = controlName,
+                            Content = controlText,
+                            IsChecked = bool.Parse(controlValue),
+                            Margin = new Thickness(5, 5, 0, 0)
+                        };
+
+                        this.MainPanel.Children.Add(checkbox);
+                        this.checkboxes.Add(controlName, checkbox);
+                    }
+                }
+            }
+
+            if (this.ImagePanel.Children.Count == 0)
+            {
+                Grid.SetColumnSpan(this.MainPanelScroller, 2);
             }
         }
 
         private void PopulateResultScript(string[] lines)
         {
+            bool skip = false;
+            bool inOption = false;
             foreach (string line in lines)
             {
                 if (string.IsNullOrEmpty(line))
@@ -52,6 +119,45 @@ namespace Attribulator.UI
                 }
 
                 var command = line.Trim();
+
+                if (command.StartsWith("ui_option"))
+                {
+                    if (!inOption)
+                    {
+                        skip = true;
+                        inOption = true;
+                        var uiOption = command.Split(' ');
+                        if (uiOption.Length == 3)
+                        {
+                            var group = this.radioButtonGroups[uiOption[1]];
+                            var radioButton = group[uiOption[2]];
+                            if (radioButton.IsChecked.HasValue && radioButton.IsChecked.Value)
+                            {
+                                skip = false;
+                            }
+                        }
+
+                        if (uiOption.Length == 2)
+                        {
+                            var checkbox = this.checkboxes[uiOption[1]];
+                            if (checkbox.IsChecked.HasValue && checkbox.IsChecked.Value)
+                            {
+                                skip = false;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        inOption = false;
+                    }
+
+                    continue;
+                }
+
+                if (inOption && skip)
+                {
+                    continue;
+                }
 
                 if (command.StartsWith("script", StringComparison.OrdinalIgnoreCase))
                 {

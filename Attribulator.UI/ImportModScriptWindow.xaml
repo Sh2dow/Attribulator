@@ -8,10 +8,21 @@
         ResizeMode="NoResize"
         Title="Import ModScript" Height="500" Width="635" WindowStartupLocation="CenterScreen">
     <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="55"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="200"/>
+        </Grid.ColumnDefinitions>
 
-        <TextBlock x:Name="ModDescription" TextWrapping="Wrap" Background="#FFE6E6E6" Margin="10,10,222,10" />
-        <Image x:Name="ModImage" Margin="424,12,3,272"/>
-        <Button Margin="0,0,10,10" Content="Import" HorizontalAlignment="Right"  VerticalAlignment="Bottom" Height="33" Width="85" Click="Button_Import_Click"/>
-
+        <ScrollViewer x:Name="MainPanelScroller" Grid.Row="0" Grid.Column="0" VerticalScrollBarVisibility="Auto" Padding="5">
+            <StackPanel x:Name="MainPanel"/>
+        </ScrollViewer>
+        <ScrollViewer Grid.Row="0" Grid.Column="1" VerticalScrollBarVisibility="Auto" Padding="5">
+            <StackPanel x:Name="ImagePanel"/>
+        </ScrollViewer>
+        <Button Grid.Row="1" Grid.Column="1" Margin="10" Content="Import" HorizontalAlignment="Right"  VerticalAlignment="Bottom" Height="33" Width="85" Click="Button_Import_Click"/>
     </Grid>
 </Window>

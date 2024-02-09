@@ -11,13 +11,13 @@
         <Label Content="Attribulator UI" HorizontalAlignment="Center" Margin="0,10,0,0" VerticalAlignment="Top" FontWeight="Bold" FontSize="36"/>
         <Label Content="A graphical user interface for Attribulator API" HorizontalAlignment="Center" Margin="0,68,0,0" VerticalAlignment="Top"/>
         <Label Content="Made by ARCHIE" HorizontalAlignment="Left" Margin="10,111,0,0" VerticalAlignment="Top"/>
-        <Label Content="alpha 0.5" HorizontalAlignment="Right" Margin="0,0,10,10" VerticalAlignment="Bottom"/>
+        <Label Content="alpha 0.6" HorizontalAlignment="Right" Margin="0,0,10,10" VerticalAlignment="Bottom"/>
         <Label Content="Credits:" HorizontalAlignment="Left" Margin="10,148,0,0" VerticalAlignment="Top"/>
         <Label Content="🞄 Attribulator by NFSTools" HorizontalAlignment="Left" Margin="10,170,0,0" VerticalAlignment="Top"/>
         <Label Content="🞄 VaultLib by NFSTools" HorizontalAlignment="Left" Margin="10,193,0,0" VerticalAlignment="Top"/>
         <Label Content="🞄 VLT Hashes by 379felipe" HorizontalAlignment="Left" Margin="10,216,0,0" VerticalAlignment="Top"/>
         <TextBlock Margin="157,175,31,0" VerticalAlignment="Top"><Hyperlink NavigateUri="https://github.com/NFSTools/Attribulator" RequestNavigate="Hyperlink_RequestNavigate"><Run Text="github.com/NFSTools/Attribulator"/></Hyperlink></TextBlock>
         <TextBlock Margin="138,198,50,0" VerticalAlignment="Top"><Hyperlink NavigateUri="https://github.com/NFSTools/VaultLib" RequestNavigate="Hyperlink_RequestNavigate"><Run Text="github.com/NFSTools/VaultLib"/></Hyperlink></TextBlock>
-        <TextBlock Margin="115,116,73,0" VerticalAlignment="Top"><Hyperlink NavigateUri="https://github.com/ArchieGoldmill" RequestNavigate="Hyperlink_RequestNavigate"><Run Text="github.com/ArchieGoldmill"/></Hyperlink></TextBlock>
+        <TextBlock Margin="115,116,73,0" VerticalAlignment="Top"><Hyperlink NavigateUri="https://discord.com/invite/DxC6Fyf" RequestNavigate="Hyperlink_RequestNavigate"><Run Text="Discord"/></Hyperlink></TextBlock>
     </Grid>
 </Window>
