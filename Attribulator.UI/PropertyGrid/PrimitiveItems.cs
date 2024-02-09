@@ -7,7 +7,7 @@ namespace Attribulator.UI.PropertyGrid
         private VaultLib.Core.Types.EA.Reflection.PrimitiveTypeBase prop;
         private string name;
 
-        public PrimitiveItem(IParent parent, string name, VaultLib.Core.Types.EA.Reflection.PrimitiveTypeBase prop, Type type, int padding) : base(parent, name, type, padding)
+        public PrimitiveItem(IParent parent, string name, VaultLib.Core.Types.EA.Reflection.PrimitiveTypeBase prop, int padding) : base(parent, name,  padding)
         {
             this.prop = prop;
             this.name = name;

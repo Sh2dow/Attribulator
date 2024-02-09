@@ -41,14 +41,12 @@ namespace Attribulator.UI.PropertyGrid
         private string name;
         private string lastValue;
         private int padding;
-        private Type type;
 
-        public BaseEditItem(IParent parent, string name, Type type, int padding)
+        public BaseEditItem(IParent parent, string name, int padding)
         {
             this.parent = parent;
             this.name = name;
             this.padding = padding;
-            this.type = type;
         }
 
         public override void OnApplyTemplate()
@@ -66,11 +64,12 @@ namespace Attribulator.UI.PropertyGrid
             textBox.LostFocus += (s, e) =>
             {
                 var textBox = s as TextBox;
+                var type = this.GetValue().GetType();
                 try
                 {
                     if (textBox.Text != this.lastValue)
                     {
-                        var converter = TypeDescriptor.GetConverter(this.type);
+                        var converter = TypeDescriptor.GetConverter(type);
                         var result = converter.ConvertFromInvariantString(textBox.Text);
                         this.SetValue(result as IConvertible);
                         this.lastValue = textBox.Text;
@@ -81,7 +80,7 @@ namespace Attribulator.UI.PropertyGrid
                 }
                 catch
                 {
-                    MessageBox.Show($"{textBox.Text} is not a valid value for {this.type}", "Property error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    MessageBox.Show($"{textBox.Text} is not a valid value for {type}", "Property error", MessageBoxButton.OK, MessageBoxImage.Warning);
                     textBox.Text = this.lastValue;
                 }
             };

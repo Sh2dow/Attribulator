@@ -36,7 +36,7 @@ namespace Attribulator.UI.PropertyGrid
                 return new PrimitiveEnumItem(parent, name, prop, padding);
             }
 
-            return new PrimitiveItem(parent, name, prop, prop.GetBaseType(), padding);
+            return new PrimitiveItem(parent, name, prop, padding);
         }
     }
 
@@ -100,7 +100,7 @@ namespace Attribulator.UI.PropertyGrid
                 }
                 else
                 {
-                    this.AddChild(new PropertyItem(this, pi, prop, type, subPadding));
+                    this.AddChild(new PropertyItem(this, pi, prop, subPadding));
                 }
             }
         }
