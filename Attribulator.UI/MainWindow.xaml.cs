@@ -409,16 +409,23 @@ namespace AttribulatorUI
         {
             var errors = new List<string>();
 
-            foreach (var command in this.modScriptService.ParseCommands(lines))
+            try
             {
-                try
+                foreach (var command in this.modScriptService.ParseCommands(lines))
                 {
-                    command.Execute(this.modScriptDatabase);
+                    try
+                    {
+                        command.Execute(this.modScriptDatabase);
+                    }
+                    catch (Exception e)
+                    {
+                        errors.Add(e.Message);
+                    }
                 }
-                catch (Exception e)
-                {
-                    errors.Add(e.Message);
-                }
+            }
+            catch(Exception e)
+            {
+                errors.Add(e.Message);
             }
 
             if (errors.Count > 0)
