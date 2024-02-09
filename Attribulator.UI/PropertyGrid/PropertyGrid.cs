@@ -224,7 +224,7 @@ namespace Attribulator.UI.PropertyGrid
                     if (type is VaultLib.Core.Types.VLTArrayType)
                     {
                         var field = collection.Class.FindField(property.Key);
-                        var maxCount = field.MaxCount;
+                        var maxCount = field.IsInLayout ? field.MaxCount : int.MaxValue;
                         child = new ArrayItem(this, property.Key, type as VaultLib.Core.Types.VLTArrayType, maxCount, 0);
                     }
                     else if (type is VaultLib.Core.Types.EA.Reflection.PrimitiveTypeBase)

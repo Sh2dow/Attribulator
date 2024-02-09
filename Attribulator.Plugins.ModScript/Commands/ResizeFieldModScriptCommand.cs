@@ -34,7 +34,7 @@ namespace Attribulator.Plugins.ModScript.Commands
             if (!field.IsArray)
                 throw new CommandExecutionException($"Field {ClassName}[{FieldName}] is not an array!");
 
-            if (field.MaxCount < NewCapacity)
+            if (field.MaxCount < NewCapacity && field.IsInLayout)
                 throw new CommandExecutionException(
                     $"Cannot resize field {ClassName}[{FieldName}] beyond maximum count (requested {NewCapacity} but limit is {field.MaxCount})");
 
