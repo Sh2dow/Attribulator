@@ -9,6 +9,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Resources\CloseFolder.png" />
+    <None Remove="Resources\OpenFolder.png" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Content Include="Resources\icon.ico" />
   </ItemGroup>
 
@@ -33,6 +38,11 @@
     <ProjectReference Include="..\Attribulator.CLI\Attribulator.CLI.csproj" />
     <ProjectReference Include="..\Attribulator.ModScript.API\Attribulator.ModScript.API.csproj" />
     <ProjectReference Include="..\Attribulator.Plugins.SpeedProfiles\Attribulator.Plugins.SpeedProfiles.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Resources\CloseFolder.png" />
+    <Resource Include="Resources\OpenFolder.png" />
   </ItemGroup>
 
 </Project>
