@@ -30,4 +30,8 @@
         <ProjectReference Include="..\Attribulator.API\Attribulator.API.csproj" />
     </ItemGroup>
 
+    <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+      <Exec Command="xcopy /Y $(OutDir) $(SolutionDir)Attribulator.UI\bin\$(Configuration)\netcoreapp3.1\plugins\Attribulator.Plugins.SpeedProfiles" />
+    </Target>
+
 </Project>
