@@ -42,6 +42,7 @@
                 <MenuItem Header="Create" Click="MenuItem_CreateBackup_Click" ToolTip="Creates backup of currently loaded files, make sure to save changes if you want them in the backup"/>
                 <MenuItem Header="Restore latest" Click="MenuItem_RestoreBackup_Click"/>
             </MenuItem>
+            <MenuItem Header="Raider" Click="MenuItem_Raider_Click" />
             <MenuItem Header="About" Click="MenuItem_About_Click" />
         </Menu>
         <Grid DockPanel.Dock="Left">

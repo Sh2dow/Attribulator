@@ -665,5 +665,10 @@ namespace AttribulatorUI
                 this.CreateCollectionContextMenu();
             }
         }
+
+        private void MenuItem_Raider_Click(object sender, RoutedEventArgs e)
+        {
+            new RaiderWindow().ShowDialog();
+        }
     }
 }
