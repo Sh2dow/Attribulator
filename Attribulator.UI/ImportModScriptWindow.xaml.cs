@@ -16,6 +16,7 @@ namespace Attribulator.UI
         private static string[] ignoreCommands = new[] { "version", "game", "ui_text", "ui_image", "file_copy", "folder_create", "ui_control", "#" };
 
         private string scriptFolder;
+        private string scriptPath;
 
         private Dictionary<string, Dictionary<string, RadioButton>> radioButtonGroups = new Dictionary<string, Dictionary<string, RadioButton>>();
         private Dictionary<string, CheckBox> checkboxes = new Dictionary<string, CheckBox>();
@@ -24,21 +25,27 @@ namespace Attribulator.UI
         {
             InitializeComponent();
 
+            this.scriptPath = scriptPath;
+        }
+
+        private void Window_Loaded(object sender, RoutedEventArgs e)
+        {
             var lines = File.ReadAllLines(scriptPath);
             this.initialScript = lines;
             this.scriptFolder = Path.GetDirectoryName(scriptPath);
             foreach (string line in lines)
             {
-                if (line.StartsWith("ui_text", StringComparison.OrdinalIgnoreCase))
+                try
                 {
-                    this.MainPanel.Children.Add(new TextBlock { Text = line.Substring("ui_text".Length), TextWrapping = TextWrapping.Wrap });
-                }
-
-                if (line.StartsWith("ui_image", StringComparison.OrdinalIgnoreCase))
-                {
-                    var imagePath = Path.Combine(this.scriptFolder, line.Substring("ui_image ".Length));
-                    if (File.Exists(imagePath))
+                    if (line.StartsWith("ui_text", StringComparison.OrdinalIgnoreCase))
                     {
+                        this.MainPanel.Children.Add(new TextBlock { Text = line.Substring("ui_text".Length), TextWrapping = TextWrapping.Wrap });
+                    }
+
+                    if (line.StartsWith("ui_image", StringComparison.OrdinalIgnoreCase))
+                    {
+                        var imagePath = Path.Combine(this.scriptFolder, line.Substring("ui_image ".Length));
+
                         var bitmap = new BitmapImage(new Uri(imagePath));
 
                         this.ImagePanel.Children.Add(new Image
@@ -50,54 +57,59 @@ namespace Attribulator.UI
                             Margin = new Thickness(0, 0, 0, 5)
                         });
                     }
-                }
 
-                if (line.StartsWith("ui_control", StringComparison.OrdinalIgnoreCase))
-                {
-                    var uiControl = line.Split(' ');
-                    var controlType = uiControl[1];
-                    int start = line.IndexOf("\"") + 1;
-                    var controlText = line.Substring(start, line.Length - 1 - start);
-
-                    if (controlType == "radiobutton")
+                    if (line.StartsWith("ui_control", StringComparison.OrdinalIgnoreCase))
                     {
-                        var controlGroup = uiControl[2];
-                        var controlName = uiControl[3];
+                        var uiControl = line.Split(' ');
+                        var controlType = uiControl[1];
+                        int start = line.IndexOf("\"") + 1;
+                        var controlText = line.Substring(start, line.Length - 1 - start);
 
-                        var radioButton = new RadioButton
+                        if (controlType == "radiobutton")
                         {
-                            GroupName = controlGroup,
-                            Name = controlName,
-                            Content = controlText,
-                            Margin = new Thickness(5, 5, 0, 0)
-                        };
+                            var controlGroup = uiControl[2];
+                            var controlName = uiControl[3];
 
-                        this.MainPanel.Children.Add(radioButton);
-                        if (!this.radioButtonGroups.TryGetValue(controlGroup, out var radioButtonGroup))
-                        {
-                            radioButtonGroup = new Dictionary<string, RadioButton>();
-                            this.radioButtonGroups[controlGroup] = radioButtonGroup;
-                            radioButton.IsChecked = true;
+                            var radioButton = new RadioButton
+                            {
+                                GroupName = controlGroup,
+                                Name = controlName,
+                                Content = controlText,
+                                Margin = new Thickness(5, 5, 0, 0)
+                            };
+
+                            this.MainPanel.Children.Add(radioButton);
+                            if (!this.radioButtonGroups.TryGetValue(controlGroup, out var radioButtonGroup))
+                            {
+                                radioButtonGroup = new Dictionary<string, RadioButton>();
+                                this.radioButtonGroups[controlGroup] = radioButtonGroup;
+                                radioButton.IsChecked = true;
+                            }
+                            radioButtonGroup.Add(controlName, radioButton);
                         }
-                        radioButtonGroup.Add(controlName, radioButton);
-                    }
 
-                    if (controlType == "checkbox")
-                    {
-                        var controlName = uiControl[2];
-                        var controlValue = uiControl[3];
-
-                        var checkbox = new CheckBox
+                        if (controlType == "checkbox")
                         {
-                            Name = controlName,
-                            Content = controlText,
-                            IsChecked = bool.Parse(controlValue),
-                            Margin = new Thickness(5, 5, 0, 0)
-                        };
+                            var controlName = uiControl[2];
+                            var controlValue = uiControl[3];
 
-                        this.MainPanel.Children.Add(checkbox);
-                        this.checkboxes.Add(controlName, checkbox);
+                            var checkbox = new CheckBox
+                            {
+                                Name = controlName,
+                                Content = controlText,
+                                IsChecked = bool.Parse(controlValue),
+                                Margin = new Thickness(5, 5, 0, 0)
+                            };
+
+                            this.MainPanel.Children.Add(checkbox);
+                            this.checkboxes.Add(controlName, checkbox);
+                        }
                     }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Invalid script line:\n" + line, "Script parse error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    this.Close();
                 }
             }
 
@@ -113,73 +125,81 @@ namespace Attribulator.UI
             bool inOption = false;
             foreach (string line in lines)
             {
-                if (string.IsNullOrEmpty(line))
+                try
                 {
-                    continue;
-                }
-
-                var command = line.Trim();
-
-                if (command.StartsWith("ui_option"))
-                {
-                    if (!inOption)
+                    if (string.IsNullOrEmpty(line))
                     {
-                        skip = true;
-                        inOption = true;
-                        var uiOption = command.Split(' ');
-                        if (uiOption.Length == 3)
+                        continue;
+                    }
+
+                    var command = line.Trim();
+
+                    if (command.StartsWith("ui_option"))
+                    {
+                        if (!inOption)
                         {
-                            var group = this.radioButtonGroups[uiOption[1]];
-                            var radioButton = group[uiOption[2]];
-                            if (radioButton.IsChecked.HasValue && radioButton.IsChecked.Value)
+                            skip = true;
+                            inOption = true;
+                            var uiOption = command.Split(' ');
+                            if (uiOption.Length == 3)
                             {
-                                skip = false;
+                                var group = this.radioButtonGroups[uiOption[1]];
+                                var radioButton = group[uiOption[2]];
+                                if (radioButton.IsChecked.HasValue && radioButton.IsChecked.Value)
+                                {
+                                    skip = false;
+                                }
                             }
+                            else
+                            {
+                                var checkbox = this.checkboxes[uiOption[1]];
+                                if (checkbox.IsChecked.HasValue && checkbox.IsChecked.Value)
+                                {
+                                    skip = false;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            inOption = false;
                         }
 
-                        if (uiOption.Length == 2)
-                        {
-                            var checkbox = this.checkboxes[uiOption[1]];
-                            if (checkbox.IsChecked.HasValue && checkbox.IsChecked.Value)
-                            {
-                                skip = false;
-                            }
-                        }
+                        continue;
+                    }
+
+                    if (inOption && skip)
+                    {
+                        continue;
+                    }
+
+                    if (command.StartsWith("script", StringComparison.OrdinalIgnoreCase))
+                    {
+                        var subScript = Path.Combine(this.scriptFolder, command.Substring("script ".Length));
+                        this.PopulateResultScript(File.ReadAllLines(subScript));
                     }
                     else
                     {
-                        inOption = false;
-                    }
-
-                    continue;
-                }
-
-                if (inOption && skip)
-                {
-                    continue;
-                }
-
-                if (command.StartsWith("script", StringComparison.OrdinalIgnoreCase))
-                {
-                    var subScript = Path.Combine(this.scriptFolder, command.Substring("script ".Length));
-                    this.PopulateResultScript(File.ReadAllLines(subScript));
-                }
-                else
-                {
-                    bool ignore = false;
-                    foreach (var ignoreCommand in ignoreCommands)
-                    {
-                        if (command.StartsWith(ignoreCommand))
+                        bool ignore = false;
+                        foreach (var ignoreCommand in ignoreCommands)
                         {
-                            ignore = true;
-                            break;
+                            if (command.StartsWith(ignoreCommand))
+                            {
+                                ignore = true;
+                                break;
+                            }
+                        }
+
+                        if (!ignore)
+                        {
+                            this.ResultScript.Add(command);
                         }
                     }
-
-                    if (!ignore)
-                    {
-                        this.ResultScript.Add(command);
-                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Invalid script line:\n" + line, "Script import error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    this.ResultScript.Clear();
+                    break;
                 }
             }
         }
