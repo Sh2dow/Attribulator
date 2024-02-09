@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections;
 using System.Reflection;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.TextBox;
+using System.Windows.Forms;
+using AttribulatorUI;
 
 namespace Attribulator.UI.PropertyGrid
 {
@@ -107,11 +110,29 @@ namespace Attribulator.UI.PropertyGrid
         }
     }
 
-    public class PropertyArrayItem : ArrayCollapseItem
+    public class PropertyArrayItem : ArrayCollapseItem, IItemAddRemove
     {
-        public PropertyArrayItem(IParent parent, PropertyInfo propertyInfo, VaultLib.Core.Types.VLTBaseType prop, int padding) : base(prop, propertyInfo.Name, prop.ToString(), padding)
+        private VaultLib.Core.Types.VLTBaseType prop;
+        private PropertyInfo propertyInfo;
+        private int padding;
+        private IParent parent;
+        private int maxCount;
+
+        public PropertyArrayItem(IParent parent, PropertyInfo propertyInfo, VaultLib.Core.Types.VLTBaseType prop, int maxCount, int padding) : base(prop, propertyInfo.Name, prop.ToString(), padding)
         {
-            var array = propertyInfo.GetValue(prop) as IList;
+            this.prop = prop;
+            this.propertyInfo = propertyInfo;
+            this.padding = padding;
+            this.parent = parent;
+            this.maxCount = maxCount;
+
+            this.Draw();
+        }
+
+        private void Draw()
+        {
+            this.ClearChildren();
+            var array = this.propertyInfo.GetValue(this.prop) as IList;
             for (int i = 0; i < array.Count; i++)
             {
                 var type = array[i].GetType();
@@ -124,6 +145,32 @@ namespace Attribulator.UI.PropertyGrid
                     this.AddChild(new PropertyArraySubItem(parent, array, i, padding + 21));
                 }
             }
+        }
+
+        public void AddItem()
+        {
+            var array = this.propertyInfo.GetValue(this.prop) as IList;
+            if (array.Count < this.maxCount)
+            {
+                this.Resize(array.Count + 1);
+            }
+        }
+
+        public void RemoveItem()
+        {
+            var array = this.propertyInfo.GetValue(this.prop) as IList;
+            if (array.Count > 0)
+            {
+                this.Resize(array.Count - 1);
+            }
+        }
+
+        private void Resize(int size)
+        {
+            var command = $"resize_collection {(this.parent as ICommandName).GetName()} {this.propertyInfo.Name} {size}";
+            MainWindow.Instance.ExecuteScriptInternal(new[] { command });
+            MainWindow.Instance.AddScriptLine(command);
+            this.Draw();
         }
     }
 }

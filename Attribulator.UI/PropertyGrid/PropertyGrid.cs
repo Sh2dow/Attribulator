@@ -1,10 +1,12 @@
 ﻿using AttribulatorUI;
 using System;
+using System.Collections;
 using System.Diagnostics;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using VaultLib.Core.Data;
+using VaultLib.Core.Types;
 
 namespace Attribulator.UI.PropertyGrid
 {
@@ -96,7 +98,14 @@ namespace Attribulator.UI.PropertyGrid
                 }
                 else if (type.IsArray)
                 {
-                    this.AddChild(new PropertyArrayItem(this, pi, prop, subPadding));
+                    var array = pi.GetValue(prop) as IList;
+                    int maxCount = array.Count;
+                    if(prop.GetType().GetGenericTypeDefinition() == typeof(DynamicSizeArray<>))
+                    {
+                        maxCount = int.MaxValue;
+                    }
+
+                    this.AddChild(new PropertyArrayItem(this, pi, prop, maxCount, subPadding));
                 }
                 else
                 {
