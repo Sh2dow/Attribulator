@@ -96,11 +96,13 @@ namespace Attribulator.UI.PropertyGrid
                 {
                     this.AddChild(new PropertyEnumItem(this, pi, prop, subPadding));
                 }
-                else if (type.IsArray)
+                else if (type.IsArray || type.GetInterfaces().Contains(typeof(IList)))
                 {
                     var array = pi.GetValue(prop) as IList;
                     int maxCount = array.Count;
-                    if(prop.GetType().GetGenericTypeDefinition() == typeof(DynamicSizeArray<>))
+                    var genericType = prop.GetType().GetGenericTypeDefinition();
+                    if (genericType == typeof(DynamicSizeArray<>) ||
+                        genericType == typeof(VLTListContainer<>))
                     {
                         maxCount = int.MaxValue;
                     }

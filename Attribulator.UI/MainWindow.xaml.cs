@@ -172,7 +172,7 @@ namespace AttribulatorUI
                 {
                     profile.SaveFiles(database, this.gameFolder, files);
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     MessageBox.Show(ex.Message, "Error saving file", MessageBoxButton.OK, MessageBoxImage.Warning);
                     this.Restore(Path.Combine(this.gameFolder, "GLOBAL", "AttribulatorBackups", "SaveBackup"));
@@ -246,7 +246,7 @@ namespace AttribulatorUI
                 var classNode = new ClassTreeViewItem(cls);
                 classNode.ContextMenu = this.classContextMenu;
 
-                var collections = this.database.RowManager.EnumerateCollections(cls.Name);
+                var collections = this.database.RowManager.EnumerateCollections(cls.Name).OrderBy(x => x.Name);
                 foreach (var collection in collections)
                 {
                     var childNode = new CollectionTreeViewItem(collection);
@@ -564,7 +564,7 @@ namespace AttribulatorUI
                 newNodeWindow.ShowDialog();
                 var result = newNodeWindow.Result;
                 if (!string.IsNullOrEmpty(result))
-                {                    
+                {
                     string command = $"add_node {collection.Class.Name} {collection.Name} {result}";
                     this.ExecuteScriptInternal(new[] { command });
                     this.AddScriptLine(command);

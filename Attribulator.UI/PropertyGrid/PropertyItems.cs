@@ -168,6 +168,7 @@ namespace Attribulator.UI.PropertyGrid
         private void Resize(int size)
         {
             var command = $"resize_collection {(this.parent as ICommandName).GetName()} {this.propertyInfo.Name} {size}";
+            command = command.Replace(" [", "[");
             MainWindow.Instance.ExecuteScriptInternal(new[] { command });
             MainWindow.Instance.AddScriptLine(command);
             this.Draw();

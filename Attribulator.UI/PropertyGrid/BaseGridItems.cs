@@ -64,7 +64,8 @@ namespace Attribulator.UI.PropertyGrid
             textBox.LostFocus += (s, e) =>
             {
                 var textBox = s as TextBox;
-                var type = this.GetValue().GetType();
+                var val = this.GetValue();
+                var type = val.GetType();
                 try
                 {
                     if (textBox.Text != this.lastValue)
