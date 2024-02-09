@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Attribulator.ModScript.API;
 using Attribulator.ModScript.API.Utils;
+using VaultLib.Core;
 using VaultLib.Core.Types;
 
 namespace Attribulator.Plugins.ModScript.Commands
@@ -83,6 +84,17 @@ namespace Attribulator.Plugins.ModScript.Commands
 
             for (var i = 0; i < retrievedArray.Length && i < Size; i++)
                 newArray.SetValue(retrievedArray.GetValue(i), i);
+
+            for(var i = 0; i < newArray.Length; i++)
+            {
+                if (newArray.GetValue(i) == null)
+                {
+                    if (elementType.IsSubclassOf(typeof(VLTBaseType)))
+                    {
+                        newArray.SetValue(TypeRegistry.ConstructInstance(elementType, collection.Class, field, collection), i);
+                    }
+                }
+            }
 
             retrievedProperty.SetValue(newArray);
         }
