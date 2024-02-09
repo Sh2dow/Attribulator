@@ -117,6 +117,7 @@ namespace Attribulator.UI.PropertyGrid
         private int padding;
         private IParent parent;
         private int maxCount;
+        private IList array;
 
         public PropertyArrayItem(IParent parent, PropertyInfo propertyInfo, VaultLib.Core.Types.VLTBaseType prop, int maxCount, int padding) : base(prop, propertyInfo.Name, prop.ToString(), padding)
         {
@@ -125,6 +126,7 @@ namespace Attribulator.UI.PropertyGrid
             this.padding = padding;
             this.parent = parent;
             this.maxCount = maxCount;
+            this.array = this.propertyInfo.GetValue(this.prop) as IList;
 
             this.Draw();
         }
@@ -149,19 +151,17 @@ namespace Attribulator.UI.PropertyGrid
 
         public void AddItem()
         {
-            var array = this.propertyInfo.GetValue(this.prop) as IList;
-            if (array.Count < this.maxCount)
+            if (this.CanAdd())
             {
-                this.Resize(array.Count + 1);
+                this.Resize(this.array.Count + 1);
             }
         }
 
         public void RemoveItem()
         {
-            var array = this.propertyInfo.GetValue(this.prop) as IList;
-            if (array.Count > 0)
+            if (this.CanRemove())
             {
-                this.Resize(array.Count - 1);
+                this.Resize(this.array.Count - 1);
             }
         }
 
@@ -172,6 +172,16 @@ namespace Attribulator.UI.PropertyGrid
             MainWindow.Instance.ExecuteScriptInternal(new[] { command });
             MainWindow.Instance.AddScriptLine(command);
             this.Draw();
+        }
+
+        public bool CanAdd()
+        {
+            return this.array.Count < this.maxCount;
+        }
+
+        public bool CanRemove()
+        {
+            return this.array.Count > 0;
         }
     }
 }

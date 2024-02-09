@@ -163,7 +163,7 @@ namespace Attribulator.UI.PropertyGrid
 
         public void AddItem()
         {
-            if (this.prop.Items.Count < this.maxCount)
+            if (this.CanAdd())
             {
                 this.Resize(this.prop.Items.Count + 1);
             }
@@ -171,7 +171,7 @@ namespace Attribulator.UI.PropertyGrid
 
         public void RemoveItem()
         {
-            if (this.prop.Items.Count > 0)
+            if (this.CanRemove())
             {
                 this.Resize(this.prop.Items.Count - 1);
             }
@@ -201,6 +201,16 @@ namespace Attribulator.UI.PropertyGrid
                     this.AddChild(new ClassItem(this, itemName, prop.Items[i], this.padding + 21));
                 }
             }
+        }
+
+        public bool CanAdd()
+        {
+            return this.prop.Items.Count < this.maxCount;
+        }
+
+        public bool CanRemove()
+        {
+            return this.prop.Items.Count > 0;
         }
     }
 

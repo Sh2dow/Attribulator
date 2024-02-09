@@ -15,7 +15,11 @@ namespace Attribulator.UI.PropertyGrid
     {
         void AddItem();
 
+        bool CanAdd();
+
         void RemoveItem();
+
+        bool CanRemove();
     }
 
     public class CollapseHeader : Control
@@ -67,6 +71,9 @@ namespace Attribulator.UI.PropertyGrid
 
     public class ArrayCollapseHeader : CollapseHeader
     {
+        protected Button removeButton;
+        protected Button addButton;
+
         public ArrayCollapseHeader(IExpandCollapse parent, string headerName, string value, int padding) : base(parent, headerName, value, padding)
         {
         }
@@ -75,11 +82,20 @@ namespace Attribulator.UI.PropertyGrid
         {
             base.OnApplyTemplate();
 
-            var removeButton = this.GetTemplateChild("PART_RemoveButton") as Button;
-            removeButton.Click += (s, e) => { (this.parent as IItemAddRemove).RemoveItem(); };
+            this.removeButton = this.GetTemplateChild("PART_RemoveButton") as Button;
+            removeButton.Click += (s, e) => { (this.parent as IItemAddRemove).RemoveItem(); this.UpdateButtons(); };
 
-            var addButton = this.GetTemplateChild("PART_AddButton") as Button;
-            addButton.Click += (s, e) => { (this.parent as IItemAddRemove).AddItem(); };
+            this.addButton = this.GetTemplateChild("PART_AddButton") as Button;
+            addButton.Click += (s, e) => { (this.parent as IItemAddRemove).AddItem(); this.UpdateButtons(); };
+
+            this.UpdateButtons();
+        }
+
+        private void UpdateButtons()
+        {
+            var p = this.parent as IItemAddRemove;
+            this.addButton.IsEnabled = p.CanAdd();
+            this.removeButton.IsEnabled = p.CanRemove();
         }
     }
 
@@ -91,7 +107,7 @@ namespace Attribulator.UI.PropertyGrid
 
         public CollapseItem()
         {
-            
+
         }
 
         public CollapseItem(object prop, string name, string value, int padding)
