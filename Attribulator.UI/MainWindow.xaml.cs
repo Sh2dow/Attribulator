@@ -423,7 +423,7 @@ namespace AttribulatorUI
                     }
                 }
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 errors.Add(e.Message);
             }
@@ -653,22 +653,28 @@ namespace AttribulatorUI
             {
                 var collection = this.currentCollection.Collection;
                 new CollectionRenameWindow(collection).ShowDialog();
-                this.currentCollection.Header = collection.Name;
+                this.currentCollection.SetName(collection.Name);
             };
             contextMenu.Items.Add(menuItem);
         }
 
         private void TreeView_PreviewMouseRightButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
-            if (e.Source is ClassTreeViewItem)
+            var source = e.Source;
+            if (source is TreeHeader header)
             {
-                this.currentClass = (ClassTreeViewItem)e.Source;
+                source = header.Parent;
+            }
+
+            if (source is ClassTreeViewItem)
+            {
+                this.currentClass = (ClassTreeViewItem)source;
                 this.CreateClassContextMenu();
             }
 
-            if (e.Source is CollectionTreeViewItem)
+            if (source is CollectionTreeViewItem)
             {
-                this.currentCollection = (CollectionTreeViewItem)e.Source;
+                this.currentCollection = (CollectionTreeViewItem)source;
                 this.CreateCollectionContextMenu();
             }
         }

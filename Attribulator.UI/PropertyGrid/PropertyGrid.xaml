@@ -270,7 +270,7 @@
                 <ControlTemplate TargetType="{x:Type ui:TreeHeader}">
                     <StackPanel Orientation="Horizontal">
                         <Image Width="14" Height="14" x:Name="PART_ImageClosed" Source="/Resources/CloseFolder.png"/>
-                        <Image Margin="-14,0,0,0" Width="14" Height="14" x:Name="PART_ImageOpened" Source="/Resources/OpenFolder.png" Visibility="Hidden"/>
+                        <Image Width="14" Height="14" x:Name="PART_ImageOpened" Source="/Resources/OpenFolder.png" Visibility="Collapsed"/>
                         <TextBlock Margin="5,0,0,0" x:Name="PART_TextBlock"/>
                     </StackPanel>
                 </ControlTemplate>

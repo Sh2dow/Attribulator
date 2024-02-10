@@ -1,8 +1,5 @@
-﻿
-using AttribulatorUI;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Media.Imaging;
 using VaultLib.Core.Data;
 
 namespace Attribulator.UI
@@ -12,6 +9,7 @@ namespace Attribulator.UI
         private string text;
         private Image imageClosed;
         private Image imageOpened;
+        private TextBlock textBlock;
 
         public TreeHeader(string text)
         {
@@ -22,8 +20,8 @@ namespace Attribulator.UI
         {
             base.OnApplyTemplate();
 
-            var textBlock = this.GetTemplateChild("PART_TextBlock") as TextBlock;
-            textBlock.Text = this.text;
+            this.textBlock = this.GetTemplateChild("PART_TextBlock") as TextBlock;
+            this.textBlock.Text = this.text;
 
             this.imageClosed = this.GetTemplateChild("PART_ImageClosed") as Image;
             this.imageOpened = this.GetTemplateChild("PART_ImageOpened") as Image;
@@ -31,14 +29,23 @@ namespace Attribulator.UI
 
         public void Expand()
         {
-            this.imageClosed.Visibility = System.Windows.Visibility.Hidden;
+            this.imageClosed.Visibility = System.Windows.Visibility.Collapsed;
             this.imageOpened.Visibility = System.Windows.Visibility.Visible;
         }
 
         public void Collapse()
         {
             this.imageClosed.Visibility = System.Windows.Visibility.Visible;
-            this.imageOpened.Visibility = System.Windows.Visibility.Hidden;
+            this.imageOpened.Visibility = System.Windows.Visibility.Collapsed;
+        }
+
+        public void SetName(string name)
+        {
+            if (this.textBlock != null)
+            {
+                this.text = name;
+                this.textBlock.Text = name;
+            }
         }
     }
 
@@ -69,6 +76,11 @@ namespace Attribulator.UI
             {
                 this.treeHeader.Collapse();
             }
+        }
+
+        public void SetName(string name)
+        {
+            this.treeHeader.SetName(name);
         }
     }
 

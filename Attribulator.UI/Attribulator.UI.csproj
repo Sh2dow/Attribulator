@@ -10,7 +10,13 @@
 
   <ItemGroup>
     <None Remove="Resources\CloseFolder.png" />
+    <None Remove="Resources\CloseWindow.png" />
+    <None Remove="Resources\Export.png" />
+    <None Remove="Resources\Import.png" />
+    <None Remove="Resources\Open.png" />
     <None Remove="Resources\OpenFolder.png" />
+    <None Remove="Resources\Refresh.png" />
+    <None Remove="Resources\Save.png" />
   </ItemGroup>
 
   <ItemGroup>
@@ -42,7 +48,12 @@
 
   <ItemGroup>
     <Resource Include="Resources\CloseFolder.png" />
+    <Resource Include="Resources\CloseWindow.png" />
+    <Resource Include="Resources\Export.png" />
+    <Resource Include="Resources\Import.png" />
     <Resource Include="Resources\OpenFolder.png" />
+    <Resource Include="Resources\Refresh.png" />
+    <Resource Include="Resources\Save.png" />
   </ItemGroup>
 
 </Project>
