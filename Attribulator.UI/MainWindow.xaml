@@ -53,18 +53,38 @@
                 </MenuItem>
             </MenuItem>
             <MenuItem x:Name="GamesMenuItem" Header="Game">
-                <MenuItem Header="Run" Click="MenuItemGameRun_Click"/>
+                <MenuItem Header="Run" Click="MenuItemGameRun_Click">
+                    <MenuItem.Icon>
+                        <Image Source="/Resources/Run.png"/>
+                    </MenuItem.Icon>
+                </MenuItem>
                 <Separator />
                 <!--Here go games from settings-->
             </MenuItem>
             <MenuItem Header="Script">
-                <MenuItem Header="Execute all" Click="MenuItem_Script_ExeculteAll_Click"/>
+                <MenuItem Header="Execute all" Click="MenuItem_Script_ExeculteAll_Click">
+                    <MenuItem.Icon>
+                        <Image Source="/Resources/Script.png"/>
+                    </MenuItem.Icon>
+                </MenuItem>
                 <Separator />
-                <MenuItem Header="Clear" Click="MenuItem_ScriptsClear_Click"/>
+                <MenuItem Header="Clear" Click="MenuItem_ScriptsClear_Click">
+                    <MenuItem.Icon>
+                        <Image Source="/Resources/CloseWindow.png"/>
+                    </MenuItem.Icon>
+                </MenuItem>
             </MenuItem>
             <MenuItem Header="Backup">
-                <MenuItem Header="Create" Click="MenuItem_CreateBackup_Click" ToolTip="Creates backup of currently loaded files, make sure to save changes if you want them in the backup"/>
-                <MenuItem Header="Restore latest" Click="MenuItem_RestoreBackup_Click"/>
+                <MenuItem Header="Create" Click="MenuItem_CreateBackup_Click" ToolTip="Creates backup of currently loaded files, make sure to save changes if you want them in the backup">
+                    <MenuItem.Icon>
+                        <Image Source="/Resources/Database.png"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Restore latest" Click="MenuItem_RestoreBackup_Click">
+                    <MenuItem.Icon>
+                        <Image Source="/Resources/Recent.png"/>
+                    </MenuItem.Icon>
+                </MenuItem>
             </MenuItem>
             <MenuItem Header="Raider" Click="MenuItem_Raider_Click" />
             <MenuItem Header="About" Click="MenuItem_About_Click" />

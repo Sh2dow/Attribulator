@@ -13,6 +13,8 @@ using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using VaultLib.Core.Data;
 using VaultLib.Core.DB;
 using Forms = System.Windows.Forms;
@@ -509,12 +511,20 @@ namespace AttribulatorUI
             this.ScriptEditor.Text += "\n" + line;
         }
 
+        private Image CreateImageSource(string name)
+        {
+            var img = new Image();
+            img.Source = new BitmapImage(new Uri($"pack://application:,,,/Resources/{name}"));
+            return img;
+        }
+
         private void CreateClassContextMenu()
         {
             var contextMenu = this.classContextMenu;
 
             var menuItem = new MenuItem();
             menuItem.Header = "Add";
+            menuItem.Icon = this.CreateImageSource("Add.png");
             menuItem.Click += (s, e) =>
             {
                 var newNodeWindow = new NewNodeNameWindow(this.currentClass.Class.Name);
@@ -536,6 +546,7 @@ namespace AttribulatorUI
 
                 menuItem = new MenuItem();
                 menuItem.Header = $"Paste ({this.collectionToCopy.Header})";
+                menuItem.Icon = this.CreateImageSource("Paste.png");
                 menuItem.Click += (s, e) =>
                 {
                     var collection = this.collectionToCopy.Collection;
@@ -564,6 +575,7 @@ namespace AttribulatorUI
 
             var menuItem = new MenuItem();
             menuItem.Header = "Add";
+            menuItem.Icon = this.CreateImageSource("Add.png");
             menuItem.Click += (s, e) =>
             {
                 var collection = this.currentCollection.Collection;
@@ -582,6 +594,7 @@ namespace AttribulatorUI
 
             menuItem = new MenuItem();
             menuItem.Header = "Delete";
+            menuItem.Icon = this.CreateImageSource("Delete.png");
             menuItem.Click += (s, e) =>
             {
                 var collection = this.currentCollection.Collection;
@@ -596,6 +609,7 @@ namespace AttribulatorUI
 
             menuItem = new MenuItem();
             menuItem.Header = "Copy";
+            menuItem.Icon = this.CreateImageSource("Copy.png");
             menuItem.Click += (s, e) =>
             {
                 this.collectionToCopy = this.currentCollection;
@@ -605,6 +619,7 @@ namespace AttribulatorUI
 
             menuItem = new MenuItem();
             menuItem.Header = "Cut";
+            menuItem.Icon = this.CreateImageSource("Cut.png");
             menuItem.Click += (s, e) =>
             {
                 this.collectionToCopy = this.currentCollection;
@@ -616,6 +631,7 @@ namespace AttribulatorUI
             {
                 menuItem = new MenuItem();
                 menuItem.Header = $"Paste ({this.collectionToCopy.Header})";
+                menuItem.Icon = this.CreateImageSource("Paste.png");
                 menuItem.Click += (s, e) =>
                 {
                     var collection = this.collectionToCopy.Collection;
@@ -641,6 +657,7 @@ namespace AttribulatorUI
 
             menuItem = new MenuItem();
             menuItem.Header = "Edit fields";
+            menuItem.Icon = this.CreateImageSource("Properties.png");
             menuItem.Click += (s, e) =>
             {
                 new EditFieldsWindow(this.currentCollection.Collection).ShowDialog();
@@ -649,6 +666,7 @@ namespace AttribulatorUI
 
             menuItem = new MenuItem();
             menuItem.Header = "Rename";
+            menuItem.Icon = this.CreateImageSource("Rename.png");
             menuItem.Click += (s, e) =>
             {
                 var collection = this.currentCollection.Collection;

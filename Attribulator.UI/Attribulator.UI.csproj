@@ -9,14 +9,25 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Resources\Add.png" />
     <None Remove="Resources\CloseFolder.png" />
     <None Remove="Resources\CloseWindow.png" />
+    <None Remove="Resources\Copy.png" />
+    <None Remove="Resources\Cut.png" />
+    <None Remove="Resources\Database.png" />
+    <None Remove="Resources\Delete.png" />
     <None Remove="Resources\Export.png" />
     <None Remove="Resources\Import.png" />
     <None Remove="Resources\Open.png" />
     <None Remove="Resources\OpenFolder.png" />
+    <None Remove="Resources\Paste.png" />
+    <None Remove="Resources\Properties.png" />
+    <None Remove="Resources\Recent.png" />
     <None Remove="Resources\Refresh.png" />
+    <None Remove="Resources\Rename.png" />
+    <None Remove="Resources\Run.png" />
     <None Remove="Resources\Save.png" />
+    <None Remove="Resources\Script.png" />
   </ItemGroup>
 
   <ItemGroup>
@@ -47,13 +58,24 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Resource Include="Resources\Add.png" />
     <Resource Include="Resources\CloseFolder.png" />
     <Resource Include="Resources\CloseWindow.png" />
+    <Resource Include="Resources\Copy.png" />
+    <Resource Include="Resources\Cut.png" />
+    <Resource Include="Resources\Database.png" />
+    <Resource Include="Resources\Delete.png" />
     <Resource Include="Resources\Export.png" />
     <Resource Include="Resources\Import.png" />
     <Resource Include="Resources\OpenFolder.png" />
+    <Resource Include="Resources\Paste.png" />
+    <Resource Include="Resources\Properties.png" />
+    <Resource Include="Resources\Recent.png" />
     <Resource Include="Resources\Refresh.png" />
+    <Resource Include="Resources\Rename.png" />
+    <Resource Include="Resources\Run.png" />
     <Resource Include="Resources\Save.png" />
+    <Resource Include="Resources\Script.png" />
   </ItemGroup>
 
 </Project>

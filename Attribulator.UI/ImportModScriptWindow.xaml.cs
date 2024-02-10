@@ -13,7 +13,7 @@ namespace Attribulator.UI
 
         private string[] initialScript;
 
-        private static string[] ignoreCommands = new[] { "version", "game", "ui_text", "ui_image", "file_copy", "folder_create", "ui_control", "#" };
+        private static string[] ignoreCommands = new[] { "version", "game", "ui_text", "ui_image", "file_copy", "folder_create", "ui_control", "#", "//" };
 
         private string scriptFolder;
         private string scriptPath;
