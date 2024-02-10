@@ -13,7 +13,6 @@ using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using VaultLib.Core.Data;
 using VaultLib.Core.DB;
@@ -116,7 +115,7 @@ namespace AttribulatorUI
             }
         }
 
-        private void MenuItem_Open_Click(object sender, RoutedEventArgs e)
+        private void Command_Open(object sender, System.Windows.Input.ExecutedRoutedEventArgs e)
         {
             if (this.gameMenuItems.Any(x => x.IsChecked))
             {
@@ -158,21 +157,21 @@ namespace AttribulatorUI
             }
         }
 
-        private void MenuItem_Save_Click(object sender, RoutedEventArgs e)
+        private void Command_Save(object sender, System.Windows.Input.ExecutedRoutedEventArgs e)
         {
             if (this.database != null)
             {
                 this.Backup("SaveBackup");
 
                 var profile = this.GetProfile();
-                foreach (var file in files)
+                foreach (var file in this.files)
                 {
                     file.Group = "GLOBAL";
                 }
 
                 try
                 {
-                    profile.SaveFiles(database, this.gameFolder, files);
+                    profile.SaveFiles(this.database, this.gameFolder, this.files);
                 }
                 catch (Exception ex)
                 {
@@ -334,7 +333,7 @@ namespace AttribulatorUI
             this.settings.Save();
         }
 
-        private void MenuItem_Reload_Click(object sender, RoutedEventArgs e)
+        private void Command_Reload(object sender, System.Windows.Input.ExecutedRoutedEventArgs e)
         {
             if (!string.IsNullOrEmpty(this.gameExe))
             {
@@ -455,7 +454,7 @@ namespace AttribulatorUI
             MainWindow.UnsavedChanges = true;
         }
 
-        private void MenuItem_ImportModScript_Click(object sender, RoutedEventArgs e)
+        private void Command_Import(object sender, System.Windows.Input.ExecutedRoutedEventArgs e)
         {
             if (this.database != null)
             {
@@ -477,12 +476,12 @@ namespace AttribulatorUI
             }
         }
 
-        private void MenuItem_Export_Click(object sender, RoutedEventArgs e)
+        private void Command_Export(object sender, System.Windows.Input.ExecutedRoutedEventArgs e)
         {
             using (var dialog = new Forms.SaveFileDialog())
             {
                 dialog.Filter = "ModScript|*.nfsms";
-                dialog.Title = "Import ModScript file";
+                dialog.Title = "Export ModScript file";
 
                 Forms.DialogResult result = dialog.ShowDialog();
 
