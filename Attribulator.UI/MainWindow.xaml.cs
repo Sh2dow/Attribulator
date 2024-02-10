@@ -320,7 +320,7 @@ namespace AttribulatorUI
             this.EditGrid.Children.Clear();
         }
 
-        private void MenuItemGameRun_Click(object sender, RoutedEventArgs e)
+        private void Command_RunGame(object sender, System.Windows.Input.ExecutedRoutedEventArgs e)
         {
             if (!string.IsNullOrEmpty(this.gameExe))
             {
@@ -403,7 +403,7 @@ namespace AttribulatorUI
             }
         }
 
-        private void MenuItem_Script_ExeculteAll_Click(object sender, RoutedEventArgs args)
+        private void Command_ExecuteAll(object sender, System.Windows.Input.ExecutedRoutedEventArgs e)
         {
             if (this.database != null && this.ScriptEditor.Text.Length > 0)
             {
@@ -440,6 +440,7 @@ namespace AttribulatorUI
                 MessageBox.Show(string.Join("\n", errors.Take(5)), "Failed to execute script", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
 
+            MainWindow.UnsavedChanges = true;
             this.PopulateTreeView();
         }
 

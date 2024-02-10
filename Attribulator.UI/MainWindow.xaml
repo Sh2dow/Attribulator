@@ -23,6 +23,8 @@
             <RoutedUICommand x:Key="TreeRename" Text="TreeRename" />
             <RoutedUICommand x:Key="TreeEdit" Text="TreeEdit" />
             <RoutedUICommand x:Key="TreePaste" Text="TreePaste" />
+            <RoutedUICommand x:Key="RunGame" Text="RunGame" />
+            <RoutedUICommand x:Key="ExecuteAll" Text="ExecuteAll" />
         </ResourceDictionary>
     </Window.Resources>
 
@@ -39,6 +41,8 @@
         <CommandBinding Command="{StaticResource TreeRename}" Executed="Command_TreeRename"/>
         <CommandBinding Command="{StaticResource TreeEdit}" Executed="Command_TreeEdit"/>
         <CommandBinding Command="{StaticResource TreePaste}" Executed="Command_TreePaste"/>
+        <CommandBinding Command="{StaticResource RunGame}" Executed="Command_RunGame"/>
+        <CommandBinding Command="{StaticResource ExecuteAll}" Executed="Command_ExecuteAll"/>
     </Window.CommandBindings>
 
     <Window.InputBindings>
@@ -46,7 +50,7 @@
         <KeyBinding Key="S" Modifiers="Control" Command="Save"/>
         <KeyBinding Key="I" Modifiers="Control" Command="{StaticResource Import}"/>
         <KeyBinding Key="E" Modifiers="Control" Command="{StaticResource Export}"/>
-        <KeyBinding Key="R" Modifiers="Alt+Control" Command="{StaticResource Reload}"/>
+        <KeyBinding Key="R" Modifiers="Control+Alt" Command="{StaticResource Reload}"/>
         <KeyBinding Key="A" Modifiers="Control" Command="{StaticResource TreeAdd}"/>
         <KeyBinding Key="D" Modifiers="Control" Command="{StaticResource TreeDelete}"/>
         <KeyBinding Key="C" Modifiers="Control" Command="{StaticResource TreeCopy}"/>
@@ -54,6 +58,8 @@
         <KeyBinding Key="R" Modifiers="Control" Command="{StaticResource TreeRename}"/>
         <KeyBinding Key="Z" Modifiers="Control" Command="{StaticResource TreeEdit}"/>
         <KeyBinding Key="V" Modifiers="Control" Command="{StaticResource TreePaste}"/>
+        <KeyBinding Key="G" Modifiers="Control+Alt" Command="{StaticResource RunGame}"/>
+        <KeyBinding Key="F9" Command="{StaticResource ExecuteAll}"/>
     </Window.InputBindings>
 
     <DockPanel>
@@ -93,7 +99,7 @@
                 </MenuItem>
             </MenuItem>
             <MenuItem x:Name="GamesMenuItem" Header="Game">
-                <MenuItem Header="Run" Click="MenuItemGameRun_Click">
+                <MenuItem Header="Run" Command="{StaticResource RunGame}" InputGestureText="Ctrl+Alt+G">
                     <MenuItem.Icon>
                         <Image Source="/Resources/Run.png"/>
                     </MenuItem.Icon>
@@ -102,7 +108,7 @@
                 <!--Here go games from settings-->
             </MenuItem>
             <MenuItem Header="Script">
-                <MenuItem Header="Execute all" Click="MenuItem_Script_ExeculteAll_Click">
+                <MenuItem Header="Execute all" Command="{StaticResource ExecuteAll}" InputGestureText="F9">
                     <MenuItem.Icon>
                         <Image Source="/Resources/Script.png"/>
                     </MenuItem.Icon>
