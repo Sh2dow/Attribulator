@@ -240,6 +240,8 @@ namespace AttribulatorUI
         {
             this.TreeView.Items.Clear();
             this.EditGrid.Children.Clear();
+            this.currentClass = null;
+            this.currentCollection = null;
 
             var classes = this.database.Classes.OrderBy(x => x.Name);
             foreach (var cls in classes)
@@ -527,7 +529,14 @@ namespace AttribulatorUI
 
         public void AddScriptLine(string line)
         {
-            this.ScriptEditor.Text += "\n" + line;
+            if(this.ScriptEditor.Text.EndsWith(Environment.NewLine))
+            {
+                this.ScriptEditor.Text += line;
+            }
+            else
+            {
+                this.ScriptEditor.Text += Environment.NewLine + line;
+            }            
         }
 
         private Image CreateImageSource(string name)
