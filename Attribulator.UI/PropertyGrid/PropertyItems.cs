@@ -110,7 +110,7 @@ namespace Attribulator.UI.PropertyGrid
         }
     }
 
-    public class PropertyArrayItem : ArrayCollapseItem, IItemAddRemove
+    public class PropertyArrayItem : ArrayCollapseItem, IItemAddRemove, ICommandName
     {
         private VaultLib.Core.Types.VLTBaseType prop;
         private PropertyInfo propertyInfo;
@@ -182,6 +182,17 @@ namespace Attribulator.UI.PropertyGrid
         public bool CanRemove()
         {
             return this.array.Count > 0;
+        }
+
+        public string GetName()
+        {
+            string name = "";
+            if (this.parent is ICommandName icm)
+            {
+                name = $"{icm.GetName()} ";
+            }
+
+            return name + this.propertyInfo.Name;
         }
     }
 }

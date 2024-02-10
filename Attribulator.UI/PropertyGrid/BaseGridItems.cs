@@ -122,7 +122,7 @@ namespace Attribulator.UI.PropertyGrid
 
         protected override string GetStringValue()
         {
-            return this.lastValue;
+            return this.GetValue().ToString();
         }
 
         public abstract IConvertible GetValue();
