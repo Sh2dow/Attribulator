@@ -53,8 +53,11 @@ namespace Attribulator.UI
     {
         private TreeHeader treeHeader;
 
+        public string HeaderName { get; private set; }
+
         public BaseTreeViewItem(string name)
         {
+            this.HeaderName = name;
             this.treeHeader = new TreeHeader(name);
             this.Header = this.treeHeader;
 

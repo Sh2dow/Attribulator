@@ -16,6 +16,13 @@
             <RoutedUICommand x:Key="Import" Text="Import" />
             <RoutedUICommand x:Key="Export" Text="Export" />
             <RoutedUICommand x:Key="Reload" Text="Reload" />
+            <RoutedUICommand x:Key="TreeAdd" Text="TreeAdd" />
+            <RoutedUICommand x:Key="TreeDelete" Text="TreeDelete" />
+            <RoutedUICommand x:Key="TreeCopy" Text="TreeCopy" />
+            <RoutedUICommand x:Key="TreeCut" Text="TreeCut" />
+            <RoutedUICommand x:Key="TreeRename" Text="TreeRename" />
+            <RoutedUICommand x:Key="TreeEdit" Text="TreeEdit" />
+            <RoutedUICommand x:Key="TreePaste" Text="TreePaste" />
         </ResourceDictionary>
     </Window.Resources>
 
@@ -25,6 +32,13 @@
         <CommandBinding Command="{StaticResource Import}" Executed="Command_Import"/>
         <CommandBinding Command="{StaticResource Export}" Executed="Command_Export"/>
         <CommandBinding Command="{StaticResource Reload}" Executed="Command_Reload"/>
+        <CommandBinding Command="{StaticResource TreeAdd}" Executed="Command_TreeAdd"/>
+        <CommandBinding Command="{StaticResource TreeDelete}" Executed="Command_TreeDelete"/>
+        <CommandBinding Command="{StaticResource TreeCopy}" Executed="Command_TreeCopy"/>
+        <CommandBinding Command="{StaticResource TreeCut}" Executed="Command_TreeCut"/>
+        <CommandBinding Command="{StaticResource TreeRename}" Executed="Command_TreeRename"/>
+        <CommandBinding Command="{StaticResource TreeEdit}" Executed="Command_TreeEdit"/>
+        <CommandBinding Command="{StaticResource TreePaste}" Executed="Command_TreePaste"/>
     </Window.CommandBindings>
 
     <Window.InputBindings>
@@ -33,6 +47,13 @@
         <KeyBinding Key="I" Modifiers="Control" Command="{StaticResource Import}"/>
         <KeyBinding Key="E" Modifiers="Control" Command="{StaticResource Export}"/>
         <KeyBinding Key="R" Modifiers="Alt+Control" Command="{StaticResource Reload}"/>
+        <KeyBinding Key="A" Modifiers="Control" Command="{StaticResource TreeAdd}"/>
+        <KeyBinding Key="D" Modifiers="Control" Command="{StaticResource TreeDelete}"/>
+        <KeyBinding Key="C" Modifiers="Control" Command="{StaticResource TreeCopy}"/>
+        <KeyBinding Key="X" Modifiers="Control" Command="{StaticResource TreeCut}"/>
+        <KeyBinding Key="R" Modifiers="Control" Command="{StaticResource TreeRename}"/>
+        <KeyBinding Key="Z" Modifiers="Control" Command="{StaticResource TreeEdit}"/>
+        <KeyBinding Key="V" Modifiers="Control" Command="{StaticResource TreePaste}"/>
     </Window.InputBindings>
 
     <DockPanel>

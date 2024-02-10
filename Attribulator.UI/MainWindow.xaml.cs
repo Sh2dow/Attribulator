@@ -265,12 +265,18 @@ namespace AttribulatorUI
             var treeViewItem = e.Source as CollectionTreeViewItem;
             if (treeViewItem != null)
             {
+                this.currentCollection = treeViewItem;
+                this.currentClass = null;
+
                 var collection = treeViewItem.Collection;
                 this.EditGrid.Display(collection);
             }
             else
             {
                 this.EditGrid.Children.Clear();
+
+                this.currentCollection = null;
+                this.currentClass = e.Source as ClassTreeViewItem;
             }
         }
 
@@ -517,14 +523,9 @@ namespace AttribulatorUI
             return img;
         }
 
-        private void CreateClassContextMenu()
+        private void Command_TreeAdd(object sender, System.Windows.Input.ExecutedRoutedEventArgs e)
         {
-            var contextMenu = this.classContextMenu;
-
-            var menuItem = new MenuItem();
-            menuItem.Header = "Add";
-            menuItem.Icon = this.CreateImageSource("Add.png");
-            menuItem.Click += (s, e) =>
+            if (this.currentClass != null)
             {
                 var newNodeWindow = new NewNodeNameWindow(this.currentClass.Class.Name);
                 newNodeWindow.ShowDialog();
@@ -536,46 +537,9 @@ namespace AttribulatorUI
                     this.AddScriptLine(command);
                     this.PopulateTreeView();
                 }
-            };
-            contextMenu.Items.Add(menuItem);
-
-            if (this.collectionToCopy != null && this.collectionToCopy.Collection.Class == this.currentCollection.Collection.Class)
-            {
-                contextMenu.Items.Add(new Separator());
-
-                menuItem = new MenuItem();
-                menuItem.Header = $"Paste ({this.collectionToCopy.Header})";
-                menuItem.Icon = this.CreateImageSource("Paste.png");
-                menuItem.Click += (s, e) =>
-                {
-                    var collection = this.collectionToCopy.Collection;
-                    string command;
-                    if (this.cutNode)
-                    {
-                        command = $"move_node {collection.Class.Name} {collection.Name}";
-                    }
-                    else
-                    {
-                        command = $"copy_node {collection.Class.Name} {collection.Name} {collection.Name}_copy";
-                    }
-                    this.collectionToCopy = null;
-                    this.ExecuteScriptInternal(new[] { command });
-                    this.AddScriptLine(command);
-                    this.PopulateTreeView();
-                };
-                contextMenu.Items.Add(menuItem);
             }
-        }
 
-        private void CreateCollectionContextMenu()
-        {
-            var contextMenu = this.collectionContextMenu;
-            contextMenu.Items.Clear();
-
-            var menuItem = new MenuItem();
-            menuItem.Header = "Add";
-            menuItem.Icon = this.CreateImageSource("Add.png");
-            menuItem.Click += (s, e) =>
+            if (this.currentCollection != null)
             {
                 var collection = this.currentCollection.Collection;
                 var newNodeWindow = new NewNodeNameWindow(collection.Name);
@@ -588,20 +552,139 @@ namespace AttribulatorUI
                     this.AddScriptLine(command);
                     this.PopulateTreeView();
                 }
-            };
-            contextMenu.Items.Add(menuItem);
+            }
+        }
 
-            menuItem = new MenuItem();
-            menuItem.Header = "Delete";
-            menuItem.Icon = this.CreateImageSource("Delete.png");
-            menuItem.Click += (s, e) =>
+        private void Command_TreeDelete(object sender, System.Windows.Input.ExecutedRoutedEventArgs e)
+        {
+            if (this.currentCollection != null)
             {
                 var collection = this.currentCollection.Collection;
                 string command = $"delete_node {collection.Class.Name} {collection.Name}";
                 this.ExecuteScriptInternal(new[] { command });
                 this.AddScriptLine(command);
                 this.PopulateTreeView();
-            };
+            }
+        }
+
+        private void Command_TreeCopy(object sender, System.Windows.Input.ExecutedRoutedEventArgs e)
+        {
+            if (this.currentCollection != null)
+            {
+                this.collectionToCopy = this.currentCollection;
+                this.cutNode = false;
+            }
+        }
+
+        private void Command_TreeCut(object sender, System.Windows.Input.ExecutedRoutedEventArgs e)
+        {
+            if (this.currentCollection != null)
+            {
+                this.collectionToCopy = this.currentCollection;
+                this.cutNode = true;
+            }
+        }
+
+        private void Command_TreeRename(object sender, System.Windows.Input.ExecutedRoutedEventArgs e)
+        {
+            if (this.currentCollection != null)
+            {
+                var collection = this.currentCollection.Collection;
+                new CollectionRenameWindow(collection).ShowDialog();
+                this.currentCollection.SetName(collection.Name);
+            }
+        }
+
+        private void Command_TreeEdit(object sender, System.Windows.Input.ExecutedRoutedEventArgs e)
+        {
+            if (this.currentCollection != null)
+            {
+                new EditFieldsWindow(this.currentCollection.Collection).ShowDialog();
+            }
+        }
+
+        private void Command_TreePaste(object sender, System.Windows.Input.ExecutedRoutedEventArgs e)
+        {
+            if (this.currentClass != null)
+            {
+                var collection = this.collectionToCopy.Collection;
+                string command;
+                if (this.cutNode)
+                {
+                    command = $"move_node {this.currentClass.Class.Name} {collection.Name}";
+                }
+                else
+                {
+                    command = $"copy_node {this.currentClass.Class.Name} {collection.Name} {collection.Name}_copy";
+                }
+                this.collectionToCopy = null;
+                this.ExecuteScriptInternal(new[] { command });
+                this.AddScriptLine(command);
+                this.PopulateTreeView();
+            }
+
+            if (this.currentCollection != null)
+            {
+                var collection = this.collectionToCopy.Collection;
+                string command;
+                if (this.cutNode)
+                {
+                    command = $"move_node {collection.Class.Name} {collection.Name} {this.currentCollection.HeaderName}";
+                }
+                else
+                {
+                    command = $"copy_node {collection.Class.Name} {collection.Name} {this.currentCollection.HeaderName} {collection.Name}_copy";
+                }
+
+                this.collectionToCopy = null;
+                this.ExecuteScriptInternal(new[] { command });
+                this.AddScriptLine(command);
+                this.PopulateTreeView();
+            }
+        }
+
+        private void CreateClassContextMenu()
+        {
+            var contextMenu = this.classContextMenu;
+            contextMenu.Items.Clear();
+
+            var menuItem = new MenuItem();
+            menuItem.Header = "Add";
+            menuItem.Icon = this.CreateImageSource("Add.png");
+            menuItem.Click += (s, e) => this.Command_TreeAdd(null, null);
+            menuItem.InputGestureText = "Ctrl+A";
+            contextMenu.Items.Add(menuItem);
+
+            if (this.collectionToCopy != null && this.collectionToCopy.Collection.Class == this.currentClass.Class)
+            {
+                contextMenu.Items.Add(new Separator());
+
+                menuItem = new MenuItem();
+                menuItem.Header = $"Paste ({this.collectionToCopy.HeaderName})";
+                menuItem.Icon = this.CreateImageSource("Paste.png");
+                menuItem.Click += (s, e) => this.Command_TreePaste(null, null);
+                menuItem.InputGestureText = "Ctrl+V";
+                contextMenu.Items.Add(menuItem);
+            }
+        }
+
+        private void CreateCollectionContextMenu()
+        {
+            var contextMenu = this.collectionContextMenu;
+            contextMenu.Items.Clear();
+
+            var menuItem = new MenuItem();
+            menuItem.Header = "Add";
+            menuItem.Icon = this.CreateImageSource("Add.png");
+            menuItem.Click += (s, e) => this.Command_TreeAdd(null, null);
+            menuItem.InputGestureText = "Ctrl+A";
+            contextMenu.Items.Add(menuItem);
+
+            menuItem = new MenuItem();
+            menuItem.Header = "Delete";
+            menuItem.Icon = this.CreateImageSource("Delete.png");
+            menuItem.Click += (s, e) => this.Command_TreeDelete(null, null);
+            menuItem.InputGestureText = "Ctrl+D";
             contextMenu.Items.Add(menuItem);
 
             contextMenu.Items.Add(new Separator());
@@ -609,46 +692,24 @@ namespace AttribulatorUI
             menuItem = new MenuItem();
             menuItem.Header = "Copy";
             menuItem.Icon = this.CreateImageSource("Copy.png");
-            menuItem.Click += (s, e) =>
-            {
-                this.collectionToCopy = this.currentCollection;
-                this.cutNode = false;
-            };
+            menuItem.Click += (s, e) => this.Command_TreeCopy(null, null);
+            menuItem.InputGestureText = "Ctrl+C";
             contextMenu.Items.Add(menuItem);
 
             menuItem = new MenuItem();
             menuItem.Header = "Cut";
             menuItem.Icon = this.CreateImageSource("Cut.png");
-            menuItem.Click += (s, e) =>
-            {
-                this.collectionToCopy = this.currentCollection;
-                this.cutNode = true;
-            };
+            menuItem.Click += (s, e) => this.Command_TreeCut(null, null);
+            menuItem.InputGestureText = "Ctrl+X";
             contextMenu.Items.Add(menuItem);
 
             if (this.collectionToCopy != null && this.collectionToCopy.Collection.Class == this.currentCollection.Collection.Class)
             {
                 menuItem = new MenuItem();
-                menuItem.Header = $"Paste ({this.collectionToCopy.Header})";
+                menuItem.Header = $"Paste ({this.collectionToCopy.HeaderName})";
                 menuItem.Icon = this.CreateImageSource("Paste.png");
-                menuItem.Click += (s, e) =>
-                {
-                    var collection = this.collectionToCopy.Collection;
-                    string command;
-                    if (this.cutNode)
-                    {
-                        command = $"move_node {collection.Class.Name} {collection.Name} {this.currentCollection.Header}";
-                    }
-                    else
-                    {
-                        command = $"copy_node {collection.Class.Name} {collection.Name} {this.currentCollection.Header} {collection.Name}_copy";
-                    }
-
-                    this.collectionToCopy = null;
-                    this.ExecuteScriptInternal(new[] { command });
-                    this.AddScriptLine(command);
-                    this.PopulateTreeView();
-                };
+                menuItem.Click += (s, e) => this.Command_TreePaste(null, null);
+                menuItem.InputGestureText = "Ctrl+V";
                 contextMenu.Items.Add(menuItem);
             }
 
@@ -657,21 +718,15 @@ namespace AttribulatorUI
             menuItem = new MenuItem();
             menuItem.Header = "Edit fields";
             menuItem.Icon = this.CreateImageSource("Properties.png");
-            menuItem.Click += (s, e) =>
-            {
-                new EditFieldsWindow(this.currentCollection.Collection).ShowDialog();
-            };
+            menuItem.Click += (s, e) => this.Command_TreeEdit(null, null);
+            menuItem.InputGestureText = "Ctrl+Z";
             contextMenu.Items.Add(menuItem);
 
             menuItem = new MenuItem();
             menuItem.Header = "Rename";
             menuItem.Icon = this.CreateImageSource("Rename.png");
-            menuItem.Click += (s, e) =>
-            {
-                var collection = this.currentCollection.Collection;
-                new CollectionRenameWindow(collection).ShowDialog();
-                this.currentCollection.SetName(collection.Name);
-            };
+            menuItem.Click += (s, e) => this.Command_TreeRename(null, null);
+            menuItem.InputGestureText = "Ctrl+R";
             contextMenu.Items.Add(menuItem);
         }
 
@@ -686,12 +741,14 @@ namespace AttribulatorUI
             if (source is ClassTreeViewItem)
             {
                 this.currentClass = (ClassTreeViewItem)source;
+                this.currentCollection = null;
                 this.CreateClassContextMenu();
             }
 
             if (source is CollectionTreeViewItem)
             {
                 this.currentCollection = (CollectionTreeViewItem)source;
+                this.currentClass = null;
                 this.CreateCollectionContextMenu();
             }
         }
