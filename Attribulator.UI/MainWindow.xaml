@@ -177,7 +177,7 @@
                 <TextBox x:Name="ScriptEditor"  AcceptsReturn="True"></TextBox>
             </ScrollViewer>
 
-            <Label x:Name="GameFolderLabel" Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="3">No game selected</Label>
+            <Label x:Name="StatusLabel" Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="3">No game selected</Label>
         </Grid>
     </DockPanel>
 </Window>

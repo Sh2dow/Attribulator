@@ -138,7 +138,7 @@ namespace AttribulatorUI
         {
             this.gameExe = exePath;
             this.gameFolder = System.IO.Path.GetDirectoryName(exePath);
-            this.GameFolderLabel.Content = this.gameFolder;
+            this.StatusLabel.Content = this.gameFolder;
 
             try
             {
@@ -172,6 +172,8 @@ namespace AttribulatorUI
                 try
                 {
                     profile.SaveFiles(this.database, this.gameFolder, this.files);
+                    this.StatusLabel.Content = "Saved";
+                    MainWindow.UnsavedChanges = false;
                 }
                 catch (Exception ex)
                 {
@@ -179,8 +181,6 @@ namespace AttribulatorUI
                     this.Restore(Path.Combine(this.gameFolder, "GLOBAL", "AttribulatorBackups", "SaveBackup"));
                 }
             }
-
-            MainWindow.UnsavedChanges = false;
         }
 
         private IProfile GetProfile()
@@ -303,7 +303,7 @@ namespace AttribulatorUI
 
             senderItem.IsChecked = true;
             (senderItem.Tag as GameSettings).Selected = true;
-            this.GameFolderLabel.Content = "No game exe selected";
+            this.StatusLabel.Content = "No game exe selected";
 
             this.CloseGame();
 
@@ -351,6 +351,7 @@ namespace AttribulatorUI
                 var gameExe = this.gameExe;
                 this.CloseGame();
                 this.Open(gameExe);
+                this.StatusLabel.Content = "Reloaded";
             }
         }
 
@@ -414,6 +415,7 @@ namespace AttribulatorUI
             {
                 var lines = this.ScriptEditor.Text.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries);
                 this.ExecuteScript(lines);
+                this.StatusLabel.Content = "Executed script";
             }
         }
 
@@ -493,6 +495,7 @@ namespace AttribulatorUI
                         importWindow.ShowDialog();
                         var resultScript = importWindow.ResultScript;
                         this.ExecuteScript(resultScript);
+                        this.StatusLabel.Content = $"Imported script: {dialog.FileName}";
                     }
                 }
             }
@@ -510,6 +513,7 @@ namespace AttribulatorUI
                 if (result == Forms.DialogResult.OK)
                 {
                     File.WriteAllText(dialog.FileName, this.ScriptEditor.Text);
+                    this.StatusLabel.Content = $"Exported script: {dialog.FileName}";
                 }
             }
         }
@@ -529,14 +533,14 @@ namespace AttribulatorUI
 
         public void AddScriptLine(string line)
         {
-            if(this.ScriptEditor.Text.EndsWith(Environment.NewLine))
+            if (this.ScriptEditor.Text.Length == 0 || this.ScriptEditor.Text.EndsWith(Environment.NewLine))
             {
                 this.ScriptEditor.Text += line;
             }
             else
             {
                 this.ScriptEditor.Text += Environment.NewLine + line;
-            }            
+            }
         }
 
         private Image CreateImageSource(string name)
@@ -559,6 +563,7 @@ namespace AttribulatorUI
                     this.ExecuteScriptInternal(new[] { command });
                     this.AddScriptLine(command);
                     this.PopulateTreeView();
+                    this.StatusLabel.Content = $"Added node: {result}";
                 }
             }
 
@@ -574,6 +579,7 @@ namespace AttribulatorUI
                     this.ExecuteScriptInternal(new[] { command });
                     this.AddScriptLine(command);
                     this.PopulateTreeView();
+                    this.StatusLabel.Content = $"Added node: {result}";
                 }
             }
         }
@@ -587,6 +593,7 @@ namespace AttribulatorUI
                 this.ExecuteScriptInternal(new[] { command });
                 this.AddScriptLine(command);
                 this.PopulateTreeView();
+                this.StatusLabel.Content = $"Deleted node: {collection.Name}";
             }
         }
 
