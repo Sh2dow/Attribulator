@@ -14,9 +14,9 @@ namespace Attribulator.Plugins.ModScript.Commands
         {
             if (parts.Count != 4) throw new CommandParseException($"Expected 4 tokens, got {parts.Count}");
 
-            ClassName = parts[1];
-            CollectionName = parts[2];
-            NewName = parts[3];
+            ClassName = CleanHashString(parts[1]);
+            CollectionName = CleanHashString(parts[2]);
+            NewName = CleanHashString(parts[3]);
         }
 
         public override void Execute(DatabaseHelper databaseHelper)
