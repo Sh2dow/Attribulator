@@ -315,6 +315,9 @@ namespace AttribulatorUI
             this.database = null;
             this.modScriptDatabase = null;
             this.files = null;
+            this.collectionToCopy = null;
+            this.currentClass = null;
+            this.currentCollection = null;
             MainWindow.UnsavedChanges = false;
             this.TreeView.Items.Clear();
             this.EditGrid.Children.Clear();
@@ -456,6 +459,16 @@ namespace AttribulatorUI
                 {
                     MessageBox.Show(e.Message, "Error executing script", MessageBoxButton.OK, MessageBoxImage.Warning);
                 }
+            }
+
+            MainWindow.UnsavedChanges = true;
+        }
+
+        public void ExecuteScriptUsafe(IEnumerable<string> lines)
+        {
+            foreach (var command in this.modScriptService.ParseCommands(lines))
+            {
+                command.Execute(this.modScriptDatabase);
             }
 
             MainWindow.UnsavedChanges = true;
@@ -606,41 +619,43 @@ namespace AttribulatorUI
 
         private void Command_TreePaste(object sender, System.Windows.Input.ExecutedRoutedEventArgs e)
         {
-            if (this.currentClass != null)
+            if (this.collectionToCopy != null)
             {
-                var collection = this.collectionToCopy.Collection;
-                string command;
-                if (this.cutNode)
+                if (this.currentClass != null)
                 {
-                    command = $"move_node {this.currentClass.Class.Name} {collection.Name}";
-                }
-                else
-                {
-                    command = $"copy_node {this.currentClass.Class.Name} {collection.Name} {collection.Name}_copy";
-                }
-                this.collectionToCopy = null;
-                this.ExecuteScriptInternal(new[] { command });
-                this.AddScriptLine(command);
-                this.PopulateTreeView();
-            }
-
-            if (this.currentCollection != null)
-            {
-                var collection = this.collectionToCopy.Collection;
-                string command;
-                if (this.cutNode)
-                {
-                    command = $"move_node {collection.Class.Name} {collection.Name} {this.currentCollection.HeaderName}";
-                }
-                else
-                {
-                    command = $"copy_node {collection.Class.Name} {collection.Name} {this.currentCollection.HeaderName} {collection.Name}_copy";
+                    var collection = this.collectionToCopy.Collection;
+                    string command;
+                    if (this.cutNode)
+                    {
+                        command = $"move_node {this.currentClass.Class.Name} {collection.Name}";
+                    }
+                    else
+                    {
+                        command = $"copy_node {this.currentClass.Class.Name} {collection.Name} {collection.Name}_copy";
+                    }
+                    this.collectionToCopy = null;
+                    this.ExecuteScriptInternal(new[] { command });
+                    this.AddScriptLine(command);
+                    this.PopulateTreeView();
                 }
 
-                this.collectionToCopy = null;
-                this.ExecuteScriptInternal(new[] { command });
-                this.AddScriptLine(command);
-                this.PopulateTreeView();
+                if (this.currentCollection != null)
+                {
+                    var collection = this.collectionToCopy.Collection;
+                    string command;
+                    if (this.cutNode)
+                    {
+                        command = $"move_node {collection.Class.Name} {collection.Name} {this.currentCollection.HeaderName}";
+                    }
+                    else
+                    {
+                        command = $"copy_node {collection.Class.Name} {collection.Name} {this.currentCollection.HeaderName} {collection.Name}_copy";
+                    }
+
+                    this.ExecuteScriptInternal(new[] { command });
+                    this.AddScriptLine(command);
+                    this.PopulateTreeView();
+                }
             }
         }
 

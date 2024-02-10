@@ -1,14 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using AttribulatorUI;
+using System;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
 using VaultLib.Core.Data;
 
 namespace Attribulator.UI
@@ -33,21 +25,24 @@ namespace Attribulator.UI
 
         private void Button_Ok_Click(object sender, RoutedEventArgs e)
         {
-            string newName = this.NameTextBox.Text;
-            string error = null;
-            if (string.IsNullOrEmpty(newName))
+            if (this.NameTextBox.Text == this.collection.Name)
             {
-                error = "Enter a valid name";
-            }
-
-            if (string.IsNullOrEmpty(error))
-            {
-                this.collection.SetName(newName);
                 this.Close();
             }
             else
             {
-                MessageBox.Show(error, "Error renaming collection");
+                string command = $"rename_node {this.collection.Class.Name} {this.collection.Name} {this.NameTextBox.Text}";
+
+                try
+                {
+                    MainWindow.Instance.ExecuteScriptUsafe(new[] { command });
+                    MainWindow.Instance.AddScriptLine(command);
+                    this.Close();
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(ex.Message, "Error renaming collection", MessageBoxButton.OK, MessageBoxImage.Warning);
+                }
             }
         }
     }
