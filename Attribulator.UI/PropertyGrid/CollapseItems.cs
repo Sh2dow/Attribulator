@@ -1,6 +1,7 @@
 ﻿using System.Windows.Controls.Primitives;
 using System.Windows.Controls;
 using System.Windows;
+using AttribulatorUI;
 
 namespace Attribulator.UI.PropertyGrid
 {
@@ -48,15 +49,19 @@ namespace Attribulator.UI.PropertyGrid
         {
             base.OnApplyTemplate();
 
+            var contextMenu = this.CreateContextMenu();
+
             this.toggleButton = this.GetTemplateChild("PART_ItemToggler") as ToggleButton;
             this.toggleButton.Checked += (s, e) => this.parent.Expand();
             this.toggleButton.Unchecked += (s, e) => this.parent.Collapse();
 
             var headerText = this.GetTemplateChild("PART_HeaderText") as TextBlock;
             headerText.Text = this.name;
+            headerText.ContextMenu = contextMenu;
 
             this.valueTextBlock = this.GetTemplateChild("PART_ValueText") as TextBlock;
             this.valueTextBlock.Text = this.value;
+            this.valueTextBlock.ContextMenu = contextMenu;
 
             var paddingColumn = this.GetTemplateChild("PART_Padding") as ColumnDefinition;
             paddingColumn.Width = new GridLength(this.padding, GridUnitType.Pixel);
@@ -66,6 +71,23 @@ namespace Attribulator.UI.PropertyGrid
         {
             this.value = value;
             this.valueTextBlock.Text = this.value;
+        }
+
+        private ContextMenu CreateContextMenu()
+        {
+            var contextMenu = new ContextMenu();
+
+            var menuItem = new MenuItem();
+            menuItem.Header = "Generate command";
+            menuItem.Click += (sender, e) => (this.parent as ICommandGenerator)?.GenerateUpdateCommand();
+            contextMenu.Items.Add(menuItem);
+
+            menuItem = new MenuItem();
+            menuItem.Header = "Generate all commands";
+            menuItem.Click += (sender, e) => MainWindow.Instance.EditGrid.GenerateUpdateCommand();
+            contextMenu.Items.Add(menuItem);
+
+            return contextMenu;
         }
     }
 
@@ -99,7 +121,7 @@ namespace Attribulator.UI.PropertyGrid
         }
     }
 
-    public class CollapseItem : StackPanel, IExpandCollapse, IParentUpdate
+    public class CollapseItem : StackPanel, IExpandCollapse, IParentUpdate, ICommandGenerator
     {
         protected CollapseHeader headerItem;
         protected StackPanel collapsePanel;
@@ -145,6 +167,17 @@ namespace Attribulator.UI.PropertyGrid
         protected void ClearChildren()
         {
             this.collapsePanel.Children.Clear();
+        }
+
+        public void GenerateUpdateCommand()
+        {
+            foreach (var child in this.collapsePanel.Children)
+            {
+                if (child is ICommandGenerator item)
+                {
+                    item.GenerateUpdateCommand();
+                }
+            }
         }
     }
 

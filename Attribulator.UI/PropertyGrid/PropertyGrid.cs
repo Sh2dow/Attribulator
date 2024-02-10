@@ -214,7 +214,7 @@ namespace Attribulator.UI.PropertyGrid
         }
     }
 
-    public class MainGrid : StackPanel, ICommandName
+    public class MainGrid : StackPanel, ICommandName, ICommandGenerator
     {
         private VltCollection collection;
 
@@ -254,6 +254,17 @@ namespace Attribulator.UI.PropertyGrid
                     {
                         Debugger.Break();
                     }
+                }
+            }
+        }
+
+        public void GenerateUpdateCommand()
+        {
+            foreach(var child in this.Children)
+            {
+                if (child is ICommandGenerator item)
+                {
+                    item.GenerateUpdateCommand();
                 }
             }
         }

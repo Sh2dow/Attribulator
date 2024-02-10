@@ -251,7 +251,7 @@ namespace AttribulatorUI
                 foreach (var collection in collections)
                 {
                     var childNode = new CollectionTreeViewItem(collection);
-                    childNode.ContextMenu = this.collectionContextMenu; ;
+                    childNode.ContextMenu = this.collectionContextMenu;
                     classNode.Items.Add(childNode);
                     PopulateTreeNode(collection, childNode);
                 }
