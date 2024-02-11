@@ -630,6 +630,7 @@ namespace AttribulatorUI
             if (this.currentCollection != null)
             {
                 new EditFieldsWindow(this.currentCollection.Collection).ShowDialog();
+                this.EditGrid.Display(this.currentCollection.Collection);
             }
         }
 
