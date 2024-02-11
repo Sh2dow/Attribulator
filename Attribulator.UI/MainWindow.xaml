@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:AttribulatorUI" xmlns:ui="clr-namespace:Attribulator.UI" xmlns:propertygrid="clr-namespace:Attribulator.UI.PropertyGrid"
         mc:Ignorable="d"
         WindowStartupLocation="CenterScreen"
-        Title="Attribulator UI v0.2 by ARCHIE" Height="768" Width="1024" Closing="Window_Closing" Closed="Window_Closed">
+        Title="Attribulator UI v0.3 by ARCHIE" Height="768" Width="1024" Closing="Window_Closing" Closed="Window_Closed">
 
     <Window.Resources>
         <ResourceDictionary>

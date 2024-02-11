@@ -17,6 +17,7 @@ using System.Windows.Controls;
 using System.Windows.Media.Imaging;
 using VaultLib.Core.Data;
 using VaultLib.Core.DB;
+using VaultLib.Core.Hashing;
 using Forms = System.Windows.Forms;
 
 namespace AttribulatorUI
@@ -328,7 +329,7 @@ namespace AttribulatorUI
             MainWindow.UnsavedChanges = false;
             this.TreeView.Items.Clear();
             this.EditGrid.Children.Clear();
-            BaseModScriptCommand.ClearCollectionCache();
+            BaseModScriptCommand.ClearCache();
         }
 
         private void Command_RunGame(object sender, System.Windows.Input.ExecutedRoutedEventArgs e)
@@ -346,6 +347,7 @@ namespace AttribulatorUI
 
         private void Window_Closed(object sender, EventArgs e)
         {
+            HashManager.Save();
             this.settings.Root.Srcipt = this.ScriptEditor.Text;
             this.settings.Save();
         }
@@ -365,26 +367,35 @@ namespace AttribulatorUI
         {
             if (this.files != null && this.files.Any() && !string.IsNullOrEmpty(this.gameFolder))
             {
-                this.Backup(DateTime.Now.ToString("yyyy-MM-dd-H-m-ss"));
+                var name = DateTime.Now.ToString("yyyy-MM-dd-H-m-ss");
+                this.Backup(name);
+                this.StatusLabel.Content = $"Created backup: {name}";
             }
         }
 
         private void Backup(string folderName)
         {
-            var targetPath = Path.Combine(this.gameFolder, "GLOBAL", "AttribulatorBackups", folderName);
-            Directory.CreateDirectory(targetPath);
-
-            foreach (var file in this.files)
+            try
             {
-                var extensions = new[] { ".bin", ".lzc" };
-                foreach (var extension in extensions)
+                var targetPath = Path.Combine(this.gameFolder, "GLOBAL", "AttribulatorBackups", folderName);
+                Directory.CreateDirectory(targetPath);
+
+                foreach (var file in this.files)
                 {
-                    var original = Path.Combine(this.gameFolder, "GLOBAL", file.Name + extension);
-                    if (File.Exists(original))
+                    var extensions = new[] { ".bin", ".lzc" };
+                    foreach (var extension in extensions)
                     {
-                        File.Copy(original, Path.Combine(targetPath, file.Name + extension), true);
+                        var original = Path.Combine(this.gameFolder, "GLOBAL", file.Name + extension);
+                        if (File.Exists(original))
+                        {
+                            File.Copy(original, Path.Combine(targetPath, file.Name + extension), true);
+                        }
                     }
                 }
+            }
+            catch(Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Failed to backup", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -398,20 +409,34 @@ namespace AttribulatorUI
                     var dirs = Directory.GetDirectories(backupsDir);
                     if (dirs.Length > 0)
                     {
-                        string backup = dirs.Where(x => x != "SaveBackup").OrderByDescending(x => Path.GetFileName(x)).First();
-                        this.Restore(backup);
+                        string backup = dirs.Where(x => !x.Contains("SaveBackup")).OrderByDescending(x => Path.GetFileName(x)).FirstOrDefault();
+                        if (!string.IsNullOrEmpty(backup))
+                        {
+                            this.Restore(backup);
+                            this.StatusLabel.Content = $"Restored backup: {backup}";
+                            return;
+                        }
                     }
                 }
+
+                MessageBox.Show("No backups found", "Restore backup", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
         }
 
         private void Restore(string folderName)
         {
-            var files = Directory.GetFiles(folderName);
-            foreach (var file in files)
+            try
             {
-                var fileName = Path.GetFileName(file);
-                File.Copy(file, Path.Combine(this.gameFolder, "GLOBAL", fileName), true);
+                var files = Directory.GetFiles(folderName);
+                foreach (var file in files)
+                {
+                    var fileName = Path.GetFileName(file);
+                    File.Copy(file, Path.Combine(this.gameFolder, "GLOBAL", fileName), true);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Failed to restore backup", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -450,7 +475,7 @@ namespace AttribulatorUI
 
             if (errors.Count > 0)
             {
-                MessageBox.Show(string.Join("\n", errors.Take(5)), "Failed to execute script", MessageBoxButton.OK, MessageBoxImage.Warning);
+                new ScriptErrorWindow(errors).ShowDialog();
             }
 
             MainWindow.UnsavedChanges = true;
@@ -586,7 +611,7 @@ namespace AttribulatorUI
         {
             if (this.currentCollection != null && this.currentCollection.Collection.Class.Name == "gameplay")
             {
-                if(new ChangeVaultWindow(this.currentCollection.Collection).ShowDialog().Value)
+                if (new ChangeVaultWindow(this.currentCollection.Collection).ShowDialog().Value)
                 {
                     this.EditGrid.Display(this.currentCollection.Collection);
                     this.StatusLabel.Content = "Changed vault";
@@ -634,6 +659,7 @@ namespace AttribulatorUI
                 {
                     this.currentCollection.SetName(collection.Name);
                     this.StatusLabel.Content = "Renamed node";
+                    this.EditGrid.Display(this.currentCollection.Collection);
                 }
             }
         }
