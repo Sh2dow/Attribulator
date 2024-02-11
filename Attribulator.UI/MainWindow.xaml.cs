@@ -133,6 +133,10 @@ namespace AttribulatorUI
                     }
                 }
             }
+            else
+            {
+                MessageBox.Show("Please select game profile first", "No game profile selected", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
         }
 
         private void Open(string exePath)
