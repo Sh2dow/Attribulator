@@ -559,21 +559,32 @@ namespace AttribulatorUI
             NewNodeNameWindow newNodeWindow = null;
             if (this.currentClass != null)
             {
-                newNodeWindow = new NewNodeNameWindow(this.currentClass.Class.Name, $"add_node {this.currentClass.Class.Name}");
+                newNodeWindow = new NewNodeNameWindow(this.currentClass.Class.Name, this.currentClass.Class.Name);
             }
 
             if (this.currentCollection != null)
             {
                 var collection = this.currentCollection.Collection;
-                newNodeWindow = new NewNodeNameWindow(collection.Name, $"add_node {collection.Class.Name} {collection.Name}");
+                newNodeWindow = new NewNodeNameWindow(collection.Name, $"{collection.Class.Name} {collection.Name}");
             }
 
-            if(newNodeWindow != null)
+            if (newNodeWindow != null)
             {
-                if(newNodeWindow.ShowDialog().Value)
+                if (newNodeWindow.ShowDialog().Value)
                 {
                     this.PopulateTreeView();
                     this.StatusLabel.Content = "Added node";
+                }
+            }
+        }
+
+        private void Command_ChangeVault(object sender, System.Windows.Input.ExecutedRoutedEventArgs e)
+        {
+            if (this.currentCollection != null && this.currentCollection.Collection.Class.Name == "gameplay")
+            {
+                if(new ChangeVaultWindow(this.currentCollection.Collection).ShowDialog().Value)
+                {
+                    this.StatusLabel.Content = "Changed vault";
                 }
             }
         }
@@ -758,6 +769,18 @@ namespace AttribulatorUI
             menuItem.Click += (s, e) => this.Command_TreeRename(null, null);
             menuItem.InputGestureText = "Ctrl+R";
             contextMenu.Items.Add(menuItem);
+
+            if (this.currentCollection.Collection.Class.Name == "gameplay")
+            {
+                contextMenu.Items.Add(new Separator());
+
+                menuItem = new MenuItem();
+                menuItem.Header = "Change vault";
+                menuItem.Icon = this.CreateImageSource("Settings.png");
+                menuItem.Click += (s, e) => this.Command_ChangeVault(null, null);
+                menuItem.InputGestureText = "Ctrl+W";
+                contextMenu.Items.Add(menuItem);
+            }
         }
 
         private void TreeView_PreviewMouseRightButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)

@@ -28,6 +28,7 @@
     <None Remove="Resources\Run.png" />
     <None Remove="Resources\Save.png" />
     <None Remove="Resources\Script.png" />
+    <None Remove="Resources\Settings.png" />
   </ItemGroup>
 
   <ItemGroup>
@@ -67,6 +68,7 @@
     <Resource Include="Resources\Run.png" />
     <Resource Include="Resources\Save.png" />
     <Resource Include="Resources\Script.png" />
+    <Resource Include="Resources\Settings.png" />
   </ItemGroup>
 
 </Project>
