@@ -87,9 +87,10 @@ namespace Attribulator.ModScript.API
         /// <summary>
         /// Clear CollectionCache.
         /// </summary>
-        public static void ClearCollectionCache()
+        public static void ClearCache()
         {
             CollectionCache.Clear();
+            FieldCache.Clear();
         }
     }
 }
