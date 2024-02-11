@@ -173,7 +173,7 @@
 
             <GridSplitter Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" HorizontalAlignment="Stretch"/>
 
-            <ScrollViewer Grid.Row="2" Grid.Column="2" VerticalScrollBarVisibility="Auto">
+            <ScrollViewer x:Name="ScriptScroll" Grid.Row="2" Grid.Column="2" VerticalScrollBarVisibility="Auto">
                 <TextBox x:Name="ScriptEditor"  AcceptsReturn="True"></TextBox>
             </ScrollViewer>
 

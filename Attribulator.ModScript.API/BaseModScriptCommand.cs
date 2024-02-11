@@ -83,5 +83,13 @@ namespace Attribulator.ModScript.API
         {
             CollectionCache.Remove((vltCollection.Class.Name, vltCollection.Name));
         }
+
+        /// <summary>
+        /// Clear CollectionCache.
+        /// </summary>
+        public static void ClearCollectionCache()
+        {
+            CollectionCache.Clear();
+        }
     }
 }

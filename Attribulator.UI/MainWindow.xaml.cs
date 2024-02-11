@@ -323,6 +323,7 @@ namespace AttribulatorUI
             MainWindow.UnsavedChanges = false;
             this.TreeView.Items.Clear();
             this.EditGrid.Children.Clear();
+            BaseModScriptCommand.ClearCollectionCache();
         }
 
         private void Command_RunGame(object sender, System.Windows.Input.ExecutedRoutedEventArgs e)
@@ -541,6 +542,8 @@ namespace AttribulatorUI
             {
                 this.ScriptEditor.Text += Environment.NewLine + line;
             }
+
+            this.ScriptScroll.ScrollToBottom();
         }
 
         private Image CreateImageSource(string name)
