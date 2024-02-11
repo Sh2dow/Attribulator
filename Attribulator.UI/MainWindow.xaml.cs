@@ -161,16 +161,16 @@ namespace AttribulatorUI
         {
             if (this.database != null)
             {
-                this.Backup("SaveBackup");
-
-                var profile = this.GetProfile();
-                foreach (var file in this.files)
-                {
-                    file.Group = "GLOBAL";
-                }
-
                 try
                 {
+                    this.Backup("SaveBackup");
+
+                    var profile = this.GetProfile();
+                    foreach (var file in this.files)
+                    {
+                        file.Group = "GLOBAL";
+                    }
+
                     profile.SaveFiles(this.database, this.gameFolder, this.files);
                     this.StatusLabel.Content = "Saved";
                     MainWindow.UnsavedChanges = false;
