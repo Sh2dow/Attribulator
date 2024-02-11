@@ -67,7 +67,7 @@ namespace Attribulator.UI.PropertyGrid
 
     public abstract class BaseEditItem : BaseItem
     {
-        private string name;
+        protected string name;
         private string lastValue;
         private int padding;
 

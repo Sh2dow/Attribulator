@@ -84,7 +84,11 @@ namespace Attribulator.UI.PropertyGrid
                 var pi = props[i];
                 var type = pi.PropertyType;
                 int subPadding = padding + 41;
-                if (type.IsSubclassOf(typeof(VaultLib.Core.Types.VLTBaseType)))
+                if (prop is VaultLib.Core.Types.Attrib.Types.Matrix)
+                {
+                    this.AddChild(new MatrixItem(this, prop as VaultLib.Core.Types.Attrib.Types.Matrix, padding + 21));
+                }
+                else if (type.IsSubclassOf(typeof(VaultLib.Core.Types.VLTBaseType)))
                 {
                     this.AddChild(new ClassItem(this, pi.Name, pi.GetValue(prop) as VaultLib.Core.Types.VLTBaseType, padding + 21));
                 }
@@ -100,11 +104,15 @@ namespace Attribulator.UI.PropertyGrid
                 {
                     var array = pi.GetValue(prop) as IList;
                     int maxCount = array.Count;
-                    var genericType = prop.GetType().GetGenericTypeDefinition();
-                    if (genericType == typeof(DynamicSizeArray<>) ||
-                        genericType == typeof(VLTListContainer<>))
+                    var propType = prop.GetType();
+                    if (propType.IsGenericType)
                     {
-                        maxCount = int.MaxValue;
+                        var genericType = propType.GetGenericTypeDefinition();
+                        if (genericType == typeof(DynamicSizeArray<>) ||
+                            genericType == typeof(VLTListContainer<>))
+                        {
+                            maxCount = int.MaxValue;
+                        }
                     }
 
                     this.AddChild(new PropertyArrayItem(this, pi, prop, maxCount, subPadding));
@@ -260,7 +268,7 @@ namespace Attribulator.UI.PropertyGrid
 
         public void GenerateUpdateCommand()
         {
-            foreach(var child in this.Children)
+            foreach (var child in this.Children)
             {
                 if (child is ICommandGenerator item)
                 {

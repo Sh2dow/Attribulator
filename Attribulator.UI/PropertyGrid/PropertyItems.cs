@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections;
 using System.Reflection;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.TextBox;
-using System.Windows.Forms;
 using AttribulatorUI;
 
 namespace Attribulator.UI.PropertyGrid
@@ -88,15 +86,20 @@ namespace Attribulator.UI.PropertyGrid
         }
     }
 
-    public class PropertyArraySubItem : BaseEditItem
+    public class PropertyArraySubItem : BaseEditItem, ICommandName
     {
         private int index;
         private IList array;
 
-        public PropertyArraySubItem(IParent parent, IList array, int index, int padding) : base(parent, $"[{index}]", padding)
+        public PropertyArraySubItem(IParent parent, IList array, int index, string name, int padding) : base(parent, name, padding)
         {
             this.index = index;
             this.array = array;
+        }
+
+        public string GetName()
+        {
+            return this.name;
         }
 
         public override IConvertible GetValue()
@@ -144,7 +147,7 @@ namespace Attribulator.UI.PropertyGrid
                 }
                 else
                 {
-                    this.AddChild(new PropertyArraySubItem(parent, array, i, padding + 21));
+                    this.AddChild(new PropertyArraySubItem(parent, array, i, $"[{i}]", padding + 21));
                 }
             }
         }
@@ -193,6 +196,34 @@ namespace Attribulator.UI.PropertyGrid
             }
 
             return name + this.propertyInfo.Name;
+        }
+    }
+
+    public class MatrixItem : CollapseItem, ICommandName
+    {
+        private IParent parent;
+
+        public MatrixItem(IParent parent, VaultLib.Core.Types.Attrib.Types.Matrix prop, int padding) : base(prop, "Data", prop.ToString(), padding)
+        {
+            this.parent = parent;
+            for (int i = 0; i < 4; i++)
+            {
+                for (int j = 0; j < 4; j++)
+                {
+                    this.AddChild(new PropertyArraySubItem(this, prop.Data, 4 * i + j, $"[{i + 1},{j + 1}]", padding + 21));
+                }
+            }
+        }
+
+        public string GetName()
+        {
+            string name = "";
+            if (this.parent is ICommandName icm)
+            {
+                name = $"{icm.GetName()} ";
+            }
+
+            return name + "Data";
         }
     }
 }
