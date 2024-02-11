@@ -15,12 +15,15 @@ namespace Attribulator.Plugins.SpeedProfiles
     {
         public IEnumerable<LoadedFile> LoadFiles(Database database, string directory)
         {
-            return (from file in GetFilesToLoad()
-                let path = Path.Combine(directory, file)
-                let standardVaultPack = new StandardVaultPack()
-                let br = new BinaryReader(File.OpenRead(path))
-                let vaults = standardVaultPack.Load(br, database, new PackLoadingOptions())
-                select new LoadedFile(Path.GetFileNameWithoutExtension(file), "main", vaults)).ToList();
+            return GetFilesToLoad().Select(file =>
+            {
+                var path = Path.Combine(directory, file);
+                var standardVaultPack = new StandardVaultPack();
+                using var br = new BinaryReader(File.OpenRead(path));
+                var vaults = standardVaultPack.Load(br, database, new PackLoadingOptions());
+
+                return new LoadedFile(Path.GetFileNameWithoutExtension(file), "main", vaults);
+            }).ToList();
         }
 
         public void SaveFiles(Database database, string directory, IEnumerable<LoadedFile> files)
