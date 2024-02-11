@@ -72,7 +72,7 @@ namespace Attribulator.ModScript.API
         /// <returns>The original string.</returns>
         protected string CleanHashString(string hashString)
         {
-            if (hashString.StartsWith("0x", StringComparison.Ordinal))
+            if (hashString.ToLowerInvariant().StartsWith("0x", StringComparison.Ordinal))
                 hashString =
                     HashManager.ResolveVLT(uint.Parse(hashString.Substring(2), NumberStyles.AllowHexSpecifier));
 

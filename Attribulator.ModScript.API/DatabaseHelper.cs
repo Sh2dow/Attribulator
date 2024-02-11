@@ -5,6 +5,7 @@ using Attribulator.ModScript.API.Utils;
 using VaultLib.Core;
 using VaultLib.Core.Data;
 using VaultLib.Core.DB;
+using VaultLib.Core.Hashing;
 
 namespace Attribulator.ModScript.API
 {
@@ -23,7 +24,20 @@ namespace Attribulator.ModScript.API
         public VltCollection FindCollectionByName(string className, string collectionName)
         {
             var key = $"{className}/{collectionName}";
-            return Collections.TryGetValue(key, out var collection) ? collection : null;
+            if (Collections.TryGetValue(key, out var collection))
+            {
+                return collection;
+            }
+            else
+            {
+                key = $"{className}/0x{VLT32Hasher.Hash(collectionName).ToString("X8")}";
+                if (Collections.TryGetValue(key, out collection))
+                {
+                    return collection;
+                }
+            }
+
+            return null;
         }
 
         public IEnumerable<VltCollection> GetCollectionsInVault(Vault vault)
@@ -64,7 +78,7 @@ namespace Attribulator.ModScript.API
 
         public List<VltCollection> RemoveCollection(VltCollection collection)
         {
-            var removed = new List<VltCollection> {collection};
+            var removed = new List<VltCollection> { collection };
 
             // Disassociate children
             var hasParent = collection.Parent != null;
