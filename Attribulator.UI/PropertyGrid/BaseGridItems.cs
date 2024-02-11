@@ -133,7 +133,6 @@ namespace Attribulator.UI.PropertyGrid
     {
         private string name;
         private int padding;
-        private CheckBox checkBox;
 
         public BaseBoolItem(IParent parent, string name, int padding)
         {
@@ -230,5 +229,23 @@ namespace Attribulator.UI.PropertyGrid
         public abstract Enum GetValue();
 
         public abstract void SetValue(Enum val);
+    }
+
+    public class VaultNameItem : Control
+    {
+        private string vaultName;
+
+        public VaultNameItem(string vaultName)
+        {
+            this.vaultName = vaultName;
+        }
+
+        public override void OnApplyTemplate()
+        {
+            base.OnApplyTemplate();
+
+            var textBox = this.GetTemplateChild("PART_TextBox") as TextBox;
+            textBox.Text = this.vaultName;
+        }
     }
 }

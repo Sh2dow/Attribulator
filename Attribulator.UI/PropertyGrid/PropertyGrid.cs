@@ -5,8 +5,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using VaultLib.Core.Data;
-using VaultLib.Core.Types;
 
 namespace Attribulator.UI.PropertyGrid
 {
@@ -108,8 +106,8 @@ namespace Attribulator.UI.PropertyGrid
                     if (propType.IsGenericType)
                     {
                         var genericType = propType.GetGenericTypeDefinition();
-                        if (genericType == typeof(DynamicSizeArray<>) ||
-                            genericType == typeof(VLTListContainer<>))
+                        if (genericType == typeof(VaultLib.Core.Types.DynamicSizeArray<>) ||
+                            genericType == typeof(VaultLib.Core.Types.VLTListContainer<>))
                         {
                             maxCount = int.MaxValue;
                         }
@@ -224,9 +222,9 @@ namespace Attribulator.UI.PropertyGrid
 
     public class MainGrid : StackPanel, ICommandName, ICommandGenerator
     {
-        private VltCollection collection;
+        private VaultLib.Core.Data.VltCollection collection;
 
-        public void Display(VltCollection collection)
+        public void Display(VaultLib.Core.Data.VltCollection collection)
         {
             this.collection = collection;
             this.Children.Clear();
@@ -234,7 +232,7 @@ namespace Attribulator.UI.PropertyGrid
             if (collection != null)
             {
                 var properties = collection.GetData().OrderBy(x => x.Key);
-
+                this.Children.Add(new VaultNameItem(collection.Vault.Name));
                 foreach (var property in properties)
                 {
                     var type = property.Value;

@@ -584,6 +584,7 @@ namespace AttribulatorUI
             {
                 if(new ChangeVaultWindow(this.currentCollection.Collection).ShowDialog().Value)
                 {
+                    this.EditGrid.Display(this.currentCollection.Collection);
                     this.StatusLabel.Content = "Changed vault";
                 }
             }
