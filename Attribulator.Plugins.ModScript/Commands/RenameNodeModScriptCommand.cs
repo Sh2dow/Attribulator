@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using Attribulator.ModScript.API;
+using VaultLib.Core.Hashing;
 
 namespace Attribulator.Plugins.ModScript.Commands
 {
@@ -21,14 +22,15 @@ namespace Attribulator.Plugins.ModScript.Commands
 
         public override void Execute(DatabaseHelper databaseHelper)
         {
-            var collection = GetCollection(databaseHelper, ClassName, CollectionName);
-
             if (GetCollection(databaseHelper, ClassName, NewName, false) != null)
                 throw new CommandExecutionException(
                     $"rename_node failed because there is already a collection called '{NewName}'");
 
+            var collection = GetCollection(databaseHelper, ClassName, CollectionName);
+
             RemoveCollectionFromCache(collection);
             databaseHelper.RenameCollection(collection, NewName);
+            HashManager.AddVLT(NewName);
         }
     }
 }

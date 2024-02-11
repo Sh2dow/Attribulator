@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using Attribulator.ModScript.API;
+using VaultLib.Core.Hashing;
 
 namespace Attribulator.Plugins.ModScript.Commands
 {
@@ -31,6 +32,7 @@ namespace Attribulator.Plugins.ModScript.Commands
             }
 
             collection.SetVault(vault);
+            HashManager.AddVLT(VaultName);
         }
     }
 }

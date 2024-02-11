@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using Attribulator.ModScript.API;
 using VaultLib.Core.Data;
+using VaultLib.Core.Hashing;
 
 namespace Attribulator.Plugins.ModScript.Commands
 {
@@ -53,6 +54,7 @@ namespace Attribulator.Plugins.ModScript.Commands
                 newCollection.SetDataValue("CollectionName", DestinationCollectionName);
 
             databaseHelper.AddCollection(newCollection, parentCollection);
+            HashManager.AddVLT(DestinationCollectionName);
         }
     }
 }

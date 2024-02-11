@@ -3,6 +3,7 @@ using System.Linq;
 using Attribulator.ModScript.API;
 using VaultLib.Core;
 using VaultLib.Core.Data;
+using VaultLib.Core.Hashing;
 using VaultLib.Core.Types;
 
 namespace Attribulator.Plugins.ModScript.Commands
@@ -76,6 +77,7 @@ namespace Attribulator.Plugins.ModScript.Commands
                 }
 
             if (vltClass.HasField("CollectionName")) newNode.SetDataValue("CollectionName", CollectionName);
+            HashManager.AddVLT(CollectionName);
         }
     }
 }
