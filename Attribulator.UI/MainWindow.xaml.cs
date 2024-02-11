@@ -5,6 +5,7 @@ using Attribulator.CLI;
 using Attribulator.CLI.Services;
 using Attribulator.ModScript.API;
 using Attribulator.UI;
+using Attribulator.UI.Windows;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
@@ -555,34 +556,24 @@ namespace AttribulatorUI
 
         private void Command_TreeAdd(object sender, System.Windows.Input.ExecutedRoutedEventArgs e)
         {
+            NewNodeNameWindow newNodeWindow = null;
             if (this.currentClass != null)
             {
-                var newNodeWindow = new NewNodeNameWindow(this.currentClass.Class.Name);
-                newNodeWindow.ShowDialog();
-                var result = newNodeWindow.Result;
-                if (!string.IsNullOrEmpty(result))
-                {
-                    string command = $"add_node {this.currentClass.Class.Name} {result}";
-                    this.ExecuteScriptInternal(new[] { command });
-                    this.AddScriptLine(command);
-                    this.PopulateTreeView();
-                    this.StatusLabel.Content = $"Added node: {result}";
-                }
+                newNodeWindow = new NewNodeNameWindow(this.currentClass.Class.Name, $"add_node {this.currentClass.Class.Name}");
             }
 
             if (this.currentCollection != null)
             {
                 var collection = this.currentCollection.Collection;
-                var newNodeWindow = new NewNodeNameWindow(collection.Name);
-                newNodeWindow.ShowDialog();
-                var result = newNodeWindow.Result;
-                if (!string.IsNullOrEmpty(result))
+                newNodeWindow = new NewNodeNameWindow(collection.Name, $"add_node {collection.Class.Name} {collection.Name}");
+            }
+
+            if(newNodeWindow != null)
+            {
+                if(newNodeWindow.ShowDialog().Value)
                 {
-                    string command = $"add_node {collection.Class.Name} {collection.Name} {result}";
-                    this.ExecuteScriptInternal(new[] { command });
-                    this.AddScriptLine(command);
                     this.PopulateTreeView();
-                    this.StatusLabel.Content = $"Added node: {result}";
+                    this.StatusLabel.Content = "Added node";
                 }
             }
         }
@@ -623,8 +614,11 @@ namespace AttribulatorUI
             if (this.currentCollection != null)
             {
                 var collection = this.currentCollection.Collection;
-                new CollectionRenameWindow(collection).ShowDialog();
-                this.currentCollection.SetName(collection.Name);
+                if (new CollectionRenameWindow(collection).ShowDialog().Value)
+                {
+                    this.currentCollection.SetName(collection.Name);
+                    this.StatusLabel.Content = "Renamed node";
+                }
             }
         }
 

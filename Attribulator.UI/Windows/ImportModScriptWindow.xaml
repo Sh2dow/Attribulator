@@ -7,6 +7,15 @@
         mc:Ignorable="d"
         ResizeMode="NoResize"
         Title="Import ModScript" Height="500" Width="635" WindowStartupLocation="CenterScreen" Loaded="Window_Loaded">
+
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="../PropertyGrid/PropertyGrid.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
+    
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
@@ -23,6 +32,6 @@
         <ScrollViewer Grid.Row="0" Grid.Column="1" VerticalScrollBarVisibility="Auto" Padding="5 5 5 0">
             <StackPanel x:Name="ImagePanel"/>
         </ScrollViewer>
-        <Button Grid.Row="1" Grid.Column="1" Margin="10" Content="Import" HorizontalAlignment="Right"  VerticalAlignment="Bottom" Height="33" Width="85" Click="Button_Import_Click"/>
+        <Button Grid.Row="1" Grid.Column="1" Margin="10" Content="Import" HorizontalAlignment="Right" VerticalAlignment="Bottom" Width="{StaticResource ButtonWidth}" Height="{StaticResource ButtonHeight}" Click="Button_Import_Click"/>
     </Grid>
 </Window>
