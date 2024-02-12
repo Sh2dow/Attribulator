@@ -501,16 +501,6 @@ namespace AttribulatorUI
             return true;
         }
 
-        public void ExecuteScriptUsafe(IEnumerable<string> lines)
-        {
-            foreach (var command in this.modScriptService.ParseCommands(lines))
-            {
-                command.Execute(this.modScriptDatabase);
-            }
-
-            MainWindow.UnsavedChanges = true;
-        }
-
         private void Command_Import(object sender, System.Windows.Input.ExecutedRoutedEventArgs e)
         {
             if (this.database != null)

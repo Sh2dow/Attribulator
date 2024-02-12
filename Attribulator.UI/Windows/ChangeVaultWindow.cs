@@ -26,16 +26,11 @@ namespace Attribulator.UI.Windows
                 {
                     string command = $"change_vault {collection.Class.Name} {collection.Name} {this.InputTextBox.Text}";
 
-                    try
+                    if (MainWindow.Instance.ExecuteScriptInternal(command))
                     {
-                        MainWindow.Instance.ExecuteScriptUsafe(new[] { command });
                         MainWindow.Instance.AddScriptLine(command);
                         this.DialogResult = true;
                         this.Close();
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show(ex.Message, "Error changing vault", MessageBoxButton.OK, MessageBoxImage.Warning);
                     }
                 }
             };

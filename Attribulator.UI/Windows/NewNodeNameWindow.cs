@@ -1,6 +1,4 @@
 ﻿using AttribulatorUI;
-using System;
-using System.Windows;
 
 namespace Attribulator.UI.Windows
 {
@@ -15,17 +13,12 @@ namespace Attribulator.UI.Windows
             {
                 string command = $"add_node {parent} {this.InputTextBox.Text}";
 
-                try
+                if (MainWindow.Instance.ExecuteScriptInternal(command))
                 {
-                    MainWindow.Instance.ExecuteScriptUsafe(new[] { command });
                     MainWindow.Instance.AddScriptLine(command);
 
                     this.DialogResult = true;
                     this.Close();
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show(ex.Message, "Error adding new node", MessageBoxButton.OK, MessageBoxImage.Warning);
                 }
             };
         }

@@ -24,16 +24,11 @@ namespace Attribulator.UI.Windows
                 {
                     string command = $"rename_node {collection.Class.Name} {collection.Name} {this.InputTextBox.Text}";
 
-                    try
+                    if (MainWindow.Instance.ExecuteScriptInternal(command))
                     {
-                        MainWindow.Instance.ExecuteScriptUsafe(new[] { command });
                         MainWindow.Instance.AddScriptLine(command);
                         this.DialogResult = true;
                         this.Close();
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show(ex.Message, "Error renaming collection", MessageBoxButton.OK, MessageBoxImage.Warning);
                     }
                 }
             };
