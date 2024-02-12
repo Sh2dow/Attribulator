@@ -45,7 +45,11 @@ namespace Attribulator.UI
 
             if (commands.Count > 0)
             {
-                MainWindow.Instance.ExecuteScriptInternal(commands);
+                if(!MainWindow.Instance.ExecuteScriptInternal(commands.ToArray()))
+                {
+                    return;
+                }
+
                 MainWindow.Instance.AddScriptLines(commands);
             }
 

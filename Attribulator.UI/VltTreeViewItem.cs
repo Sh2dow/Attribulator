@@ -55,11 +55,14 @@ namespace Attribulator.UI
 
         public string HeaderName { get; private set; }
 
-        public BaseTreeViewItem(string name)
+        public TreeViewItem ParentNode { get; private set; }
+
+        public BaseTreeViewItem(string name, TreeViewItem parentNode)
         {
             this.HeaderName = name;
             this.treeHeader = new TreeHeader(name);
             this.Header = this.treeHeader;
+            this.ParentNode = parentNode;
 
             this.Expanded += this.Expand;
             this.Collapsed += this.Collapse;
@@ -91,7 +94,7 @@ namespace Attribulator.UI
     {
         public VltCollection Collection { get; private set; }
 
-        public CollectionTreeViewItem(VltCollection collection) : base(collection.Name)
+        public CollectionTreeViewItem(VltCollection collection, TreeViewItem parentNode) : base(collection.Name, parentNode)
         {
             this.Collection = collection;
         }
@@ -101,7 +104,7 @@ namespace Attribulator.UI
     {
         public VltClass Class { get; private set; }
 
-        public ClassTreeViewItem(VltClass cls) : base(cls.Name)
+        public ClassTreeViewItem(VltClass cls, TreeViewItem parentNode) : base(cls.Name, parentNode)
         {
             this.Class = cls;
         }

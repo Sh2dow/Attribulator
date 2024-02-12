@@ -234,7 +234,7 @@ namespace AttribulatorUI
             {
                 foreach (var child in collection.Children.OrderBy(x => x.Name))
                 {
-                    var childNode = new CollectionTreeViewItem(child);
+                    var childNode = new CollectionTreeViewItem(child, node);
                     childNode.ContextMenu = this.collectionContextMenu;
                     node.Items.Add(childNode);
                     PopulateTreeNode(child, childNode);
@@ -252,13 +252,13 @@ namespace AttribulatorUI
             var classes = this.database.Classes.OrderBy(x => x.Name);
             foreach (var cls in classes)
             {
-                var classNode = new ClassTreeViewItem(cls);
+                var classNode = new ClassTreeViewItem(cls, null);
                 classNode.ContextMenu = this.classContextMenu;
 
                 var collections = this.database.RowManager.EnumerateCollections(cls.Name).OrderBy(x => x.Name);
                 foreach (var collection in collections)
                 {
-                    var childNode = new CollectionTreeViewItem(collection);
+                    var childNode = new CollectionTreeViewItem(collection, classNode);
                     childNode.ContextMenu = this.collectionContextMenu;
                     classNode.Items.Add(childNode);
                     PopulateTreeNode(collection, childNode);
@@ -393,7 +393,7 @@ namespace AttribulatorUI
                     }
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 MessageBox.Show(ex.Message, "Failed to backup", MessageBoxButton.OK, MessageBoxImage.Error);
             }
@@ -482,7 +482,7 @@ namespace AttribulatorUI
             this.PopulateTreeView();
         }
 
-        public void ExecuteScriptInternal(IEnumerable<string> lines)
+        public bool ExecuteScriptInternal(params string[] lines)
         {
             foreach (var command in this.modScriptService.ParseCommands(lines))
             {
@@ -493,10 +493,12 @@ namespace AttribulatorUI
                 catch (Exception e)
                 {
                     MessageBox.Show(e.Message, "Error executing script", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return false;
                 }
             }
 
             MainWindow.UnsavedChanges = true;
+            return true;
         }
 
         public void ExecuteScriptUsafe(IEnumerable<string> lines)
@@ -625,10 +627,13 @@ namespace AttribulatorUI
             {
                 var collection = this.currentCollection.Collection;
                 string command = $"delete_node {collection.Class.Name} {collection.Name}";
-                this.ExecuteScriptInternal(new[] { command });
-                this.AddScriptLine(command);
-                this.PopulateTreeView();
-                this.StatusLabel.Content = $"Deleted node: {collection.Name}";
+                if (this.ExecuteScriptInternal(command))
+                {
+                    this.AddScriptLine(command);
+                    this.StatusLabel.Content = $"Deleted node: {collection.Name}";
+                    var parentNode = this.currentCollection.ParentNode;
+                    parentNode.Items.Remove(this.currentCollection);
+                }
             }
         }
 
