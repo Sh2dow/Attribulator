@@ -77,7 +77,7 @@ namespace Attribulator.Plugins.ModScript.Commands
                 }
 
             if (vltClass.HasField("CollectionName")) newNode.SetDataValue("CollectionName", CollectionName);
-            HashManager.AddVLT(CollectionName);
+            HashManager.AddUserHash(CollectionName);
         }
     }
 }

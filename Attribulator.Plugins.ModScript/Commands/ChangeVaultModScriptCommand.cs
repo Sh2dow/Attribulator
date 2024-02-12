@@ -32,7 +32,7 @@ namespace Attribulator.Plugins.ModScript.Commands
             }
 
             collection.SetVault(vault);
-            HashManager.AddVLT(VaultName);
+            HashManager.AddUserHash(VaultName);
         }
     }
 }

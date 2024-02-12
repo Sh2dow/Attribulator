@@ -54,7 +54,7 @@ namespace Attribulator.Plugins.ModScript.Commands
                 newCollection.SetDataValue("CollectionName", DestinationCollectionName);
 
             databaseHelper.AddCollection(newCollection, parentCollection);
-            HashManager.AddVLT(DestinationCollectionName);
+            HashManager.AddUserHash(DestinationCollectionName);
         }
     }
 }
