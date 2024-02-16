@@ -49,13 +49,11 @@ namespace AttribulatorUI
         private ContextMenu collectionContextMenu = null;
         private bool cutNode = false;
 
-        public MainWindow()
+        private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             try
             {
                 MainWindow.Instance = this;
-
-                InitializeComponent();
 
                 // Setup
                 var services = new ServiceCollection();
