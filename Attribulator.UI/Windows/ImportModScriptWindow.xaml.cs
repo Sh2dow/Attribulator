@@ -119,7 +119,7 @@ namespace Attribulator.UI
             }
         }
 
-        private void PopulateResultScript(string[] lines)
+        private void PopulateResultScript(string[] lines, string currentScriptFolder)
         {
             bool skip = false;
             bool inOption = false;
@@ -174,8 +174,8 @@ namespace Attribulator.UI
 
                     if (command.StartsWith("script", StringComparison.OrdinalIgnoreCase))
                     {
-                        var subScript = Path.Combine(this.scriptFolder, command.Substring("script ".Length));
-                        this.PopulateResultScript(File.ReadAllLines(subScript));
+                        var subScript = Path.Combine(currentScriptFolder, command.Substring("script ".Length).Trim('"'));
+                        this.PopulateResultScript(File.ReadAllLines(subScript), Path.GetDirectoryName(subScript));
                     }
                     else
                     {
@@ -206,7 +206,7 @@ namespace Attribulator.UI
 
         private void Button_Import_Click(object sender, RoutedEventArgs e)
         {
-            this.PopulateResultScript(this.initialScript);
+            this.PopulateResultScript(this.initialScript, this.scriptFolder);
             this.Close();
         }
     }

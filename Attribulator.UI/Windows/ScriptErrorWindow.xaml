@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:Attribulator.UI.Windows"
         mc:Ignorable="d"
         WindowStartupLocation="CenterScreen"
-        Title="Script execution erros" Height="450" Width="800">
+        Title="Script execution errors" Height="450" Width="800">
 
     <Window.Resources>
         <ResourceDictionary>
@@ -18,14 +18,16 @@
     </Window.Resources>
     <Grid>
         <Grid.RowDefinitions>
+            <RowDefinition Height="30px"/>
             <RowDefinition/>
             <RowDefinition Height="50px"/>
         </Grid.RowDefinitions>
 
-        <ScrollViewer Grid.Row="0" Padding="5" VerticalScrollBarVisibility="Auto">
+        <TextBlock Grid.Row="0" VerticalAlignment="Center" FontWeight="Bold" Foreground="Red" Margin="10 0 0 0">The mod has been installed hovewer the following errors occurred during instalation:</TextBlock>
+        <ScrollViewer Grid.Row="1" Padding="10" VerticalScrollBarVisibility="Auto">
             <StackPanel x:Name="ErrorStack"/>
         </ScrollViewer>
-        <Button x:Name="CloseButton" Grid.Row="1" Width="{StaticResource ButtonWidth}" Height="{StaticResource ButtonHeight}" 
+        <Button x:Name="CloseButton" Grid.Row="2" Width="{StaticResource ButtonWidth}" Height="{StaticResource ButtonHeight}" 
                 Content="Close" HorizontalAlignment="Right" Margin="0,0,10,0" Click="CloseButton_Click"/>
     </Grid>
 </Window>

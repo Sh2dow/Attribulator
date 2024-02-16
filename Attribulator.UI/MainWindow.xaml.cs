@@ -51,12 +51,12 @@ namespace AttribulatorUI
 
         public MainWindow()
         {
-            MainWindow.Instance = this;
-
-            InitializeComponent();
-
             try
             {
+                MainWindow.Instance = this;
+
+                InitializeComponent();
+
                 // Setup
                 var services = new ServiceCollection();
                 var loaders = Program.GetPluginLoaders();
@@ -334,9 +334,16 @@ namespace AttribulatorUI
 
         private void Command_RunGame(object sender, System.Windows.Input.ExecutedRoutedEventArgs e)
         {
-            if (!string.IsNullOrEmpty(this.gameExe))
+            try
             {
-                Process.Start(new ProcessStartInfo(this.gameExe) { WorkingDirectory = this.gameFolder });
+                if (!string.IsNullOrEmpty(this.gameExe))
+                {
+                    Process.Start(new ProcessStartInfo(this.gameExe) { WorkingDirectory = this.gameFolder });
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Failed to run the game", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
