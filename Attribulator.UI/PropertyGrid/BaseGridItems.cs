@@ -96,7 +96,6 @@ namespace Attribulator.UI.PropertyGrid
             this.lastValue = textBox.Text;
             textBox.LostFocus += (s, e) =>
             {
-                var textBox = s as TextBox;
                 var val = this.GetValue();
                 var type = val.GetType();
                 try
@@ -183,6 +182,7 @@ namespace Attribulator.UI.PropertyGrid
     {
         private string name;
         private int padding;
+        private string lastValue;
 
         public BaseEnumItem(IParent parent, string name, int padding)
         {
@@ -205,19 +205,56 @@ namespace Attribulator.UI.PropertyGrid
             var comboBox = this.GetTemplateChild("PART_ComboBox") as ComboBox;
             comboBox.ContextMenu = contextMenu;
             var val = this.GetValue();
+            var stringVal = val.ToString();
             var type = val.GetType();
             var enumNames = type.GetEnumNames();
             foreach (var enumName in enumNames)
             {
-                comboBox.Items.Add(new ComboBoxItem { Content = enumName, IsSelected = val.ToString() == enumName });
+                comboBox.Items.Add(new ComboBoxItem { Content = enumName, IsSelected = stringVal == enumName });
             }
 
-            comboBox.SelectionChanged += (s, e) =>
+            if (comboBox.SelectedItem == null)
             {
-                var item = comboBox.SelectedItem as ComboBoxItem;
-                this.SetValue(Enum.Parse(type, item.Content as string) as Enum);
-                this.GenerateUpdateCommand(item.Content as string);
-                (this.parent as IParentUpdate)?.Update();
+                comboBox.Text = stringVal;
+            }
+
+            this.lastValue = comboBox.Text;
+
+            comboBox.LostFocus += (s, e) =>
+            {
+                var text = comboBox.Text;
+                try
+                {
+                    if (comboBox.Text != this.lastValue)
+                    {
+                        var selectedItem = comboBox.SelectedItem as ComboBoxItem;
+                        if (selectedItem != null)
+                        {
+                            this.SetValue(Enum.Parse(type, selectedItem.Content as string) as Enum);
+                        }
+                        else
+                        {
+                            var intType = Enum.GetUnderlyingType(type);
+                            var converter = TypeDescriptor.GetConverter(intType);
+                            var result = converter.ConvertFromInvariantString(comboBox.Text);
+                            this.SetValue(result as IConvertible);
+
+                            if (Enum.IsDefined(type, result))
+                            {
+                                comboBox.Text = Enum.GetName(type, result);
+                            }
+                        }
+
+                        this.GenerateUpdateCommand(comboBox.Text);
+                        (this.parent as IParentUpdate)?.Update();
+                        this.lastValue = comboBox.Text;
+                    }
+                }
+                catch
+                {
+                    MessageBox.Show($"{comboBox.Text} is not a valid value for {type}", "Property error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    comboBox.Text = this.lastValue;
+                }
             };
         }
 
@@ -228,7 +265,7 @@ namespace Attribulator.UI.PropertyGrid
 
         public abstract Enum GetValue();
 
-        public abstract void SetValue(Enum val);
+        public abstract void SetValue(IConvertible val);
     }
 
     public class VaultNameItem : Control

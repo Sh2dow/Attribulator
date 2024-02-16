@@ -77,7 +77,7 @@ namespace Attribulator.UI.PropertyGrid
             return this.prop.GetValue() as Enum;
         }
 
-        public override void SetValue(Enum val)
+        public override void SetValue(IConvertible val)
         {
             this.prop.SetValue(val);
         }

@@ -53,7 +53,7 @@ namespace Attribulator.UI.PropertyGrid
             return (Enum)this.propertyInfo.GetValue(this.prop);
         }
 
-        public override void SetValue(Enum value)
+        public override void SetValue(IConvertible value)
         {
             this.propertyInfo.SetValue(this.prop, value);
         }
