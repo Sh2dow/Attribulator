@@ -298,6 +298,18 @@ namespace AttribulatorUI
                     this.Tabs.Items.Add(ti);
                     this.Tabs.SelectedIndex = this.Tabs.Items.Count - 1;
                 }
+                else
+                {
+                    for (int i = 0; i < this.Tabs.Items.Count; i++)
+                    {
+                        var tabItem = this.Tabs.Items[i] as TabItem;
+                        if(tabItem.Header as string == collection.ShortPath)
+                        {
+                            this.Tabs.SelectedIndex = i; 
+                            break;
+                        }
+                    }
+                }
             }
         }
 
@@ -766,6 +778,11 @@ namespace AttribulatorUI
             contextMenu.Items.Clear();
 
             var menuItem = new MenuItem();
+            menuItem.Header = "Open in new tab";
+            menuItem.Click += (s, e) => this.TreeView_MouseDoubleClick(null, null);
+            contextMenu.Items.Add(menuItem);
+
+            menuItem = new MenuItem();
             menuItem.Header = "Add";
             menuItem.Icon = this.CreateImageSource("Add.png");
             menuItem.Click += (s, e) => this.Command_TreeAdd(null, null);
