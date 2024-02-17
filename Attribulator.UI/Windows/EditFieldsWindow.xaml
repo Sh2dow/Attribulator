@@ -17,10 +17,12 @@
     </Window.Resources>
 
     <Grid>
-        <ScrollViewer Margin="10,10,10,56" Padding="0 5 0 5" Background="LightGray">
+        <TextBox x:Name="FilterTextBox" Width="320" Margin="10,5,0,0" Height="20" VerticalAlignment="Top" HorizontalAlignment="Left" 
+                 TextChanged="FilterTextBox_TextChanged"/>
+        <ScrollViewer Margin="10,30,10,56" Padding="0 5 0 5" Background="LightGray">
             <StackPanel x:Name="FieldStack" />
         </ScrollViewer>
         <Button Content="Cancel" HorizontalAlignment="Right" Margin="0,0,10,10" VerticalAlignment="Bottom" Width="{StaticResource ButtonWidth}" Height="{StaticResource ButtonHeight}" Click="Button_Cancel_Click"/>
-        <Button Content="OK" HorizontalAlignment="Right" Margin="0,0,86,10" VerticalAlignment="Bottom" Width="{StaticResource ButtonWidth}" Height="{StaticResource ButtonHeight}" Click="Button_Ok_Click"/>
+        <Button Content="OK" HorizontalAlignment="Right" Margin="0,0,108,10" VerticalAlignment="Bottom" Width="{StaticResource ButtonWidth}" Height="{StaticResource ButtonHeight}" Click="Button_Ok_Click"/>
     </Grid>
 </Window>

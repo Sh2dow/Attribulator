@@ -1,5 +1,6 @@
 ﻿using Attribulator.UI.PropertyGrid;
 using AttribulatorUI;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
@@ -45,7 +46,7 @@ namespace Attribulator.UI
 
             if (commands.Count > 0)
             {
-                if(!MainWindow.Instance.ExecuteScriptInternal(commands.ToArray()))
+                if (!MainWindow.Instance.ExecuteScriptInternal(commands.ToArray()))
                 {
                     return;
                 }
@@ -59,6 +60,20 @@ namespace Attribulator.UI
         private void Button_Cancel_Click(object sender, RoutedEventArgs e)
         {
             this.Close();
+        }
+
+        private void FilterTextBox_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
+        {
+            var fields = this.FieldStack.Children.Cast<EditFieldItem>();
+            var text = this.FilterTextBox.Text;
+            foreach (var field in fields)
+            {
+                field.Visibility = Visibility.Collapsed;
+                if (field.FieldName.Contains(text, StringComparison.InvariantCultureIgnoreCase))
+                {
+                    field.Visibility = Visibility.Visible;
+                }
+            }
         }
     }
 }
