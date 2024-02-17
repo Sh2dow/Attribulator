@@ -14,6 +14,9 @@ namespace Attribulator.UI
         public TreeHeader(string text)
         {
             this.text = text;
+
+            // Fixed double arrow click to navigate
+            this.Focusable = false;
         }
 
         public override void OnApplyTemplate()
