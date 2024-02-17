@@ -220,26 +220,39 @@ namespace Attribulator.UI.PropertyGrid
         }
     }
 
-    public class MainGrid : StackPanel, ICommandName, ICommandGenerator
+    public class MainGrid : Control, ICommandName, ICommandGenerator
     {
-        private VaultLib.Core.Data.VltCollection collection;
+        public VaultLib.Core.Data.VltCollection Collection { get; private set; }
+        private StackPanel stackPanel;
 
-        public void Display(VaultLib.Core.Data.VltCollection collection)
+        public MainGrid(VaultLib.Core.Data.VltCollection collection)
         {
-            this.collection = collection;
-            this.Children.Clear();
+            this.Collection = collection;
+        }
 
-            if (collection != null)
+        public override void OnApplyTemplate()
+        {
+            base.OnApplyTemplate();
+
+            this.stackPanel = this.GetTemplateChild("PART_StackPanel") as StackPanel;
+            this.Draw();
+        }
+
+        public void Draw()
+        {
+            this.stackPanel.Children.Clear();
+
+            if (Collection != null)
             {
-                var properties = collection.GetData().OrderBy(x => x.Key);
-                this.Children.Add(new VaultNameItem(collection.Vault.Name));
+                var properties = Collection.GetData().OrderBy(x => x.Key);
+                this.stackPanel.Children.Add(new VaultNameItem(Collection.Vault.Name));
                 foreach (var property in properties)
                 {
                     var type = property.Value;
                     UIElement child = null;
                     if (type is VaultLib.Core.Types.VLTArrayType)
                     {
-                        var field = collection.Class.FindField(property.Key);
+                        var field = Collection.Class.FindField(property.Key);
                         var maxCount = field.IsInLayout ? field.MaxCount : int.MaxValue;
                         child = new ArrayItem(this, property.Key, type as VaultLib.Core.Types.VLTArrayType, maxCount, 0);
                     }
@@ -254,7 +267,7 @@ namespace Attribulator.UI.PropertyGrid
 
                     if (child != null)
                     {
-                        this.Children.Add(child);
+                        this.stackPanel.Children.Add(child);
                     }
                     else
                     {
@@ -266,7 +279,7 @@ namespace Attribulator.UI.PropertyGrid
 
         public void GenerateUpdateCommand()
         {
-            foreach (var child in this.Children)
+            foreach (var child in this.stackPanel.Children)
             {
                 if (child is ICommandGenerator item)
                 {
@@ -277,7 +290,7 @@ namespace Attribulator.UI.PropertyGrid
 
         public string GetName()
         {
-            return $"{this.collection.Class.Name} {this.collection.Name}";
+            return $"{this.Collection.Class.Name} {this.Collection.Name}";
         }
     }
 }

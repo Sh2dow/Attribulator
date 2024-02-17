@@ -5,8 +5,10 @@ using Attribulator.CLI;
 using Attribulator.CLI.Services;
 using Attribulator.ModScript.API;
 using Attribulator.UI;
+using Attribulator.UI.PropertyGrid;
 using Attribulator.UI.Windows;
 using Microsoft.Extensions.DependencyInjection;
+using Newtonsoft.Json.Bson;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -14,6 +16,7 @@ using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media.Imaging;
 using VaultLib.Core.Data;
 using VaultLib.Core.DB;
@@ -243,7 +246,7 @@ namespace AttribulatorUI
         public void PopulateTreeView()
         {
             this.TreeView.Items.Clear();
-            this.EditGrid.Children.Clear();
+            this.Tabs.Items.Clear();
             this.currentClass = null;
             this.currentCollection = null;
 
@@ -273,16 +276,28 @@ namespace AttribulatorUI
             {
                 this.currentCollection = treeViewItem;
                 this.currentClass = null;
-
-                var collection = treeViewItem.Collection;
-                this.EditGrid.Display(collection);
             }
             else
             {
-                this.EditGrid.Children.Clear();
-
                 this.currentCollection = null;
                 this.currentClass = e.Source as ClassTreeViewItem;
+            }
+        }
+
+        private void TreeView_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            if (this.currentCollection != null)
+            {
+                var collection = this.currentCollection.Collection;
+
+                if (!this.Tabs.Items.Cast<TabItem>().Any(x => x.Header as string == collection.ShortPath))
+                {
+                    var ti = new TabItem();
+                    ti.Header = collection.ShortPath;
+                    ti.Content = new MainGrid(collection);
+                    this.Tabs.Items.Add(ti);
+                    this.Tabs.SelectedIndex = this.Tabs.Items.Count - 1;
+                }
             }
         }
 
@@ -326,7 +341,7 @@ namespace AttribulatorUI
             this.currentCollection = null;
             MainWindow.UnsavedChanges = false;
             this.TreeView.Items.Clear();
-            this.EditGrid.Children.Clear();
+            this.Tabs.Items.Clear();
             BaseModScriptCommand.ClearCache();
         }
 
@@ -610,7 +625,7 @@ namespace AttribulatorUI
             {
                 if (new ChangeVaultWindow(this.currentCollection.Collection).ShowDialog().Value)
                 {
-                    this.EditGrid.Display(this.currentCollection.Collection);
+                    this.GetSelectedGrid()?.Draw();
                     this.StatusLabel.Content = "Changed vault";
                 }
             }
@@ -659,7 +674,12 @@ namespace AttribulatorUI
                 {
                     this.currentCollection.SetName(collection.Name);
                     this.StatusLabel.Content = "Renamed node";
-                    this.EditGrid.Display(this.currentCollection.Collection);
+                    var tab = this.GetSelectedTab();
+                    if (tab != null)
+                    {
+                        (tab.Content as MainGrid).Draw();
+                        tab.Header = collection.ShortPath;
+                    }
                 }
             }
         }
@@ -669,7 +689,7 @@ namespace AttribulatorUI
             if (this.currentCollection != null)
             {
                 new EditFieldsWindow(this.currentCollection.Collection).ShowDialog();
-                this.EditGrid.Display(this.currentCollection.Collection);
+                this.GetSelectedGrid()?.Draw();
             }
         }
 
@@ -840,6 +860,52 @@ namespace AttribulatorUI
         private void MenuItem_Raider_Click(object sender, RoutedEventArgs e)
         {
             new RaiderWindow().ShowDialog();
+        }
+
+        private void CloseTabButton_Click(object sender, RoutedEventArgs e)
+        {
+            var button = sender as Button;
+            var stackPanel = button.Parent as StackPanel;
+            this.RemoveTab(stackPanel);
+        }
+
+        private void TabHeader_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.ChangedButton == MouseButton.Middle && e.ButtonState == MouseButtonState.Pressed)
+            {
+                this.RemoveTab(sender as StackPanel);
+            }
+        }
+
+        private void RemoveTab(StackPanel stackPanel)
+        {
+            var header = stackPanel.DataContext as string;
+            var toRemove = this.Tabs.Items.Cast<TabItem>().First(x => x.Header as string == header);
+            this.Tabs.Items.Remove(toRemove);
+        }
+
+        private MainGrid GetSelectedGrid()
+        {
+            if (this.currentCollection != null)
+            {
+                return this.Tabs.Items.Cast<TabItem>().Select(x => x.Content as MainGrid)
+                     .FirstOrDefault(x => x.Collection == this.currentCollection.Collection);
+            }
+
+            return null;
+        }
+
+        public MainGrid EditGrid => this.Tabs.SelectedContent as MainGrid;
+
+        private TabItem GetSelectedTab()
+        {
+            if (this.currentCollection != null)
+            {
+                return this.Tabs.Items.Cast<TabItem>()
+                     .FirstOrDefault(x => (x.Content as MainGrid).Collection == this.currentCollection.Collection);
+            }
+
+            return null;
         }
     }
 }

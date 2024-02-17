@@ -11,6 +11,7 @@
   <ItemGroup>
     <None Remove="Resources\Add.png" />
     <None Remove="Resources\CloseFolder.png" />
+    <None Remove="Resources\CloseTab.png" />
     <None Remove="Resources\CloseWindow.png" />
     <None Remove="Resources\Copy.png" />
     <None Remove="Resources\Cut.png" />
@@ -52,6 +53,7 @@
   <ItemGroup>
     <Resource Include="Resources\Add.png" />
     <Resource Include="Resources\CloseFolder.png" />
+    <Resource Include="Resources\CloseTab.png" />
     <Resource Include="Resources\CloseWindow.png" />
     <Resource Include="Resources\Copy.png" />
     <Resource Include="Resources\Cut.png" />

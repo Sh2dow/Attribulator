@@ -153,26 +153,28 @@
             </Grid.ColumnDefinitions>
 
             <TreeView Grid.Row="0" Grid.RowSpan="3" Grid.Column="0" x:Name="TreeView" TreeViewItem.Selected="TreeViewItem_Selected"
-                      TreeViewItem.PreviewMouseRightButtonDown="TreeView_PreviewMouseRightButtonDown"/>
+                      TreeViewItem.PreviewMouseRightButtonDown="TreeView_PreviewMouseRightButtonDown" MouseDoubleClick="TreeView_MouseDoubleClick"/>
 
             <GridSplitter Grid.Column="1" HorizontalAlignment="Stretch" Grid.RowSpan="3" ResizeDirection="Columns"/>
 
-            <Grid Grid.Row="0" Grid.Column="2">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="2"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-
-                <Border Grid.Column="0" x:Name="EditGridLeftPanel"/>
-                <Border Grid.Column="2" x:Name="EditGridRightPanel" Margin="0,0,20,0"/>
-
-                <ScrollViewer Grid.ColumnSpan="3">
-                    <propertygrid:MainGrid x:Name="EditGrid"  />
-                </ScrollViewer>
-
-                <GridSplitter Grid.Column="1" HorizontalAlignment="Stretch" ResizeDirection="Columns"/>
-            </Grid>
+            <TabControl Grid.Row="0" Grid.Column="2" x:Name="Tabs">
+                <TabControl.Resources>
+                    <Style TargetType="{x:Type TabItem}">
+                        <Setter Property="HeaderTemplate">
+                            <Setter.Value>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal" MouseDown="TabHeader_MouseDown" >
+                                        <TextBlock Text="{TemplateBinding Content}" MinWidth="100" MaxWidth="100"/>
+                                        <Button Margin="5 0 0 0" Click="CloseTabButton_Click">
+                                            <Image Width="10" Height="10" Source="/Resources/CloseTab.png"/>
+                                        </Button>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </TabControl.Resources>
+            </TabControl>
 
             <GridSplitter Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" HorizontalAlignment="Stretch"/>
 
