@@ -454,6 +454,11 @@ namespace AttribulatorUI
                         {
                             this.Restore(backup);
                             this.StatusLabel.Content = $"Restored backup: {backup}";
+                            var result = MessageBox.Show("Backup successfully restored, do you want to reload database?", "Backup restored", MessageBoxButton.YesNo, MessageBoxImage.Question);
+                            if (result == MessageBoxResult.Yes)
+                            {
+                                this.Command_Reload(null, null);
+                            }
                             return;
                         }
                     }
