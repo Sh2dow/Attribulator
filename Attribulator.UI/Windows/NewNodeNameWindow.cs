@@ -4,6 +4,8 @@ namespace Attribulator.UI.Windows
 {
     public class NewNodeNameWindow : BaseInputWindow
     {
+        public string ResultName { get;private set; }
+
         public NewNodeNameWindow(string title, string parent) : base()
         {
             this.HeaderLabel.Content = "New node name:";
@@ -11,13 +13,15 @@ namespace Attribulator.UI.Windows
 
             this.OkButton.Click += (s, e) =>
             {
-                string command = $"add_node {parent} {this.InputTextBox.Text}";
+                string name = this.InputTextBox.Text;
+                string command = $"add_node {parent} {name}";
 
                 if (MainWindow.Instance.ExecuteScriptInternal(command))
                 {
                     MainWindow.Instance.AddScriptLine(command);
 
                     this.DialogResult = true;
+                    this.ResultName = name;
                     this.Close();
                 }
             };

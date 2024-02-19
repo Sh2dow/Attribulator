@@ -311,9 +311,9 @@ namespace AttribulatorUI
                     for (int i = 0; i < this.Tabs.Items.Count; i++)
                     {
                         var tabItem = this.Tabs.Items[i] as TabItem;
-                        if(tabItem.Header as string == collection.ShortPath)
+                        if (tabItem.Header as string == collection.ShortPath)
                         {
-                            this.Tabs.SelectedIndex = i; 
+                            this.Tabs.SelectedIndex = i;
                             break;
                         }
                     }
@@ -617,23 +617,29 @@ namespace AttribulatorUI
 
         private void Command_TreeAdd(object sender, System.Windows.Input.ExecutedRoutedEventArgs e)
         {
-            NewNodeNameWindow newNodeWindow = null;
             if (this.currentClass != null)
             {
-                newNodeWindow = new NewNodeNameWindow(this.currentClass.Class.Name, this.currentClass.Class.Name);
+                var className = this.currentClass.Class.Name;
+                var newNodeWindow = new NewNodeNameWindow(this.currentClass.Class.Name, className);
+                if (newNodeWindow.ShowDialog().Value)
+                {
+                    string newName = newNodeWindow.ResultName;
+                    var newCollection = this.database.RowManager.FindCollectionByName(className, newName);
+                    this.currentClass.Items.Add(new CollectionTreeViewItem(newCollection, this.currentClass));
+                    this.StatusLabel.Content = "Added node";
+                }
             }
 
             if (this.currentCollection != null)
             {
                 var collection = this.currentCollection.Collection;
-                newNodeWindow = new NewNodeNameWindow(collection.Name, $"{collection.Class.Name} {collection.Name}");
-            }
-
-            if (newNodeWindow != null)
-            {
+                var className = collection.Class.Name;
+                var newNodeWindow = new NewNodeNameWindow(collection.Name, $"{className} {collection.Name}");
                 if (newNodeWindow.ShowDialog().Value)
                 {
-                    this.PopulateTreeView();
+                    string newName = newNodeWindow.ResultName;
+                    var newCollection = this.database.RowManager.FindCollectionByName(className, newName);
+                    this.currentCollection.Items.Add(new CollectionTreeViewItem(newCollection, this.currentCollection));
                     this.StatusLabel.Content = "Added node";
                 }
             }
