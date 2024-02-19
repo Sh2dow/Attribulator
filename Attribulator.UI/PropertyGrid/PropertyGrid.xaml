@@ -318,8 +318,8 @@
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type ui:TabHeader}">
                     <StackPanel Orientation="Horizontal">
-                        <TextBlock x:Name="PART_Text" MinWidth="100" MaxWidth="100"/>
-                        <Button x:Name="PART_CloseButton" HorizontalAlignment="Right">
+                        <TextBlock x:Name="PART_Text" MaxWidth="100"/>
+                        <Button x:Name="PART_CloseButton" HorizontalAlignment="Right" Margin="5,0,0,0">
                             <Image Width="10" Height="10" Source="/Resources/CloseTab.png"/>
                         </Button>
                     </StackPanel>

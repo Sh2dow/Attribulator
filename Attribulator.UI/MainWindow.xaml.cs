@@ -180,6 +180,14 @@ namespace AttribulatorUI
             {
                 try
                 {
+                    // If there are no backups, create one just in case
+                    Directory.CreateDirectory(this.backupsFolder);
+                    var backups = Directory.GetDirectories(this.backupsFolder);
+                    if (backups.Length == 0)
+                    {
+                        this.MenuItem_CreateBackup_Click(null, null);
+                    }
+
                     this.Backup("SaveBackup");
 
                     var profile = this.GetProfile();
