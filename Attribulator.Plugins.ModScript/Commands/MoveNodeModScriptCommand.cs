@@ -51,8 +51,9 @@ namespace Attribulator.Plugins.ModScript.Commands
             else
             {
                 // Handle new parent
+                if (collectionToMove.Parent == null)
+                    databaseHelper.Database.RowManager.RemoveCollection(collectionToMove);
                 newParentCollection.AddChild(collectionToMove);
-                databaseHelper.Database.RowManager.RemoveCollection(collectionToMove);
             }
         }
 
