@@ -7,7 +7,7 @@
         mc:Ignorable="d"
         WindowStartupLocation="CenterScreen"
         Style="{StaticResource CustomWindowStyle}"
-        Title="OGVI v1.0 by ARCHIE" Height="768" Width="1024" Closing="Window_Closing" Closed="Window_Closed" Loaded="Window_Loaded">
+        Title="OGVI v1.0 by ARCHIE" Height="768" Width="1024" MinHeight="480" MinWidth="640" Closing="Window_Closing" Closed="Window_Closed" Loaded="Window_Loaded">
 
     <Window.Resources>
         <ResourceDictionary>

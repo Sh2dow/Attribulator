@@ -38,6 +38,11 @@ namespace Attribulator.UI
         }
     }
 
+    public class WelcomeScreen : Control
+    {
+
+    }
+
     public class ClassTag
     {
         public VltClass Class { get; private set; }

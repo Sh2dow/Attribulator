@@ -92,6 +92,7 @@ namespace AttribulatorUI
                 this.ScriptEditor.Text = this.settings.Root.Srcipt;
 
                 this.PopulateGameMenuItems();
+                this.CreateWelcomeScreen();
 
                 this.CheckSelectedGame();
             }
@@ -377,7 +378,7 @@ namespace AttribulatorUI
             this.StatusLabel.Content = "No game exe selected";
 
             this.CloseGame();
-
+            this.CreateWelcomeScreen();
             this.CheckSelectedGame();
         }
 
@@ -947,7 +948,6 @@ namespace AttribulatorUI
             new RaiderWindow().ShowDialog();
         }
 
-
         public void RemoveTab(TabItem tabItem)
         {
             this.Tabs.Items.Remove(tabItem);
@@ -980,6 +980,20 @@ namespace AttribulatorUI
         private void MenuItem_Settings_Click(object sender, RoutedEventArgs e)
         {
             new SettingsWindows(this.settings).ShowDialog();
+        }
+
+        private void CreateWelcomeScreen()
+        {
+            if(this.settings.Root.ShowWelcomeTab)
+            {
+                this.Tabs.Items.Add(new TabItem
+                {
+                    Content = new WelcomeScreen(),
+                    Header = new TabHeader(null, "Welcome")
+                });
+
+                this.Tabs.SelectedIndex = 0;
+            }
         }
     }
 }

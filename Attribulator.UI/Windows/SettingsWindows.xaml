@@ -8,7 +8,7 @@
         ResizeMode="NoResize"
         WindowStartupLocation="CenterScreen"
         Style="{StaticResource CustomWindowStyle}"
-        Title="Settings" Height="160" Width="400">
+        Title="Settings" Height="200" Width="400">
 
     <Window.Resources>
         <ResourceDictionary>
@@ -20,8 +20,9 @@
     
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="40"/>
-            <RowDefinition Height="20"/>
+            <RowDefinition Height="30"/>
+            <RowDefinition Height="30"/>
+            <RowDefinition Height="30"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
@@ -35,6 +36,11 @@
         </StackPanel>
 
         <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal">
+            <TextBlock VerticalAlignment="Center">Show welcome screen</TextBlock>
+            <CheckBox x:Name="ShowWelcomeCB" VerticalAlignment="Center" Margin="5,0,0,0"/>
+        </StackPanel>
+
+        <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Bottom">
             <TextBlock VerticalAlignment="Center">Theme</TextBlock>
             <ComboBox x:Name="ThemeCB" Margin="5,0,0,0" Width="100">
                 <ComboBoxItem Content="Soft Dark"/>
@@ -46,7 +52,7 @@
             </ComboBox>
         </StackPanel>
 
-        <StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Bottom" HorizontalAlignment="Right">
+        <StackPanel Grid.Row="3" Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Bottom" HorizontalAlignment="Right">
             <Button x:Name="ApplyButton" Content="Apply" Margin="5" Width="{StaticResource ButtonWidth}" Height="{StaticResource ButtonHeight}" Click="ApplyButton_Click"/>
             <Button x:Name="CancelButton" Content="Cancel" Margin="5" Width="{StaticResource ButtonWidth}" Height="{StaticResource ButtonHeight}" Click="CancelButton_Click"/>
         </StackPanel>

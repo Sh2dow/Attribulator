@@ -14,13 +14,14 @@ namespace Attribulator.UI.Windows
             this.settings = settings;
 
             this.DoubleClickCB.IsChecked = settings.Root.OpenCollectionByDoubleClick;
-
+            this.ShowWelcomeCB.IsChecked = settings.Root.ShowWelcomeTab;
             this.ThemeCB.SelectedIndex = (int)settings.Root.Theme;
         }
 
         private void ApplyButton_Click(object sender, RoutedEventArgs e)
         {
             this.settings.Root.OpenCollectionByDoubleClick = this.DoubleClickCB.IsChecked.Value;
+            this.settings.Root.ShowWelcomeTab = this.ShowWelcomeCB.IsChecked.Value;
             this.settings.Root.Theme = (ThemeType)this.ThemeCB.SelectedIndex;
             ThemesController.SetTheme((ThemeType)this.ThemeCB.SelectedIndex);
             this.Close();

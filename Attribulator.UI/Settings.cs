@@ -38,6 +38,9 @@ namespace Attribulator.UI
         [XmlElement("openCollectionByDoubleClick")]
         public bool OpenCollectionByDoubleClick { get; set; }
 
+        [XmlElement("showWelcomeTab")]
+        public bool ShowWelcomeTab { get; set; }
+
         [XmlElement("script")]
         public string Srcipt { get; set; }
 

@@ -326,4 +326,24 @@
         </Setter>
     </Style>
 
+    <Style TargetType="{x:Type ui:WelcomeScreen}">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type ui:WelcomeScreen}">
+                    <Grid>
+                        <StackPanel VerticalAlignment="Center" Width="300px">
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                <TextBlock FontSize="30">Welcome to&#160;</TextBlock>
+                                <TextBlock FontWeight="Bold" FontSize="30">OGVI</TextBlock>
+                            </StackPanel>
+                            <TextBlock FontSize="20">How to start:</TextBlock>
+                            <TextBlock FontSize="15">1. Game -> select game profile</TextBlock>
+                            <TextBlock FontSize="15">2. File -> Open, select game executable</TextBlock>
+                        </StackPanel>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
 </ResourceDictionary>
