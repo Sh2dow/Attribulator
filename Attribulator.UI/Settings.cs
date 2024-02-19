@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FramePFX.Themes;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -34,8 +35,14 @@ namespace Attribulator.UI
         [XmlIgnore]
         public GameSettings SelectedGame => Games.FirstOrDefault(x => x.Selected);
 
+        [XmlElement("openCollectionByDoubleClick")]
+        public bool OpenCollectionByDoubleClick { get; set; }
+
         [XmlElement("script")]
         public string Srcipt { get; set; }
+
+        [XmlElement("theme")]
+        public ThemeType Theme { get; set; }
     }
 
     public class Settings
