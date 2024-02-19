@@ -7,7 +7,7 @@
         mc:Ignorable="d"
         WindowStartupLocation="CenterScreen"
         Style="{StaticResource CustomWindowStyle}"
-        Title="Attribulator UI v0.4 by ARCHIE" Height="768" Width="1024" Closing="Window_Closing" Closed="Window_Closed" Loaded="Window_Loaded">
+        Title="OGVI v1.0 by ARCHIE" Height="768" Width="1024" Closing="Window_Closing" Closed="Window_Closed" Loaded="Window_Loaded">
 
     <Window.Resources>
         <ResourceDictionary>
@@ -165,24 +165,7 @@
 
             <GridSplitter Grid.Column="1" HorizontalAlignment="Stretch" Grid.RowSpan="3" ResizeDirection="Columns"/>
 
-            <TabControl Grid.Row="0" Grid.Column="2" x:Name="Tabs">
-                <TabControl.Resources>
-                    <Style TargetType="{x:Type TabItem}">
-                        <Setter Property="HeaderTemplate">
-                            <Setter.Value>
-                                <DataTemplate>
-                                    <StackPanel Orientation="Horizontal" MouseDown="TabHeader_MouseDown" >
-                                        <TextBlock Text="{TemplateBinding Content}" MinWidth="100" MaxWidth="100"/>
-                                        <Button Margin="5 0 0 0" Click="CloseTabButton_Click">
-                                            <Image Width="10" Height="10" Source="/Resources/CloseTab.png"/>
-                                        </Button>
-                                    </StackPanel>
-                                </DataTemplate>
-                            </Setter.Value>
-                        </Setter>
-                    </Style>
-                </TabControl.Resources>
-            </TabControl>
+            <TabControl Grid.Row="0" Grid.Column="2" x:Name="Tabs"/>
 
             <GridSplitter Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" HorizontalAlignment="Stretch"/>
 

@@ -294,16 +294,16 @@ namespace AttribulatorUI
             }
         }
 
-        private void TreeView_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        private void OpenNewTab()
         {
             if (this.currentCollection != null)
             {
                 var collection = this.currentCollection.Collection;
 
-                if (!this.Tabs.Items.Cast<TabItem>().Any(x => x.Header as string == collection.ShortPath))
+                if (!this.Tabs.Items.Cast<TabItem>().Any(x => (x.Header as TabHeader).Text == collection.ShortPath))
                 {
                     var ti = new TabItem();
-                    ti.Header = collection.ShortPath;
+                    ti.Header = new TabHeader(ti, collection.ShortPath);
                     ti.Content = new MainGrid(collection);
                     this.Tabs.Items.Add(ti);
                     this.Tabs.SelectedIndex = this.Tabs.Items.Count - 1;
@@ -313,13 +313,21 @@ namespace AttribulatorUI
                     for (int i = 0; i < this.Tabs.Items.Count; i++)
                     {
                         var tabItem = this.Tabs.Items[i] as TabItem;
-                        if (tabItem.Header as string == collection.ShortPath)
+                        if ((tabItem.Header as TabHeader).Text == collection.ShortPath)
                         {
                             this.Tabs.SelectedIndex = i;
                             break;
                         }
                     }
                 }
+            }
+        }
+
+        private void TreeView_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            if (this.settings.Root.OpenCollectionByDoubleClick)
+            {
+                this.OpenNewTab();
             }
         }
 
@@ -810,7 +818,7 @@ namespace AttribulatorUI
 
             var menuItem = new MenuItem();
             menuItem.Header = "Open in new tab";
-            menuItem.Click += (s, e) => this.TreeView_MouseDoubleClick(null, null);
+            menuItem.Click += (s, e) => this.OpenNewTab();
             contextMenu.Items.Add(menuItem);
 
             menuItem = new MenuItem();
@@ -910,26 +918,10 @@ namespace AttribulatorUI
             new RaiderWindow().ShowDialog();
         }
 
-        private void CloseTabButton_Click(object sender, RoutedEventArgs e)
-        {
-            var button = sender as Button;
-            var stackPanel = button.Parent as StackPanel;
-            this.RemoveTab(stackPanel);
-        }
 
-        private void TabHeader_MouseDown(object sender, MouseButtonEventArgs e)
+        public void RemoveTab(TabItem tabItem)
         {
-            if (e.ChangedButton == MouseButton.Middle && e.ButtonState == MouseButtonState.Pressed)
-            {
-                this.RemoveTab(sender as StackPanel);
-            }
-        }
-
-        private void RemoveTab(StackPanel stackPanel)
-        {
-            var header = stackPanel.DataContext as string;
-            var toRemove = this.Tabs.Items.Cast<TabItem>().First(x => x.Header as string == header);
-            this.Tabs.Items.Remove(toRemove);
+            this.Tabs.Items.Remove(tabItem);
         }
 
         private MainGrid GetSelectedGrid()

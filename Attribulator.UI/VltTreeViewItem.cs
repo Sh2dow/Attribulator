@@ -1,9 +1,44 @@
-﻿using System.Windows;
+﻿using AttribulatorUI;
+using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using VaultLib.Core.Data;
 
 namespace Attribulator.UI
 {
+    public class TabHeader : Control
+    {
+        public string Text { get; private set; }
+
+        private TabItem parent;
+
+        public TabHeader(TabItem parent, string text)
+        {
+            this.Text = text;
+            this.parent = parent;
+
+        }
+
+        public override void OnApplyTemplate()
+        {
+            base.OnApplyTemplate();
+
+            var textBlock = this.GetTemplateChild("PART_Text") as TextBlock;
+            textBlock.Text = this.Text;
+
+            var closeButton = this.GetTemplateChild("PART_CloseButton") as Button;
+            closeButton.Click += (s, e) => MainWindow.Instance.RemoveTab(this.parent);
+
+            this.MouseDown += (s, e) =>
+            {
+                if (e.ChangedButton == MouseButton.Middle && e.ButtonState == MouseButtonState.Pressed)
+                {
+                    MainWindow.Instance.RemoveTab(this.parent);
+                }
+            };
+        }
+    }
+
     public class TreeHeader : Control
     {
         private string text;
