@@ -297,17 +297,15 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type local:EditFieldItem}">
-                    <Border BorderThickness="0 0 0 1" BorderBrush="Gray" Padding="0 2 0 2">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="20px"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="20px"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
 
-                            <CheckBox x:Name="PART_Checkbox" Grid.Column="0" HorizontalAlignment="Right"/>
-                            <TextBlock x:Name="PART_Name" Grid.Column="1" Margin="5,0,0,0"/>
-                        </Grid>
-                    </Border>
+                        <CheckBox x:Name="PART_Checkbox" Grid.Column="0" HorizontalAlignment="Right"/>
+                        <TextBlock x:Name="PART_Name" Grid.Column="1" Margin="5,0,0,0"/>
+                    </Grid>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>

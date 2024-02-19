@@ -24,9 +24,9 @@
         </Grid.RowDefinitions>
 
         <TextBlock Grid.Row="0" VerticalAlignment="Center" FontWeight="Bold" Foreground="Red" Margin="10 0 0 0">The mod has been installed hovewer the following errors occurred during instalation:</TextBlock>
-        <ScrollViewer Grid.Row="1" Padding="10" VerticalScrollBarVisibility="Auto">
-            <StackPanel x:Name="ErrorStack"/>
-        </ScrollViewer>
+
+        <ListBox x:Name="ErrorStack" Grid.Row="1"/>
+
         <Button x:Name="CloseButton" Grid.Row="2" Width="{StaticResource ButtonWidth}" Height="{StaticResource ButtonHeight}" 
                 Content="Close" HorizontalAlignment="Right" Margin="0,0,10,0" Click="CloseButton_Click"/>
     </Grid>

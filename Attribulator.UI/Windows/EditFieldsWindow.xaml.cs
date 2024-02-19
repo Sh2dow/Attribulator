@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
+using System.Windows.Controls;
 using VaultLib.Core.Data;
 
 namespace Attribulator.UI
@@ -22,14 +23,14 @@ namespace Attribulator.UI
             var data = this.collection.GetData().Select(x => x.Key).ToList();
             foreach (var field in collection.Class.OptionalFields.OrderBy(x => x.Name))
             {
-                this.FieldStack.Children.Add(new EditFieldItem(field.Name, data.Contains(field.Name)));
+                this.FieldStack.Items.Add(new ListBoxItem { Content = new EditFieldItem(field.Name, data.Contains(field.Name)) });
             }
         }
 
         private void Button_Ok_Click(object sender, RoutedEventArgs e)
         {
             var commands = new List<string>();
-            foreach (EditFieldItem field in this.FieldStack.Children)
+            foreach (EditFieldItem field in this.FieldStack.Items)
             {
                 if (field.IsChecked != this.collection.HasEntry(field.FieldName))
                 {
@@ -64,12 +65,13 @@ namespace Attribulator.UI
 
         private void FilterTextBox_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
         {
-            var fields = this.FieldStack.Children.Cast<EditFieldItem>();
+            var fields = this.FieldStack.Items.Cast<ListBoxItem>();
             var text = this.FilterTextBox.Text;
             foreach (var field in fields)
             {
                 field.Visibility = Visibility.Collapsed;
-                if (field.FieldName.Contains(text, StringComparison.InvariantCultureIgnoreCase))
+                var content = field.Content as EditFieldItem;
+                if (content.FieldName.Contains(text, StringComparison.InvariantCultureIgnoreCase))
                 {
                     field.Visibility = Visibility.Visible;
                 }

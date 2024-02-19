@@ -12,7 +12,7 @@ namespace Attribulator.UI.Windows
 
             foreach (string error in errors)
             {
-                this.ErrorStack.Children.Add(new TextBlock { Text = error});
+                this.ErrorStack.Items.Add(error);
             }
         }
 
