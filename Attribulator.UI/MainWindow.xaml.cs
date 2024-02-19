@@ -31,6 +31,7 @@ namespace AttribulatorUI
 
         private string gameExe;
         private string gameFolder;
+        private string backupsFolder;
 
         private IServiceProvider serviceProvider;
         private IModScriptService modScriptService;
@@ -152,7 +153,8 @@ namespace AttribulatorUI
         private void Open(string exePath)
         {
             this.gameExe = exePath;
-            this.gameFolder = System.IO.Path.GetDirectoryName(exePath);
+            this.gameFolder = Path.GetDirectoryName(exePath);
+            this.backupsFolder = Path.Combine(this.gameFolder, "GLOBAL", "AttribulatorBackups");
             this.StatusLabel.Content = this.gameFolder;
 
             try
@@ -439,26 +441,29 @@ namespace AttribulatorUI
             }
         }
 
+        private void MenuItem_RestoreBackupSpecific_Click(object sender, RoutedEventArgs e)
+        {
+            var restoreWnd = new RestoreBackupWindow(this.backupsFolder);
+            if (restoreWnd.ShowDialog().Value)
+            {
+                var backupName = restoreWnd.ResultName;
+                this.Restore(Path.Combine(this.backupsFolder, backupName));
+            }
+        }
+
         private void MenuItem_RestoreBackup_Click(object sender, RoutedEventArgs e)
         {
             if (!string.IsNullOrEmpty(this.gameFolder))
             {
-                var backupsDir = Path.Combine(this.gameFolder, "GLOBAL", "AttribulatorBackups");
-                if (Directory.Exists(backupsDir))
+                if (Directory.Exists(this.backupsFolder))
                 {
-                    var dirs = Directory.GetDirectories(backupsDir);
+                    var dirs = Directory.GetDirectories(this.backupsFolder);
                     if (dirs.Length > 0)
                     {
                         string backup = dirs.Where(x => !x.Contains("SaveBackup")).OrderByDescending(x => Path.GetFileName(x)).FirstOrDefault();
                         if (!string.IsNullOrEmpty(backup))
                         {
                             this.Restore(backup);
-                            this.StatusLabel.Content = $"Restored backup: {backup}";
-                            var result = MessageBox.Show("Backup successfully restored, do you want to reload database?", "Backup restored", MessageBoxButton.YesNo, MessageBoxImage.Question);
-                            if (result == MessageBoxResult.Yes)
-                            {
-                                this.Command_Reload(null, null);
-                            }
                             return;
                         }
                     }
@@ -477,6 +482,13 @@ namespace AttribulatorUI
                 {
                     var fileName = Path.GetFileName(file);
                     File.Copy(file, Path.Combine(this.gameFolder, "GLOBAL", fileName), true);
+                }
+
+                this.StatusLabel.Content = $"Restored backup: {folderName}";
+                var result = MessageBox.Show("Backup successfully restored, do you want to reload database?", "Backup restored", MessageBoxButton.YesNo, MessageBoxImage.Question);
+                if (result == MessageBoxResult.Yes)
+                {
+                    this.Command_Reload(null, null);
                 }
             }
             catch (Exception ex)

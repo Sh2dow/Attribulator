@@ -130,6 +130,12 @@
                         <Image Source="/Resources/Database.png"/>
                     </MenuItem.Icon>
                 </MenuItem>
+                <Separator/>
+                <MenuItem Header="Restore" Click="MenuItem_RestoreBackupSpecific_Click">
+                    <MenuItem.Icon>
+                        <Image Source="/Resources/Script.png"/>
+                    </MenuItem.Icon>
+                </MenuItem>
                 <MenuItem Header="Restore latest" Click="MenuItem_RestoreBackup_Click">
                     <MenuItem.Icon>
                         <Image Source="/Resources/Recent.png"/>
