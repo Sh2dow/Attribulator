@@ -8,6 +8,7 @@
         ResizeMode="NoResize"
         WindowStartupLocation="CenterScreen"
         Style="{StaticResource CustomWindowStyle}"
+        Icon="/Resources/Script.png"
         Title="Restore backup" Height="448" Width="428">
     
     <Window.Resources>

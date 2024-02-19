@@ -20,7 +20,11 @@
     <None Remove="Resources\Cut.png" />
     <None Remove="Resources\Database.png" />
     <None Remove="Resources\Delete.png" />
+    <None Remove="Resources\Exit.png" />
     <None Remove="Resources\Export.png" />
+    <None Remove="Resources\Filter.png" />
+    <None Remove="Resources\Find.png" />
+    <None Remove="Resources\FindNext.png" />
     <None Remove="Resources\Import.png" />
     <None Remove="Resources\Open.png" />
     <None Remove="Resources\OpenFolder.png" />
@@ -36,7 +40,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="Resources\icon.ico" />
+    <Resource Include="Resources\icon.ico" />
   </ItemGroup>
 
   <ItemGroup>
@@ -62,7 +66,11 @@
     <Resource Include="Resources\Cut.png" />
     <Resource Include="Resources\Database.png" />
     <Resource Include="Resources\Delete.png" />
+    <Resource Include="Resources\Exit.png" />
     <Resource Include="Resources\Export.png" />
+    <Resource Include="Resources\Filter.png" />
+    <Resource Include="Resources\Find.png" />
+    <Resource Include="Resources\FindNext.png" />
     <Resource Include="Resources\Import.png" />
     <Resource Include="Resources\OpenFolder.png" />
     <Resource Include="Resources\Paste.png" />

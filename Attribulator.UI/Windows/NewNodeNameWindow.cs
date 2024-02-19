@@ -1,4 +1,5 @@
 ﻿using AttribulatorUI;
+using System.Windows.Media;
 
 namespace Attribulator.UI.Windows
 {
@@ -6,7 +7,7 @@ namespace Attribulator.UI.Windows
     {
         public string ResultName { get;private set; }
 
-        public NewNodeNameWindow(string title, string parent) : base()
+        public NewNodeNameWindow(string title, string parent, ImageSource icon) : base(icon)
         {
             this.HeaderLabel.Content = "New node name:";
             this.Title = $"[{title}] New node name";

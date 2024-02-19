@@ -17,7 +17,9 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Xml.Linq;
 using VaultLib.Core.Data;
 using VaultLib.Core.DB;
 using VaultLib.Core.Hashing;
@@ -656,10 +658,15 @@ namespace AttribulatorUI
             this.ScriptScroll.ScrollToBottom();
         }
 
-        private Image CreateImageSource(string name)
+        private ImageSource CreateImageSource(string name)
+        {
+            return new BitmapImage(new Uri($"pack://application:,,,/Resources/{name}"));
+        }
+
+        private Image CreateImage(string name)
         {
             var img = new Image();
-            img.Source = new BitmapImage(new Uri($"pack://application:,,,/Resources/{name}"));
+            img.Source = this.CreateImageSource(name);
             return img;
         }
 
@@ -668,7 +675,7 @@ namespace AttribulatorUI
             if (this.currentClass != null)
             {
                 var className = this.currentClass.Class().Name;
-                var newNodeWindow = new NewNodeNameWindow(className, className);
+                var newNodeWindow = new NewNodeNameWindow(className, className, this.CreateImageSource("Add.png"));
                 if (newNodeWindow.ShowDialog().Value)
                 {
                     string newName = newNodeWindow.ResultName;
@@ -687,7 +694,7 @@ namespace AttribulatorUI
             {
                 var collection = this.currentCollection.Collection();
                 var className = collection.Class.Name;
-                var newNodeWindow = new NewNodeNameWindow(collection.Name, $"{className} {collection.Name}");
+                var newNodeWindow = new NewNodeNameWindow(collection.Name, $"{className} {collection.Name}", this.CreateImageSource("Add.png"));
                 if (newNodeWindow.ShowDialog().Value)
                 {
                     string newName = newNodeWindow.ResultName;
@@ -703,11 +710,16 @@ namespace AttribulatorUI
             }
         }
 
+        private void Command_Find(object sender, ExecutedRoutedEventArgs e)
+        {
+
+        }
+
         private void Command_ChangeVault(object sender, ExecutedRoutedEventArgs e)
         {
             if (this.currentCollection != null && this.currentCollection.Collection().Class.Name == "gameplay")
             {
-                if (new ChangeVaultWindow(this.currentCollection.Collection()).ShowDialog().Value)
+                if (new ChangeVaultWindow(this.currentCollection.Collection(), this.CreateImageSource("Settings.png")).ShowDialog().Value)
                 {
                     this.GetSelectedGrid()?.Draw();
                     this.StatusLabel.Content = "Changed vault";
@@ -754,7 +766,7 @@ namespace AttribulatorUI
             if (this.currentCollection != null)
             {
                 var collection = this.currentCollection.Collection();
-                if (new CollectionRenameWindow(collection).ShowDialog().Value)
+                if (new CollectionRenameWindow(collection, this.CreateImageSource("Rename.png")).ShowDialog().Value)
                 {
                     this.currentCollection.Header = collection.Name;
                     this.StatusLabel.Content = "Renamed node";
@@ -826,7 +838,7 @@ namespace AttribulatorUI
 
             var menuItem = new MenuItem();
             menuItem.Header = "Add";
-            menuItem.Icon = this.CreateImageSource("Add.png");
+            menuItem.Icon = this.CreateImage("Add.png");
             menuItem.Click += (s, e) => this.Command_TreeAdd(null, null);
             menuItem.InputGestureText = "Ctrl+A";
             contextMenu.Items.Add(menuItem);
@@ -837,7 +849,7 @@ namespace AttribulatorUI
 
                 menuItem = new MenuItem();
                 menuItem.Header = $"Paste ({this.collectionToCopy.Header})";
-                menuItem.Icon = this.CreateImageSource("Paste.png");
+                menuItem.Icon = this.CreateImage("Paste.png");
                 menuItem.Click += (s, e) => this.Command_TreePaste(null, null);
                 menuItem.InputGestureText = "Ctrl+V";
                 contextMenu.Items.Add(menuItem);
@@ -856,14 +868,14 @@ namespace AttribulatorUI
 
             menuItem = new MenuItem();
             menuItem.Header = "Add";
-            menuItem.Icon = this.CreateImageSource("Add.png");
+            menuItem.Icon = this.CreateImage("Add.png");
             menuItem.Click += (s, e) => this.Command_TreeAdd(null, null);
             menuItem.InputGestureText = "Ctrl+A";
             contextMenu.Items.Add(menuItem);
 
             menuItem = new MenuItem();
             menuItem.Header = "Delete";
-            menuItem.Icon = this.CreateImageSource("Delete.png");
+            menuItem.Icon = this.CreateImage("Delete.png");
             menuItem.Click += (s, e) => this.Command_TreeDelete(null, null);
             menuItem.InputGestureText = "Ctrl+D";
             contextMenu.Items.Add(menuItem);
@@ -872,14 +884,14 @@ namespace AttribulatorUI
 
             menuItem = new MenuItem();
             menuItem.Header = "Copy";
-            menuItem.Icon = this.CreateImageSource("Copy.png");
+            menuItem.Icon = this.CreateImage("Copy.png");
             menuItem.Click += (s, e) => this.Command_TreeCopy(null, null);
             menuItem.InputGestureText = "Ctrl+C";
             contextMenu.Items.Add(menuItem);
 
             menuItem = new MenuItem();
             menuItem.Header = "Cut";
-            menuItem.Icon = this.CreateImageSource("Cut.png");
+            menuItem.Icon = this.CreateImage("Cut.png");
             menuItem.Click += (s, e) => this.Command_TreeCut(null, null);
             menuItem.InputGestureText = "Ctrl+X";
             contextMenu.Items.Add(menuItem);
@@ -888,7 +900,7 @@ namespace AttribulatorUI
             {
                 menuItem = new MenuItem();
                 menuItem.Header = $"Paste ({this.collectionToCopy.Header})";
-                menuItem.Icon = this.CreateImageSource("Paste.png");
+                menuItem.Icon = this.CreateImage("Paste.png");
                 menuItem.Click += (s, e) => this.Command_TreePaste(null, null);
                 menuItem.InputGestureText = "Ctrl+V";
                 contextMenu.Items.Add(menuItem);
@@ -898,14 +910,14 @@ namespace AttribulatorUI
 
             menuItem = new MenuItem();
             menuItem.Header = "Edit fields";
-            menuItem.Icon = this.CreateImageSource("Properties.png");
+            menuItem.Icon = this.CreateImage("Properties.png");
             menuItem.Click += (s, e) => this.Command_TreeEdit(null, null);
             menuItem.InputGestureText = "Ctrl+Z";
             contextMenu.Items.Add(menuItem);
 
             menuItem = new MenuItem();
             menuItem.Header = "Rename";
-            menuItem.Icon = this.CreateImageSource("Rename.png");
+            menuItem.Icon = this.CreateImage("Rename.png");
             menuItem.Click += (s, e) => this.Command_TreeRename(null, null);
             menuItem.InputGestureText = "Ctrl+R";
             contextMenu.Items.Add(menuItem);
@@ -916,7 +928,7 @@ namespace AttribulatorUI
 
                 menuItem = new MenuItem();
                 menuItem.Header = "Change vault";
-                menuItem.Icon = this.CreateImageSource("Settings.png");
+                menuItem.Icon = this.CreateImage("Settings.png");
                 menuItem.Click += (s, e) => this.Command_ChangeVault(null, null);
                 menuItem.InputGestureText = "Ctrl+W";
                 contextMenu.Items.Add(menuItem);

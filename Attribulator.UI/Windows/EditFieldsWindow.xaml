@@ -7,6 +7,7 @@
         mc:Ignorable="d"
         ResizeMode="NoResize"
         Style="{StaticResource CustomWindowStyle}"
+        Icon="/Resources/Properties.png"
         Title="Edit collection fields: " Height="393" Width="355" WindowStartupLocation="CenterScreen">
 
     <Window.Resources>
@@ -18,9 +19,10 @@
     </Window.Resources>
 
     <Grid>
-        <TextBox x:Name="FilterTextBox" Width="320" Margin="10,5,0,0" Height="20" VerticalAlignment="Top" HorizontalAlignment="Left" 
-                 TextChanged="FilterTextBox_TextChanged"/>
-        
+        <TextBox x:Name="FilterTextBox" Width="333" Margin="10,5,0,0" Height="20" VerticalAlignment="Top" HorizontalAlignment="Left" 
+                 TextChanged="FilterTextBox_TextChanged" Padding="0,0,20,0"/>
+        <Image Width="16" Height="16" Source="/Resources/Filter.png" VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,7,13,0"/>
+
         <ListBox x:Name="FieldStack" Margin="10,30,10,56" Padding="0 5 0 5"/>
 
         <Button Content="Cancel" HorizontalAlignment="Right" Margin="0,0,10,10" VerticalAlignment="Bottom" Width="{StaticResource ButtonWidth}" Height="{StaticResource ButtonHeight}" Click="Button_Cancel_Click"/>

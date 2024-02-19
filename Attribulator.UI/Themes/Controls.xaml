@@ -4470,7 +4470,7 @@
                                     </Button>
                                 </StackPanel>
                                 <DockPanel Margin="0,0,5,0" HorizontalAlignment="Stretch">
-                                    <Image HorizontalAlignment="Left" VerticalAlignment="Top" Margin="4,4,0,0" Source="{Binding Icon, RelativeSource={RelativeSource TemplatedParent}}" Height="24"/>
+                                    <Image HorizontalAlignment="Left" VerticalAlignment="Top" Margin="4,4,0,0" Source="{Binding Icon, RelativeSource={RelativeSource TemplatedParent}}" Height="20"/>
                                     <TextBlock FontSize="13" Margin="5,3,0,3" VerticalAlignment="Center" HorizontalAlignment="Stretch" TextWrapping="NoWrap" Width="Auto" Foreground="{TemplateBinding Foreground}" Text="{Binding Title, RelativeSource={RelativeSource TemplatedParent}}" TextAlignment="Left"/>
                                 </DockPanel>
                             </DockPanel>

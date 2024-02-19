@@ -1,13 +1,14 @@
 ﻿using AttribulatorUI;
 using System;
 using System.Windows;
+using System.Windows.Media;
 using VaultLib.Core.Data;
 
 namespace Attribulator.UI.Windows
 {
     public class ChangeVaultWindow : BaseInputWindow
     {
-        public ChangeVaultWindow(VltCollection collection) : base()
+        public ChangeVaultWindow(VltCollection collection, ImageSource icon) : base(icon)
         {
             this.Title = $"[{collection.Name}] Change vault";
 
