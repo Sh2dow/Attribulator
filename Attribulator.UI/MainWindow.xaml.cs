@@ -7,8 +7,8 @@ using Attribulator.ModScript.API;
 using Attribulator.UI;
 using Attribulator.UI.PropertyGrid;
 using Attribulator.UI.Windows;
+using FramePFX.Themes;
 using Microsoft.Extensions.DependencyInjection;
-using Newtonsoft.Json.Bson;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -52,6 +52,15 @@ namespace AttribulatorUI
         private ContextMenu collectionContextMenu = null;
         private bool cutNode = false;
 
+        public MainWindow()
+        {
+            InitializeComponent();
+
+            this.settings = new Settings();
+
+            ThemesController.SetTheme(settings.Root.Theme);
+        }
+
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             try
@@ -79,7 +88,6 @@ namespace AttribulatorUI
 
                 this.modScriptService = this.serviceProvider.GetRequiredService<IModScriptService>();
 
-                this.settings = new Settings();
                 this.ScriptEditor.Text = this.settings.Root.Srcipt;
 
                 this.PopulateGameMenuItems();
@@ -923,6 +931,11 @@ namespace AttribulatorUI
             }
 
             return null;
+        }
+
+        private void MenuItem_Settings_Click(object sender, RoutedEventArgs e)
+        {
+            new SettingsWindows(this.settings).ShowDialog();
         }
     }
 }

@@ -6,6 +6,7 @@
         xmlns:local="clr-namespace:Attribulator.UI"
         mc:Ignorable="d"
         ResizeMode="NoResize"
+        Style="{StaticResource CustomWindowStyle}"
         Title="Hash raider" Height="155" Width="380" WindowStartupLocation="CenterScreen">
     <Grid>
         <Grid.RowDefinitions>
