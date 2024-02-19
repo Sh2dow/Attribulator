@@ -313,20 +313,6 @@
         </Setter>
     </Style>
 
-    <Style TargetType="{x:Type ui:TreeHeader}">
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate TargetType="{x:Type ui:TreeHeader}">
-                    <StackPanel Orientation="Horizontal">
-                        <Image Width="14" Height="14" x:Name="PART_ImageClosed" Source="/Resources/CloseFolder.png"/>
-                        <Image Width="14" Height="14" x:Name="PART_ImageOpened" Source="/Resources/OpenFolder.png" Visibility="Collapsed"/>
-                        <TextBlock Margin="5,0,0,0" x:Name="PART_TextBlock"/>
-                    </StackPanel>
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
-    </Style>
-
     <Style TargetType="{x:Type ui:TabHeader}">
         <Setter Property="Template">
             <Setter.Value>
