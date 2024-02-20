@@ -1,4 +1,5 @@
-﻿using FramePFX.Themes;
+﻿using AttribulatorUI;
+using FramePFX.Themes;
 using System.Windows;
 
 namespace Attribulator.UI.Windows
@@ -24,6 +25,7 @@ namespace Attribulator.UI.Windows
             this.settings.Root.ShowWelcomeTab = this.ShowWelcomeCB.IsChecked.Value;
             this.settings.Root.Theme = (ThemeType)this.ThemeCB.SelectedIndex;
             ThemesController.SetTheme((ThemeType)this.ThemeCB.SelectedIndex);
+            MainWindow.Instance.ClearSearch();
             this.Close();
         }
 

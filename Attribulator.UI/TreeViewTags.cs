@@ -17,7 +17,10 @@ namespace Attribulator.UI
             set
             {
                 this.executed = value;
-                this.PropertyChanged(this, new PropertyChangedEventArgs(nameof(Executed)));
+                if (this.PropertyChanged != null)
+                {
+                    this.PropertyChanged(this, new PropertyChangedEventArgs(nameof(Executed)));
+                }
             }
         }
 

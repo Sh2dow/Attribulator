@@ -1,6 +1,9 @@
 ﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    
+
+    <Color x:Key="AColour.Search.Highlight"                    R="203" G="107" B="30" A="255"/>
+    <Color x:Key="AColour.Search.Parent.Highlight"             R="158" G="122" B="93" A="255"/>
+
     <Color x:Key="AColour.Foreground.Static"                   R="15"  G="15"  B="15"  A="255"/>
     <Color x:Key="AColour.Foreground.Deeper"                   R="35"  G="35"  B="35"  A="255"/>
     <Color x:Key="AColour.Foreground.Disabled"                 R="65"  G="65"  B="65"  A="255"/>
@@ -93,6 +96,9 @@
     <!-- Primary.5 would be regular controls, aka control that are obvious and normal (they stick out)-->
     <!-- Primary.6 is like Primary.5 but it's more obvious, it sticks out a bit more -->
     <!-- Primary.7 is like Primary.6 but it's very obvious, it sticks out more (useful for popups maybe, possibly with shadows as well) -->
+    
+    <SolidColorBrush x:Key="ABrush.Search.Highlight"                       Color="{StaticResource AColour.Search.Highlight}"/>
+    <SolidColorBrush x:Key="ABrush.Search.Parent.Highlight"                Color="{StaticResource AColour.Search.Parent.Highlight}"/>
 
     <SolidColorBrush x:Key="ABrush.AccentTone1.Background.Static"          Color="{StaticResource AColour.AccentTone1.Background.Static}"/>
     <SolidColorBrush x:Key="ABrush.AccentTone1.Border.Static"              Color="{StaticResource AColour.AccentTone1.Border.Static}"/>

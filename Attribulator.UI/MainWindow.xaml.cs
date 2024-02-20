@@ -712,6 +712,9 @@ namespace AttribulatorUI
             }
         }
 
+        private SolidColorBrush SearchHighlight => (SolidColorBrush)FindResource("ABrush.Search.Highlight");
+        private SolidColorBrush SearchParentHighlight => (SolidColorBrush)FindResource("ABrush.Search.Parent.Highlight");
+
         private void HighlightParent(TreeViewItem item)
         {
             if (item != null)
@@ -721,7 +724,7 @@ namespace AttribulatorUI
                 var solidBrush = item.Background as SolidColorBrush;
                 if (solidBrush.Color.A == 0)
                 {
-                    item.Background = Brushes.DarkOliveGreen;
+                    item.Background = SearchParentHighlight;
                 }
             }
         }
@@ -782,13 +785,13 @@ namespace AttribulatorUI
                 }
             }
 
-            item.Background = Brushes.DarkGreen;
+            item.Background = this.SearchHighlight;
             this.HighlightParent(item);
         }
 
         public void Find()
         {
-            this.MenuItem_SearchClear_Click(null, null);
+            this.ClearSearch();
 
             var search = this.settings.Root.Search;
             if (search.NodeEnabled || search.FieldEnabled || search.ValueEnabled)
@@ -824,7 +827,7 @@ namespace AttribulatorUI
                     }
 
                     var solidBrush = selectedItem.Background as SolidColorBrush;
-                    if (solidBrush.Color.G == Brushes.DarkGreen.Color.G)
+                    if (solidBrush.Color == this.SearchHighlight.Color)
                     {
                         selectedItem.IsSelected = true;
                         selectedItem.BringIntoView();
@@ -856,7 +859,7 @@ namespace AttribulatorUI
             item.Background = Brushes.Transparent;
         }
 
-        private void MenuItem_SearchClear_Click(object sender, RoutedEventArgs e)
+        public void ClearSearch()
         {
             if (this.Search.Executed)
             {
@@ -864,9 +867,14 @@ namespace AttribulatorUI
                 {
                     this.ClearSearch(item);
                 }
-            }
 
-            this.Search.Executed = false;
+                this.Search.Executed = false;
+            }
+        }
+
+        private void MenuItem_SearchClear_Click(object sender, RoutedEventArgs e)
+        {
+            this.ClearSearch();
         }
 
         private void Command_ChangeVault(object sender, ExecutedRoutedEventArgs e)
