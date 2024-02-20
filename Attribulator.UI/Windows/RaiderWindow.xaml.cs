@@ -5,9 +5,6 @@ using VaultLib.Core.Hashing;
 
 namespace Attribulator.UI
 {
-    /// <summary>
-    /// Interaction logic for RaiderWindow.xaml
-    /// </summary>
     public partial class RaiderWindow : Window
     {
         public RaiderWindow()

@@ -168,7 +168,10 @@
                     </MenuItem.Icon>
                 </MenuItem>
             </MenuItem>
-            <MenuItem Header="Raider" Click="MenuItem_Raider_Click" />
+            <MenuItem Header="Tools">
+                <MenuItem Header="Hasher" Click="MenuItem_Hasher_Click" />
+                <MenuItem Header="Raider" Click="MenuItem_Raider_Click" />
+            </MenuItem>            
             <MenuItem Header="Settings" Click="MenuItem_Settings_Click" />
             <MenuItem Header="About" Click="MenuItem_About_Click" />
         </Menu>

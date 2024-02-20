@@ -1117,9 +1117,18 @@ namespace AttribulatorUI
             }
         }
 
+        private void MenuItem_Hasher_Click(object sender, RoutedEventArgs e)
+        {
+            var raider = new HasherWindow();
+            raider.Owner = this;
+            raider.Show();
+        }
+
         private void MenuItem_Raider_Click(object sender, RoutedEventArgs e)
         {
-            new RaiderWindow().ShowDialog();
+            var raider = new RaiderWindow();
+            raider.Owner = this;
+            raider.Show();
         }
 
         public void RemoveTab(TabItem tabItem)
@@ -1182,7 +1191,7 @@ namespace AttribulatorUI
 
         private void MenuItem_Collapse_Click(object sender, RoutedEventArgs e)
         {
-            foreach(TreeViewItem item in this.TreeView.Items)
+            foreach (TreeViewItem item in this.TreeView.Items)
             {
                 this.Collapse(item);
             }

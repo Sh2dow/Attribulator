@@ -21,7 +21,7 @@
 
     <Grid>
         <Label x:Name="HeaderLabel" Content="Label" HorizontalAlignment="Left" Margin="15,18,0,0" VerticalAlignment="Top"/>
-        <TextBox x:Name="InputTextBox" HorizontalAlignment="Left" Margin="19,49,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="305"/>
+        <TextBox x:Name="InputTextBox" HorizontalAlignment="Left" Margin="19,49,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="320"/>
 
         <Button x:Name="CancelButton" Content="Cancel" Margin="10" HorizontalAlignment="Right" VerticalAlignment="Bottom" Width="{StaticResource ButtonWidth}" Height="{StaticResource ButtonHeight}" Click="CancelButton_Click"/>
         <Button x:Name="OkButton" Content="OK" Margin="0,0,105,10" HorizontalAlignment="Right" VerticalAlignment="Bottom" Width="{StaticResource ButtonWidth}" Height="{StaticResource ButtonHeight}"/>
