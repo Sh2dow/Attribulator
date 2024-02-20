@@ -80,6 +80,7 @@
                         <Image Source="/Resources/OpenFolder.png"/>
                     </MenuItem.Icon>
                 </MenuItem>
+                <MenuItem Header="Open folder" Click="MenuItem_OpenFolder_Click"/>
                 <MenuItem Header="Reload" Command="{StaticResource Reload}" InputGestureText="Ctrl+Alt+R" >
                     <MenuItem.Icon>
                         <Image Source="/Resources/Refresh.png"/>

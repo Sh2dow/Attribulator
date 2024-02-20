@@ -32,6 +32,7 @@ namespace AttribulatorUI
 
         private string gameExe;
         private string gameFolder;
+        private string gameGlobalFolder;
         private string backupsFolder;
 
         private IServiceProvider serviceProvider;
@@ -55,6 +56,8 @@ namespace AttribulatorUI
         private ContextMenu classContextMenu = null;
         private ContextMenu collectionContextMenu = null;
         private bool cutNode = false;
+
+        private bool folderMode = false;
 
         public MainWindow()
         {
@@ -156,23 +159,57 @@ namespace AttribulatorUI
             }
         }
 
+        private void MenuItem_OpenFolder_Click(object sender, RoutedEventArgs e)
+        {
+            if (this.gameMenuItems.Any(x => x.IsChecked))
+            {
+                using (var dialog = new Forms.FolderBrowserDialog())
+                {
+                    var result = dialog.ShowDialog();
+                    if (result == Forms.DialogResult.OK)
+                    {
+                        this.gameFolder = dialog.SelectedPath;
+                        this.gameGlobalFolder = dialog.SelectedPath;
+                        this.OpenFolder();
+                        this.folderMode = true;
+                        this.gameExe = null;
+                        this.backupsFolder = Path.Combine(this.gameFolder, "AttribulatorBackups");
+                    }
+                }
+            }
+            else
+            {
+                MessageBox.Show("Please select game profile first", "No game profile selected", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+        }
+
         private void Open(string exePath)
         {
             this.gameExe = exePath;
             this.gameFolder = Path.GetDirectoryName(exePath);
+            this.gameGlobalFolder = Path.Combine(this.gameFolder, "GLOBAL");
             this.backupsFolder = Path.Combine(this.gameFolder, "GLOBAL", "AttribulatorBackups");
+            this.OpenFolder();
+            this.folderMode = false;
+        }
+
+        private void OpenFolder()
+        {
             this.StatusLabel.Content = this.gameFolder;
 
             try
             {
                 var profile = this.GetProfile();
                 this.database = new Database(new DatabaseOptions(profile.GetGameId(), profile.GetDatabaseType()));
-                this.files = profile.LoadFiles(database, this.gameFolder + "\\GLOBAL");
+                this.files = profile.LoadFiles(database, this.gameGlobalFolder);
                 this.database.CompleteLoad();
                 this.modScriptDatabase = new DatabaseHelper(this.database);
 
                 this.PopulateTreeView();
-                this.settings.Root.SelectedGame.ExePath = this.gameExe;
+                if (!this.folderMode)
+                {
+                    this.settings.Root.SelectedGame.ExePath = this.gameExe;
+                }
             }
             catch (Exception ex)
             {
@@ -199,17 +236,17 @@ namespace AttribulatorUI
                     var profile = this.GetProfile();
                     foreach (var file in this.files)
                     {
-                        file.Group = "GLOBAL";
+                        file.Group = "";
                     }
 
-                    profile.SaveFiles(this.database, this.gameFolder, this.files);
+                    profile.SaveFiles(this.database, this.gameGlobalFolder, this.files);
                     this.StatusLabel.Content = "Saved";
                     MainWindow.UnsavedChanges = false;
                 }
                 catch (Exception ex)
                 {
                     MessageBox.Show(ex.Message, "Error saving file", MessageBoxButton.OK, MessageBoxImage.Warning);
-                    this.Restore(Path.Combine(this.gameFolder, "GLOBAL", "AttribulatorBackups", "SaveBackup"));
+                    this.Restore(Path.Combine(this.gameGlobalFolder, "AttribulatorBackups", "SaveBackup"));
                 }
             }
         }
@@ -391,6 +428,7 @@ namespace AttribulatorUI
         {
             this.gameExe = null;
             this.gameFolder = null;
+            this.gameGlobalFolder = null;
             this.database = null;
             this.modScriptDatabase = null;
             this.files = null;
@@ -405,16 +443,20 @@ namespace AttribulatorUI
 
         private void Command_RunGame(object sender, ExecutedRoutedEventArgs e)
         {
-            try
+            if (this.folderMode)
             {
-                if (!string.IsNullOrEmpty(this.gameExe))
+                MessageBox.Show("No game exe selected", "Unable to run the game", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            else if (!string.IsNullOrEmpty(this.gameExe))
+            {
+                try
                 {
                     Process.Start(new ProcessStartInfo(this.gameExe) { WorkingDirectory = this.gameFolder });
                 }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message, "Failed to run the game", MessageBoxButton.OK, MessageBoxImage.Error);
+                catch (Exception ex)
+                {
+                    MessageBox.Show(ex.Message, "Failed to run the game", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
             }
         }
 
@@ -432,13 +474,18 @@ namespace AttribulatorUI
 
         private void Command_Reload(object sender, ExecutedRoutedEventArgs e)
         {
-            if (!string.IsNullOrEmpty(this.gameExe))
+            if (this.folderMode)
+            {
+                this.CloseGame();
+                this.OpenFolder();
+            }
+            else
             {
                 var gameExe = this.gameExe;
                 this.CloseGame();
                 this.Open(gameExe);
-                this.StatusLabel.Content = "Reloaded";
             }
+            this.StatusLabel.Content = "Reloaded";
         }
 
         private void MenuItem_CreateBackup_Click(object sender, RoutedEventArgs e)
@@ -455,7 +502,7 @@ namespace AttribulatorUI
         {
             try
             {
-                var targetPath = Path.Combine(this.gameFolder, "GLOBAL", "AttribulatorBackups", folderName);
+                var targetPath = Path.Combine(this.backupsFolder, folderName);
                 Directory.CreateDirectory(targetPath);
 
                 foreach (var file in this.files)
@@ -463,7 +510,7 @@ namespace AttribulatorUI
                     var extensions = new[] { ".bin", ".lzc" };
                     foreach (var extension in extensions)
                     {
-                        var original = Path.Combine(this.gameFolder, "GLOBAL", file.Name + extension);
+                        var original = Path.Combine(this.gameGlobalFolder, file.Name + extension);
                         if (File.Exists(original))
                         {
                             File.Copy(original, Path.Combine(targetPath, file.Name + extension), true);
@@ -517,7 +564,7 @@ namespace AttribulatorUI
                 foreach (var file in files)
                 {
                     var fileName = Path.GetFileName(file);
-                    File.Copy(file, Path.Combine(this.gameFolder, "GLOBAL", fileName), true);
+                    File.Copy(file, Path.Combine(this.gameGlobalFolder, fileName), true);
                 }
 
                 this.StatusLabel.Content = $"Restored backup: {folderName}";
@@ -800,22 +847,25 @@ namespace AttribulatorUI
 
         public void Find()
         {
-            this.ClearSearch();
-
-            var search = this.settings.Root.Search;
-            if (search.NodeEnabled || search.FieldEnabled || search.ValueEnabled)
+            if (this.TreeView.Items.Count != 0)
             {
-                foreach (TreeViewItem item in this.TreeView.Items)
+                this.ClearSearch();
+
+                var search = this.settings.Root.Search;
+                if (search.NodeEnabled || search.FieldEnabled || search.ValueEnabled)
                 {
-                    foreach (TreeViewItem subItem in item.Items)
+                    foreach (TreeViewItem item in this.TreeView.Items)
                     {
-                        this.Find(subItem);
+                        foreach (TreeViewItem subItem in item.Items)
+                        {
+                            this.Find(subItem);
+                        }
                     }
                 }
-            }
 
-            this.Search.Executed = true;
-            this.RedrawTabs();
+                this.Search.Executed = true;
+                this.RedrawTabs();
+            }
         }
 
         public void FindNext()
