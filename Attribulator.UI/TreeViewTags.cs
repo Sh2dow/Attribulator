@@ -1,6 +1,5 @@
 ﻿using AttribulatorUI;
 using System.ComponentModel;
-using System.Runtime.CompilerServices;
 using System.Windows.Controls;
 using System.Windows.Input;
 using VaultLib.Core.Data;
@@ -23,6 +22,8 @@ namespace Attribulator.UI
                 }
             }
         }
+
+        public SearchSettings Settings { get; set; }
 
         public event PropertyChangedEventHandler PropertyChanged;
     }

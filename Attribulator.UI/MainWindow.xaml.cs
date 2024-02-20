@@ -62,6 +62,7 @@ namespace AttribulatorUI
 
             this.settings = new Settings();
             this.Search = new SearchResult();
+            this.Search.Settings = this.settings.Root.Search;
 
             ThemesController.SetTheme(settings.Root.Theme);
         }
@@ -789,6 +790,14 @@ namespace AttribulatorUI
             this.HighlightParent(item);
         }
 
+        private void RedrawTabs()
+        {
+            foreach (TabItem item in this.Tabs.Items)
+            {
+                (item.Content as MainGrid).Draw();
+            }
+        }
+
         public void Find()
         {
             this.ClearSearch();
@@ -806,6 +815,7 @@ namespace AttribulatorUI
             }
 
             this.Search.Executed = true;
+            this.RedrawTabs();
         }
 
         public void FindNext()
@@ -869,6 +879,7 @@ namespace AttribulatorUI
                 }
 
                 this.Search.Executed = false;
+                this.RedrawTabs();
             }
         }
 

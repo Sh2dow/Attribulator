@@ -46,7 +46,12 @@
                         <Border Grid.Column="2" x:Name="EditGridRightPanel" Margin="0,0,20,0"/>
 
                         <ScrollViewer Grid.ColumnSpan="3">
-                            <StackPanel x:Name="PART_StackPanel"/>
+                            <StackPanel>
+                                <TextBlock x:Name="PART_SearchHeader" Text="Search results" Padding="21,0,0,0" FontWeight="Bold" Visibility="Collapsed" Background="{DynamicResource ABrush.Search.Highlight}"/>
+                                <StackPanel x:Name="PART_SearchResults" Visibility="Collapsed" Margin="0,0,0,20">
+                                </StackPanel>
+                                <StackPanel x:Name="PART_StackPanel"/>
+                            </StackPanel>
                         </ScrollViewer>
 
                         <GridSplitter Grid.Column="1" HorizontalAlignment="Stretch" ResizeDirection="Columns"/>
@@ -327,7 +332,7 @@
                                 </Grid.ColumnDefinitions>
 
                                 <TextBlock Grid.Column="0" x:Name="PART_DataLength" Margin="10,0,0,0"/>
-                                
+
                                 <Button Grid.Column="1" x:Name="PART_ExportButton" HorizontalAlignment="Right" Width="17" ToolTip="Export byte code">
                                     <Image Width="10" Height="10" Source="/Resources/Export.png"/>
                                 </Button>
