@@ -130,7 +130,7 @@ namespace Attribulator.UI.PropertyGrid
 
     public abstract class BaseBoolItem : BaseItem
     {
-        private string name;
+        protected string name;
         private int padding;
 
         public BaseBoolItem(IParent parent, string name, int padding)

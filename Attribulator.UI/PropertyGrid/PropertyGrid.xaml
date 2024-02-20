@@ -115,15 +115,11 @@
 
                                 <TextBlock Grid.Column="0" x:Name="PART_ValueText" Margin="10,0,0,0"/>
 
-                                <Button x:Name="PART_RemoveButton" Grid.Column="1" Margin="1" ToolTip="Remove item" Width="17" Padding="0">
-                                    <Button.Content>
-                                        <Path Width="10" Height="10" Fill="Black" Stretch="Uniform" Data="{Binding Path=Data, Source={StaticResource RemoveButtonIcon}}" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                                    </Button.Content>
+                                <Button x:Name="PART_RemoveButton" Grid.Column="1" Margin="1" ToolTip="Remove last item" Width="17" Padding="0">
+                                    <Path Width="10" Height="10" Fill="Black" Stretch="Uniform" Data="{Binding Path=Data, Source={StaticResource RemoveButtonIcon}}" VerticalAlignment="Center" HorizontalAlignment="Center"/>
                                 </Button>
-                                <Button x:Name="PART_AddButton" Grid.Column="2" Margin="1" ToolTip="Add new item" Width="17">
-                                    <Button.Content>
-                                        <Path Width="10" Height="10" Fill="Black" Stretch="Uniform" Data="{Binding Path=Data, Source={StaticResource AddButtonIcon}}" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                                    </Button.Content>
+                                <Button x:Name="PART_AddButton" Grid.Column="2" Margin="1" ToolTip="Add new item" Width="17" >
+                                    <Path Width="10" Height="10" Fill="Black" Stretch="Uniform" Data="{Binding Path=Data, Source={StaticResource AddButtonIcon}}" VerticalAlignment="Center" HorizontalAlignment="Center"/>
                                 </Button>
                             </Grid>
                         </Grid>
@@ -311,13 +307,48 @@
         </Setter>
     </Style>
 
+    <Style TargetType="{x:Type local:BlobItem}">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type local:BlobItem}">
+                    <Border BorderThickness="0 0 0 1" BorderBrush="LightGray">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="{Binding ActualWidth, ElementName=EditGridLeftPanel}"/>
+                                <ColumnDefinition Width="{Binding ActualWidth, ElementName=EditGridRightPanel}"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Grid.Column="0" x:Name="PART_TextBlock"/>
+                            <Grid  Grid.Column="1" >
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="20px"/>
+                                    <ColumnDefinition Width="20px"/>
+                                </Grid.ColumnDefinitions>
+
+                                <TextBlock Grid.Column="0" x:Name="PART_DataLength" Margin="10,0,0,0"/>
+                                
+                                <Button Grid.Column="1" x:Name="PART_ExportButton" HorizontalAlignment="Right" Width="17" ToolTip="Export byte code">
+                                    <Image Width="10" Height="10" Source="/Resources/Export.png"/>
+                                </Button>
+                                <Button Grid.Column="2" x:Name="PART_ImportButton" HorizontalAlignment="Right" Width="17" ToolTip="Import binary file">
+                                    <Image Width="10" Height="10" Source="/Resources/Import.png"/>
+                                </Button>
+                            </Grid>
+                        </Grid>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
     <Style TargetType="{x:Type ui:TabHeader}">
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type ui:TabHeader}">
                     <StackPanel Orientation="Horizontal">
                         <TextBlock x:Name="PART_Text" MaxWidth="100"/>
-                        <Button x:Name="PART_CloseButton" HorizontalAlignment="Right" Margin="5,0,0,0">
+                        <Button x:Name="PART_CloseButton" HorizontalAlignment="Right" Margin="5,0,0,0" ToolTip="Close tab">
                             <Image Width="10" Height="10" Source="/Resources/CloseTab.png"/>
                         </Button>
                     </StackPanel>

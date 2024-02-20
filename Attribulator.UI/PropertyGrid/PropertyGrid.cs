@@ -10,20 +10,6 @@ namespace Attribulator.UI.PropertyGrid
 {
     public static class GridHelper
     {
-        public static Type GetBaseType(this VaultLib.Core.Types.EA.Reflection.PrimitiveTypeBase prop)
-        {
-            var attributes = prop.GetType().GetCustomAttributes(false);
-            foreach (var attribute in attributes)
-            {
-                if (attribute is VaultLib.Core.Types.EA.Reflection.PrimitiveInfoAttribute primitiveInfoAttribute)
-                {
-                    return primitiveInfoAttribute.PrimitiveType;
-                }
-            }
-
-            return prop.GetValue()?.GetType();
-        }
-
         public static Control ResolvePrimitiveItem(IParent parent, string name, VaultLib.Core.Types.EA.Reflection.PrimitiveTypeBase prop, int padding)
         {
             if (prop is VaultLib.Core.Types.EA.Reflection.Bool)
@@ -259,6 +245,10 @@ namespace Attribulator.UI.PropertyGrid
                     else if (type is VaultLib.Core.Types.EA.Reflection.PrimitiveTypeBase)
                     {
                         child = GridHelper.ResolvePrimitiveItem(this, property.Key, type as VaultLib.Core.Types.EA.Reflection.PrimitiveTypeBase, 21);
+                    }
+                    else if (type is VaultLib.Core.Types.Attrib.BaseBlob)
+                    {
+                        child = new BlobItem(property.Key, type as VaultLib.Core.Types.Attrib.BaseBlob, 21);
                     }
                     else if (type is VaultLib.Core.Types.VLTBaseType)
                     {
