@@ -1169,5 +1169,23 @@ namespace AttribulatorUI
                 this.Tabs.SelectedIndex = 0;
             }
         }
+
+        private void Collapse(TreeViewItem item)
+        {
+            foreach (TreeViewItem subItem in item.Items)
+            {
+                this.Collapse(subItem);
+            }
+
+            item.IsExpanded = false;
+        }
+
+        private void MenuItem_Collapse_Click(object sender, RoutedEventArgs e)
+        {
+            foreach(TreeViewItem item in this.TreeView.Items)
+            {
+                this.Collapse(item);
+            }
+        }
     }
 }

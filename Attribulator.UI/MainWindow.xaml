@@ -128,11 +128,14 @@
                         <Image Source="/Resources/FindNext.png"/>
                     </MenuItem.Icon>
                 </MenuItem>
+                <Separator/>
                 <MenuItem Header="Clear" Click="MenuItem_SearchClear_Click">
                     <MenuItem.Icon>
                         <Image Source="/Resources/CloseWindow.png"/>
                     </MenuItem.Icon>
                 </MenuItem>
+                <Separator/>
+                <MenuItem Header="Collapse all" Click="MenuItem_Collapse_Click"/>
             </MenuItem>
             <MenuItem Header="Script">
                 <MenuItem Header="Execute all" Command="{StaticResource ExecuteAll}" InputGestureText="F9">
