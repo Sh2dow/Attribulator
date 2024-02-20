@@ -8,6 +8,7 @@
         ResizeMode="NoResize"
         WindowStyle="ToolWindow"
         Icon="/Resources/Find.png"
+        Topmost="True"
         Style="{StaticResource CustomWindowStyle}"
         Title="Find" Height="200" Width="400" WindowStartupLocation="CenterScreen">
 
@@ -47,7 +48,7 @@
 
         <StackPanel Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="2" Orientation="Horizontal" VerticalAlignment="Bottom" HorizontalAlignment="Right">
             <Button x:Name="FindButton" Content="Find" Margin="5" Width="{StaticResource ButtonWidth}" Height="{StaticResource ButtonHeight}" Click="FindButton_Click"/>
-            <Button x:Name="FindNextButton" Content="Find next" Margin="5" Width="{StaticResource ButtonWidth}" Height="{StaticResource ButtonHeight}" Click="FindNextButton_Click"/>
+            <Button x:Name="FindNextButton" Content="Find next" Margin="5" Width="{StaticResource ButtonWidth}" Height="{StaticResource ButtonHeight}" Click="FindNextButton_Click" IsEnabled="{Binding Path=Executed, Mode = TwoWay}"/>
         </StackPanel>
     </Grid>
 </Window>

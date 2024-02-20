@@ -19,7 +19,6 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Xml.Linq;
 using VaultLib.Core.Data;
 using VaultLib.Core.DB;
 using VaultLib.Core.Hashing;
@@ -48,6 +47,8 @@ namespace AttribulatorUI
 
         public static MainWindow Instance { get; private set; }
 
+        public SearchResult Search { get; private set; }
+
         private TreeViewItem currentClass = null;
         private TreeViewItem currentCollection = null;
         private TreeViewItem collectionToCopy = null;
@@ -60,6 +61,7 @@ namespace AttribulatorUI
             InitializeComponent();
 
             this.settings = new Settings();
+            this.Search = new SearchResult();
 
             ThemesController.SetTheme(settings.Root.Theme);
         }
@@ -710,14 +712,144 @@ namespace AttribulatorUI
             }
         }
 
+        private void HighlightParent(TreeViewItem item)
+        {
+            if (item != null)
+            {
+                var tag = item.Tag as CollectionTag;
+                if (tag != null)
+                {
+                    this.HighlightParent(tag.Parent);
+                }
+
+                var solidBrush = item.Background as SolidColorBrush;
+                if (solidBrush.Color.A == 0)
+                {
+                    item.Background = Brushes.DarkOliveGreen;
+                }
+            }
+        }
+
+        private void Find(TreeViewItem item)
+        {
+            item.Background = Brushes.Transparent;
+
+            foreach (TreeViewItem subItem in item.Items)
+            {
+                this.Find(subItem);
+            }
+
+            var search = this.settings.Root.Search;
+            if (search.NodeEnabled)
+            {
+                if (!item.Header().Contains(search.NodeText, StringComparison.InvariantCultureIgnoreCase))
+                {
+                    return;
+                }
+            }
+
+            var tag = item.Tag as CollectionTag;
+            var properties = tag.Collection.GetData();
+            if (search.FieldEnabled)
+            {
+                bool fieldFound = false;
+                foreach (var property in properties)
+                {
+                    if (property.Key.Contains(search.FieldText, StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        fieldFound = true;
+                        break;
+                    }
+                }
+
+                if (!fieldFound)
+                {
+                    return;
+                }
+            }
+
+            if (search.ValueEnabled)
+            {
+                bool valueFound = false;
+                foreach (var property in properties)
+                {
+                    if (property.Value.ToString().Contains(search.ValueText, StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        valueFound = true;
+                        break;
+                    }
+                }
+
+                if (!valueFound)
+                {
+                    return;
+                }
+            }
+
+            item.Background = Brushes.DarkGreen;
+            this.HighlightParent(item);
+        }
+
+        public void Find()
+        {
+            this.MenuItem_SearchClear_Click(null, null);
+
+            var search = this.settings.Root.Search;
+            if (search.NodeEnabled || search.FieldEnabled || search.ValueEnabled)
+            {
+                foreach (TreeViewItem item in this.TreeView.Items)
+                {
+                    foreach (TreeViewItem subItem in item.Items)
+                    {
+                        this.Find(subItem);
+                    }
+                }
+            }
+
+            this.Search.Executed = true;
+        }
+
+        public void FindNext()
+        {
+            if (this.Search.Executed)
+            {
+
+            }
+        }
+
         private void Command_Find(object sender, ExecutedRoutedEventArgs e)
         {
-            new SearchWindow(this.settings).ShowDialog();
+            var searchWindow = new SearchWindow(this.settings);
+            searchWindow.Owner = this;
+            searchWindow.Show();
         }
 
         private void Command_FindNext(object sender, ExecutedRoutedEventArgs e)
         {
+            this.FindNext();
+        }
 
+        private void ClearSearch(TreeViewItem item)
+        {
+            foreach (TreeViewItem subItem in item.Items)
+            {
+                this.ClearSearch(subItem);
+            }
+
+            item.Background = Brushes.Transparent;
+        }
+
+        private void MenuItem_SearchClear_Click(object sender, RoutedEventArgs e)
+        {
+            if (this.Search.Executed)
+            {
+                foreach (TreeViewItem item in this.TreeView.Items)
+                {
+                    this.ClearSearch(item);
+                }
+            }
+
+            this.Search.Executed = false;
         }
 
         private void Command_ChangeVault(object sender, ExecutedRoutedEventArgs e)
@@ -1001,7 +1133,7 @@ namespace AttribulatorUI
 
         private void CreateWelcomeScreen()
         {
-            if(this.settings.Root.ShowWelcomeTab)
+            if (this.settings.Root.ShowWelcomeTab)
             {
                 this.Tabs.Items.Add(new TabItem
                 {

@@ -1,16 +1,15 @@
-﻿using System.Windows;
+﻿using AttribulatorUI;
+using System.ComponentModel;
+using System.Windows;
+using System.Xml.Serialization;
 
 namespace Attribulator.UI.Windows
 {
     public partial class SearchWindow : Window
     {
-        private Settings settings;
-
         public SearchWindow(Settings settings)
         {
             InitializeComponent();
-
-            this.settings = settings;
 
             this.NodeTextBox.DataContext = settings.Root.Search;
             this.NodeCheckBox.DataContext = settings.Root.Search;
@@ -20,16 +19,18 @@ namespace Attribulator.UI.Windows
 
             this.ValueTextBox.DataContext = settings.Root.Search;
             this.ValueCheckBox.DataContext = settings.Root.Search;
+
+            this.FindNextButton.DataContext = MainWindow.Instance.Search;
         }
 
         private void FindButton_Click(object sender, RoutedEventArgs e)
         {
-
+            MainWindow.Instance.Find();
         }
 
         private void FindNextButton_Click(object sender, RoutedEventArgs e)
         {
-
+            MainWindow.Instance.FindNext();
         }
     }
 }

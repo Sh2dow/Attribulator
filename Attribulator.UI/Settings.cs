@@ -1,5 +1,6 @@
 ﻿using FramePFX.Themes;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Xml;
@@ -24,22 +25,22 @@ namespace Attribulator.UI
 
     public class SearchSettings
     {
-        [XmlAttribute("nodeText")]
+        [XmlElement("nodeText")]
         public string NodeText { get; set; }
 
-        [XmlAttribute("nodeEnabled")]
+        [XmlElement("nodeEnabled")]
         public bool NodeEnabled { get; set; }
 
-        [XmlAttribute("fieldText")]
+        [XmlElement("fieldText")]
         public string FieldText { get; set; }
 
-        [XmlAttribute("fieldEnabled")]
+        [XmlElement("fieldEnabled")]
         public bool FieldEnabled { get; set; }
 
-        [XmlAttribute("valueText")]
+        [XmlElement("valueText")]
         public string ValueText { get; set; }
 
-        [XmlAttribute("valueEnabled")]
+        [XmlElement("valueEnabled")]
         public bool ValueEnabled { get; set; }
     }
 
@@ -80,7 +81,7 @@ namespace Attribulator.UI
             var serializer = new XmlSerializer(typeof(RootSettings));
             using var stream = new StreamReader(PATH);
             this.Root = serializer.Deserialize(stream) as RootSettings;
-            if(this.Root.Search == null)
+            if (this.Root.Search == null)
             {
                 this.Root.Search = new SearchSettings();
             }

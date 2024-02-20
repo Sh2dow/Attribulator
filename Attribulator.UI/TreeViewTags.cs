@@ -1,10 +1,28 @@
 ﻿using AttribulatorUI;
+using System.ComponentModel;
 using System.Windows.Controls;
 using System.Windows.Input;
 using VaultLib.Core.Data;
 
 namespace Attribulator.UI
 {
+    public class SearchResult : INotifyPropertyChanged
+    {
+        private bool executed;
+
+        public bool Executed
+        {
+            get => this.executed;
+            set
+            {
+                this.executed = value;
+                this.PropertyChanged(this, new PropertyChangedEventArgs(nameof(Executed)));
+            }
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+    }
+
     public class TabHeader : Control
     {
         public string Text { get; private set; }
@@ -81,6 +99,11 @@ namespace Attribulator.UI
         public static TreeViewItem Parent(this TreeViewItem treeViewItem)
         {
             return (treeViewItem.Tag as CollectionTag).Parent;
+        }
+
+        public static string Header(this TreeViewItem treeViewItem)
+        {
+            return treeViewItem.Header as string;
         }
     }
 }
