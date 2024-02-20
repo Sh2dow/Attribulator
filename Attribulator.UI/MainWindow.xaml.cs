@@ -283,7 +283,7 @@ namespace AttribulatorUI
             {
                 var classNode = new TreeViewItem
                 {
-                    Tag = new ClassTag(cls),
+                    Tag = new ClassTag(cls, this.TreeView),
                     ContextMenu = this.classContextMenu,
                     Header = cls.Name
                 };
@@ -716,11 +716,7 @@ namespace AttribulatorUI
         {
             if (item != null)
             {
-                var tag = item.Tag as CollectionTag;
-                if (tag != null)
-                {
-                    this.HighlightParent(tag.Parent);
-                }
+                this.HighlightParent(item.Parent() as TreeViewItem);
 
                 var solidBrush = item.Background as SolidColorBrush;
                 if (solidBrush.Color.A == 0)
@@ -813,7 +809,28 @@ namespace AttribulatorUI
         {
             if (this.Search.Executed)
             {
+                var selectedItem = this.TreeView.SelectedItem as TreeViewItem;
+                if (selectedItem == null)
+                {
+                    selectedItem = this.TreeView.Items[0] as TreeViewItem;
+                }
 
+                while (true)
+                {
+                    selectedItem = selectedItem.GetNextItem();
+                    if (selectedItem == null)
+                    {
+                        selectedItem = this.TreeView.Items[0] as TreeViewItem;
+                    }
+
+                    var solidBrush = selectedItem.Background as SolidColorBrush;
+                    if (solidBrush.Color.G == Brushes.DarkGreen.Color.G)
+                    {
+                        selectedItem.IsSelected = true;
+                        selectedItem.BringIntoView();
+                        break;
+                    }
+                }
             }
         }
 
