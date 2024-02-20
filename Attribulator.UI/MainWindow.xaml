@@ -28,6 +28,7 @@
             <RoutedUICommand x:Key="RunGame" Text="RunGame" />
             <RoutedUICommand x:Key="ExecuteAll" Text="ExecuteAll" />
             <RoutedUICommand x:Key="ChangeVault" Text="ChangeVault" />
+            <RoutedUICommand x:Key="FindNext" Text="FindNext" />
         </ResourceDictionary>
     </Window.Resources>
 
@@ -35,6 +36,7 @@
         <CommandBinding Command="Open" Executed="Command_Open"/>
         <CommandBinding Command="Save" Executed="Command_Save"/>
         <CommandBinding Command="Find" Executed="Command_Find"/>
+        <CommandBinding Command="{StaticResource FindNext}" Executed="Command_FindNext"/>
         <CommandBinding Command="{StaticResource Import}" Executed="Command_Import"/>
         <CommandBinding Command="{StaticResource Export}" Executed="Command_Export"/>
         <CommandBinding Command="{StaticResource Reload}" Executed="Command_Reload"/>
@@ -54,6 +56,7 @@
         <KeyBinding Key="O" Modifiers="Control" Command="Open"/>
         <KeyBinding Key="S" Modifiers="Control" Command="Save"/>
         <KeyBinding Key="F" Modifiers="Control" Command="Find"/>
+        <KeyBinding Key="F3" Command="{StaticResource FindNext}"/>
         <KeyBinding Key="I" Modifiers="Control" Command="{StaticResource Import}"/>
         <KeyBinding Key="E" Modifiers="Control" Command="{StaticResource Export}"/>
         <KeyBinding Key="R" Modifiers="Control+Alt" Command="{StaticResource Reload}"/>
@@ -120,7 +123,7 @@
                         <Image Source="/Resources/Find.png"/>
                     </MenuItem.Icon>
                 </MenuItem>
-                <MenuItem Header="Find next">
+                <MenuItem Header="Find next" InputGestureText="F3">
                     <MenuItem.Icon>
                         <Image Source="/Resources/FindNext.png"/>
                     </MenuItem.Icon>

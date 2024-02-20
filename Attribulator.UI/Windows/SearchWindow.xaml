@@ -1,0 +1,53 @@
+﻿<Window x:Class="Attribulator.UI.Windows.SearchWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Attribulator.UI.Windows"
+        mc:Ignorable="d"
+        ResizeMode="NoResize"
+        WindowStyle="ToolWindow"
+        Icon="/Resources/Find.png"
+        Style="{StaticResource CustomWindowStyle}"
+        Title="Find" Height="200" Width="400" WindowStartupLocation="CenterScreen">
+
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="../PropertyGrid/PropertyGrid.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="40"/>
+            <RowDefinition Height="40"/>
+            <RowDefinition Height="40"/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="70"/>
+            <ColumnDefinition/>
+            <ColumnDefinition Width="30"/>
+        </Grid.ColumnDefinitions>
+
+        <TextBlock Grid.Row="0" Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,15,0">Nodes:</TextBlock>
+        <TextBox x:Name="NodeTextBox" Grid.Row="0" Grid.Column="1" Height="20" Text="{Binding Path=NodeText, Mode = TwoWay}" IsEnabled="{Binding Path=NodeEnabled, Mode = TwoWay}"/>
+        <CheckBox x:Name="NodeCheckBox" Grid.Row="0" Grid.Column="2" Margin="5,0,0,0" IsChecked="{Binding Path=NodeEnabled, Mode = TwoWay}"/>
+
+        <TextBlock Grid.Row="1" Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,15,0">Fields:</TextBlock>
+        <TextBox x:Name="FieldTextBox" Grid.Row="1" Grid.Column="1" Height="20" Text="{Binding Path=FieldText, Mode = TwoWay}" IsEnabled="{Binding Path=FieldEnabled, Mode = TwoWay}"/>
+        <CheckBox x:Name="FieldCheckBox" Grid.Row="1" Grid.Column="2" Margin="5,0,0,0" IsChecked="{Binding Path=FieldEnabled, Mode = TwoWay}"/>
+
+        <TextBlock Grid.Row="2" Grid.Column="0" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,15,0">Values:</TextBlock>
+        <TextBox x:Name="ValueTextBox" Grid.Row="2" Grid.Column="1" Height="20" Text="{Binding Path=ValueText, Mode = TwoWay}" IsEnabled="{Binding Path=ValueEnabled, Mode = TwoWay}"/>
+        <CheckBox x:Name="ValueCheckBox" Grid.Row="2" Grid.Column="2" Margin="5,0,0,0" IsChecked="{Binding Path=ValueEnabled, Mode = TwoWay}"/>
+
+        <StackPanel Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="2" Orientation="Horizontal" VerticalAlignment="Bottom" HorizontalAlignment="Right">
+            <Button x:Name="FindButton" Content="Find" Margin="5" Width="{StaticResource ButtonWidth}" Height="{StaticResource ButtonHeight}" Click="FindButton_Click"/>
+            <Button x:Name="FindNextButton" Content="Find next" Margin="5" Width="{StaticResource ButtonWidth}" Height="{StaticResource ButtonHeight}" Click="FindNextButton_Click"/>
+        </StackPanel>
+    </Grid>
+</Window>

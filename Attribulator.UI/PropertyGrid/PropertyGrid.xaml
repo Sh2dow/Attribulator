@@ -285,7 +285,7 @@
                             </Grid.ColumnDefinitions>
 
                             <TextBlock Grid.Column="0" x:Name="PART_TextBlock" VerticalAlignment="Center"/>
-                            <ComboBox Grid.Column="1" x:Name="PART_ComboBox" BorderThickness="0" FontWeight="Bold"/>
+                            <ComboBox Grid.Column="1" x:Name="PART_ComboBox" BorderThickness="0" FontWeight="Bold" IsEditable="True"/>
                         </Grid>
                     </Border>
                 </ControlTemplate>

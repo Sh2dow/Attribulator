@@ -712,6 +712,11 @@ namespace AttribulatorUI
 
         private void Command_Find(object sender, ExecutedRoutedEventArgs e)
         {
+            new SearchWindow(this.settings).ShowDialog();
+        }
+
+        private void Command_FindNext(object sender, ExecutedRoutedEventArgs e)
+        {
 
         }
 

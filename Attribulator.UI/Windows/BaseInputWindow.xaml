@@ -6,6 +6,7 @@
         xmlns:local="clr-namespace:Attribulator.UI.Windows"
         mc:Ignorable="d"
         ResizeMode="NoResize"
+        WindowStyle="ToolWindow"
         WindowStartupLocation="CenterScreen"
         Style="{StaticResource CustomWindowStyle}"
         Title="Replace me!" Height="170" Width="350">
