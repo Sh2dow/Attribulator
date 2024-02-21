@@ -8,7 +8,7 @@
         WindowStartupLocation="CenterScreen"
         Style="{StaticResource CustomWindowStyle}"
         Icon="/Resources/icon.ico"
-        Title="OGVI v1.0 by ARCHIE" Height="768" Width="1024" MinHeight="480" MinWidth="640" Closing="Window_Closing" Closed="Window_Closed" Loaded="Window_Loaded">
+        Title="OGVI by ARCHIE" Height="768" Width="1024" MinHeight="480" MinWidth="640" Closing="Window_Closing" Closed="Window_Closed" Loaded="Window_Loaded">
 
     <Window.Resources>
         <ResourceDictionary>

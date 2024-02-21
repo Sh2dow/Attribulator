@@ -1,6 +1,7 @@
 ﻿using AttribulatorUI;
 using System;
 using System.ComponentModel;
+using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -91,7 +92,7 @@ namespace Attribulator.UI.PropertyGrid
 
             var textBox = this.GetTemplateChild("PART_TextBox") as TextBox;
             var val = this.GetValue();
-            textBox.Text = val?.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            textBox.Text = val?.ToString(CultureInfo.InvariantCulture);
             textBox.ContextMenu = contextMenu;
             this.lastValue = textBox.Text;
             textBox.LostFocus += (s, e) =>
@@ -121,7 +122,7 @@ namespace Attribulator.UI.PropertyGrid
 
         protected override string GetStringValue()
         {
-            return this.GetValue().ToString();
+            return this.GetValue().ToString(CultureInfo.InvariantCulture);
         }
 
         public abstract IConvertible GetValue();

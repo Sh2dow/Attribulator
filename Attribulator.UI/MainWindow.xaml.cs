@@ -111,6 +111,16 @@ namespace AttribulatorUI
             }
         }
 
+        private void SetTitle()
+        {
+            this.Title = $"OGVI v1.1 by ARCHIE";
+            var selectedGame = this.settings.Root.SelectedGame;
+            if (selectedGame != null)
+            {
+                this.Title += " | Need for Speed: " + selectedGame.Header;
+            }
+        }
+
         private void PopulateGameMenuItems()
         {
             this.gameMenuItems = new List<MenuItem>();
@@ -134,6 +144,8 @@ namespace AttribulatorUI
             {
                 this.Open(selectedGame.ExePath);
             }
+
+            this.SetTitle();
         }
 
         private void Command_Open(object sender, ExecutedRoutedEventArgs e)
@@ -657,13 +669,13 @@ namespace AttribulatorUI
                         var importWindow = new ImportModScriptWindow(dialog.FileName);
                         if (importWindow.ShowDialog().Value)
                         {
-                        var resultScript = importWindow.ResultScript;
-                        this.ExecuteScript(resultScript);
-                        this.StatusLabel.Content = $"Imported script: {dialog.FileName}";
+                            var resultScript = importWindow.ResultScript;
+                            this.ExecuteScript(resultScript);
+                            this.StatusLabel.Content = $"Imported script: {dialog.FileName}";
+                        }
                     }
                 }
             }
-        }
         }
 
         private void Command_Export(object sender, ExecutedRoutedEventArgs e)
@@ -1009,8 +1021,10 @@ namespace AttribulatorUI
         {
             if (this.currentCollection != null)
             {
-                new EditFieldsWindow(this.currentCollection.Collection()).ShowDialog();
-                this.GetSelectedGrid()?.Draw();
+                if (new EditFieldsWindow(this.currentCollection.Collection()).ShowDialog().Value)
+                {
+                    this.RedrawTabs();
+                }
             }
         }
 

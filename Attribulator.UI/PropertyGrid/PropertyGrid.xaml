@@ -45,7 +45,7 @@
                         <Border Grid.Column="0" x:Name="EditGridLeftPanel"/>
                         <Border Grid.Column="2" x:Name="EditGridRightPanel" Margin="0,0,20,0"/>
 
-                        <ScrollViewer Grid.ColumnSpan="3">
+                        <ScrollViewer Grid.ColumnSpan="3" VerticalScrollBarVisibility="Auto">
                             <StackPanel>
                                 <TextBlock x:Name="PART_SearchHeader" Text="Search results" Padding="21,0,0,0" FontWeight="Bold" Visibility="Collapsed" Background="{DynamicResource ABrush.Search.Highlight}"/>
                                 <StackPanel x:Name="PART_SearchResults" Visibility="Collapsed" Margin="0,0,0,20">
