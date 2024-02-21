@@ -207,6 +207,7 @@ namespace Attribulator.UI
         private void Button_Import_Click(object sender, RoutedEventArgs e)
         {
             this.PopulateResultScript(this.initialScript, this.scriptFolder);
+            this.DialogResult = true;
             this.Close();
         }
     }

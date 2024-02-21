@@ -655,13 +655,15 @@ namespace AttribulatorUI
                     if (result == Forms.DialogResult.OK)
                     {
                         var importWindow = new ImportModScriptWindow(dialog.FileName);
-                        importWindow.ShowDialog();
+                        if (importWindow.ShowDialog().Value)
+                        {
                         var resultScript = importWindow.ResultScript;
                         this.ExecuteScript(resultScript);
                         this.StatusLabel.Content = $"Imported script: {dialog.FileName}";
                     }
                 }
             }
+        }
         }
 
         private void Command_Export(object sender, ExecutedRoutedEventArgs e)
