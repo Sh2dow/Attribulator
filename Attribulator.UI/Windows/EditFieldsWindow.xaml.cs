@@ -30,8 +30,9 @@ namespace Attribulator.UI
         private void Button_Ok_Click(object sender, RoutedEventArgs e)
         {
             var commands = new List<string>();
-            foreach (EditFieldItem field in this.FieldStack.Items)
+            foreach (ListBoxItem item in this.FieldStack.Items)
             {
+                var field = item.Content as EditFieldItem;
                 if (field.IsChecked != this.collection.HasEntry(field.FieldName))
                 {
                     if (field.IsChecked)
@@ -53,6 +54,7 @@ namespace Attribulator.UI
                 }
 
                 MainWindow.Instance.AddScriptLines(commands);
+                this.DialogResult = true;
             }
 
             this.Close();
