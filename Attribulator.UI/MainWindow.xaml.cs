@@ -98,10 +98,6 @@ namespace AttribulatorUI
                 this.modScriptService = this.serviceProvider.GetRequiredService<IModScriptService>();
 
                 this.ScriptEditor.Text = this.settings.Root.Srcipt;
-                this.ScriptEditor.Focus();  
-                this.ScriptEditor.CaretIndex = this.ScriptEditor.Text.Length;
-                this.ScriptEditor.ScrollToEnd();
-                this.Menu.Focus();
 
                 this.PopulateGameMenuItems();
                 this.CreateWelcomeScreen();
@@ -117,7 +113,29 @@ namespace AttribulatorUI
 
         private void Window_SourceInitialized(object sender, EventArgs e)
         {
-
+            var windowSettings = this.settings.Root.Window;
+            if (windowSettings == null)
+            {
+                this.settings.Root.Window = new WindowSettings
+                {
+                    Top = this.Top,
+                    Left = this.Left,
+                    Height = this.Height,
+                    Width = this.Width,
+                    Maximized = false
+                };
+            }
+            else
+            {
+                this.Top = windowSettings.Top;
+                this.Left = windowSettings.Left;
+                this.Height = windowSettings.Height;
+                this.Width = windowSettings.Width;
+                if (windowSettings.Maximized)
+                {
+                    this.WindowState = WindowState.Maximized;
+                }
+            }
         }
 
         private void SetTitle()
@@ -506,7 +524,16 @@ namespace AttribulatorUI
         private void Window_Closed(object sender, EventArgs e)
         {
             HashManager.Save();
+
             this.settings.Root.Srcipt = this.ScriptEditor.Text;
+
+            var windowSettings = this.settings.Root.Window;
+            windowSettings.Maximized = this.WindowState == WindowState.Maximized;
+            windowSettings.Top = this.Top;
+            windowSettings.Left = this.Left;
+            windowSettings.Height = this.Height;
+            windowSettings.Width = this.Width;            
+
             this.settings.Save();
         }
 

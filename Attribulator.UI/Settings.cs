@@ -44,6 +44,24 @@ namespace Attribulator.UI
         public bool ValueEnabled { get; set; }
     }
 
+    public class WindowSettings
+    {
+        [XmlElement("top")]
+        public double Top { get; set; }
+
+        [XmlElement("left")]
+        public double Left { get; set; }
+        
+        [XmlElement("height")]
+        public double Height { get; set; }
+        
+        [XmlElement("width")]
+        public double Width { get; set; }
+
+        [XmlElement("maximized")]
+        public bool Maximized { get; set; }
+    }
+
     [XmlRoot("settings")]
     public class RootSettings
     {
@@ -68,6 +86,9 @@ namespace Attribulator.UI
 
         [XmlElement("search")]
         public SearchSettings Search { get; set; }
+
+        [XmlElement("window")]
+        public WindowSettings Window { get; set; }
     }
 
     public class Settings
