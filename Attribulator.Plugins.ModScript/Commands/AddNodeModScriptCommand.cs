@@ -52,9 +52,9 @@ namespace Attribulator.Plugins.ModScript.Commands
             var newNode = databaseHelper.AddCollection(addToVault, ClassName, CollectionName, parentCollection);
             var vltClass = newNode.Class;
 
-            if (parentCollection != null)
-                databaseHelper.CopyCollection(databaseHelper.Database, parentCollection, newNode);
-            else
+            //if (parentCollection != null)
+            //    databaseHelper.CopyCollection(databaseHelper.Database, parentCollection, newNode);
+            //else
                 foreach (var baseField in vltClass.BaseFields)
                 {
                     var vltBaseType = TypeRegistry.CreateInstance(databaseHelper.Database.Options.GameId, vltClass,
