@@ -8,7 +8,7 @@
         WindowStartupLocation="CenterScreen"
         Style="{StaticResource CustomWindowStyle}"
         Icon="/Resources/icon.ico"
-        Title="OGVI by ARCHIE" Height="768" Width="1024" MinHeight="480" MinWidth="640" Closing="Window_Closing" Closed="Window_Closed" Loaded="Window_Loaded">
+        Title="OGVI by ARCHIE" Height="768" Width="1024" MinHeight="480" MinWidth="640" Closing="Window_Closing" Closed="Window_Closed" Loaded="Window_Loaded" SourceInitialized="Window_SourceInitialized">
 
     <Window.Resources>
         <ResourceDictionary>
@@ -73,7 +73,7 @@
     </Window.InputBindings>
 
     <DockPanel>
-        <Menu DockPanel.Dock="Top">
+        <Menu DockPanel.Dock="Top" x:Name="Menu">
             <MenuItem Header="File">
                 <MenuItem Header="Open" Command="Open" >
                     <MenuItem.Icon>
@@ -200,7 +200,7 @@
             <GridSplitter Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" HorizontalAlignment="Stretch"/>
 
             <ScrollViewer x:Name="ScriptScroll" Grid.Row="2" Grid.Column="2" VerticalScrollBarVisibility="Auto">
-                <TextBox x:Name="ScriptEditor"  AcceptsReturn="True"></TextBox>
+                <TextBox x:Name="ScriptEditor" AcceptsReturn="True"></TextBox>
             </ScrollViewer>
 
             <Label x:Name="StatusLabel" Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="3">No game selected</Label>

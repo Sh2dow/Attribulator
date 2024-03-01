@@ -34,6 +34,7 @@ namespace Attribulator.UI
         public string Text { get; private set; }
 
         private TabItem parent;
+        private TextBlock textBlock;
 
         public TabHeader(TabItem parent, string text)
         {
@@ -46,8 +47,8 @@ namespace Attribulator.UI
         {
             base.OnApplyTemplate();
 
-            var textBlock = this.GetTemplateChild("PART_Text") as TextBlock;
-            textBlock.Text = this.Text;
+            this.textBlock = this.GetTemplateChild("PART_Text") as TextBlock;
+            this.textBlock.Text = this.Text;
 
             var closeButton = this.GetTemplateChild("PART_CloseButton") as Button;
             closeButton.Click += (s, e) => MainWindow.Instance.RemoveTab(this.parent);
@@ -59,6 +60,12 @@ namespace Attribulator.UI
                     MainWindow.Instance.RemoveTab(this.parent);
                 }
             };
+        }
+
+        public void SetText(string text)
+        {
+            this.Text = text;
+            this.textBlock.Text = this.Text;
         }
     }
 
@@ -148,6 +155,11 @@ namespace Attribulator.UI
         {
             this.Parent = parent;
         }
+
+        public void SetParent(ItemsControl parent)
+        {
+            this.Parent = parent;
+        }
     }
 
     public class ClassTag : BaseTag
@@ -174,17 +186,22 @@ namespace Attribulator.UI
     {
         public static VltClass Class(this TreeViewItem treeViewItem)
         {
-            return (treeViewItem.Tag as ClassTag).Class;
+            return (treeViewItem.Tag as ClassTag)?.Class;
         }
 
         public static VltCollection Collection(this TreeViewItem treeViewItem)
         {
-            return (treeViewItem.Tag as CollectionTag).Collection;
+            return (treeViewItem.Tag as CollectionTag)?.Collection;
         }
 
-        public static ItemsControl Parent(this TreeViewItem treeViewItem)
+        public static ItemsControl GetParent(this TreeViewItem treeViewItem)
         {
             return (treeViewItem.Tag as BaseTag).Parent;
+        }
+
+        public static void SetParent(this TreeViewItem treeViewItem, TreeViewItem parent)
+        {
+            (treeViewItem.Tag as BaseTag).SetParent(parent);
         }
 
         public static string Header(this TreeViewItem treeViewItem)
@@ -194,7 +211,7 @@ namespace Attribulator.UI
 
         public static TreeViewItem GetNextSibling(this TreeViewItem treeViewItem)
         {
-            var parent = treeViewItem.Parent();
+            var parent = treeViewItem.GetParent();
             if (parent != null)
             {
                 int indexInParent = parent.Items.IndexOf(treeViewItem);
@@ -223,7 +240,7 @@ namespace Attribulator.UI
                 }
                 else
                 {
-                    var parent = treeViewItem.Parent();
+                    var parent = treeViewItem.GetParent();
                     while (true)
                     {
                         if (parent is TreeViewItem parentTvi)
@@ -235,7 +252,7 @@ namespace Attribulator.UI
                             }
                             else
                             {
-                                parent = parentTvi.Parent();
+                                parent = parentTvi.GetParent();
                             }
                         }
                         else
@@ -247,6 +264,12 @@ namespace Attribulator.UI
             }
 
             return null;
+        }
+
+        public static void Select(this TreeViewItem treeViewItem)
+        {
+            treeViewItem.IsSelected = true;
+            treeViewItem.BringIntoView();
         }
     }
 }
