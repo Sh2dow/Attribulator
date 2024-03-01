@@ -25,7 +25,7 @@
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="200"/>
+            <ColumnDefinition Width="230"/>
         </Grid.ColumnDefinitions>
 
         <ScrollViewer x:Name="MainPanelScroller" Grid.Row="0" Grid.Column="0" VerticalScrollBarVisibility="Auto" Padding="5">

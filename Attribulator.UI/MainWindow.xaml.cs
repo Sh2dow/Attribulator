@@ -356,26 +356,43 @@ namespace AttribulatorUI
             }
         }
 
+        private void SetCurrent(TreeViewItem treeViewItem, bool context)
+        {
+            if (treeViewItem != null)
+            {
+                this.currentClass = null;
+                this.currentCollection = null;
+
+                if (treeViewItem.Tag is CollectionTag)
+                {
+                    this.currentCollection = treeViewItem;
+                    if (context)
+                    {
+                        this.CreateCollectionContextMenu();
+                    }
+                }
+
+                if (treeViewItem.Tag is ClassTag)
+                {
+                    this.currentClass = treeViewItem;
+                    if (context)
+                    {
+                        this.CreateClassContextMenu();
+                    }
+                }
+            }
+        }
+
         private void TreeViewItem_Selected(object sender, RoutedEventArgs e)
         {
-            var treeViewItem = e.Source as TreeViewItem;
-            if (treeViewItem.Tag is CollectionTag)
-            {
-                this.currentCollection = treeViewItem;
-                this.currentClass = null;
-            }
-            else
-            {
-                this.currentCollection = null;
-                this.currentClass = treeViewItem;
-            }
+            this.SetCurrent(e.Source as TreeViewItem, false);
         }
 
         private void OpenNewTab()
         {
             if (this.currentCollection != null)
             {
-                var collection = (this.currentCollection.Tag as CollectionTag).Collection;
+                var collection = this.currentCollection.Collection();
 
                 if (!this.Tabs.Items.Cast<TabItem>().Any(x => (x.Header as TabHeader).Text == collection.ShortPath))
                 {
@@ -809,8 +826,7 @@ namespace AttribulatorUI
                 }
             }
 
-            var tag = item.Tag as CollectionTag;
-            var properties = tag.Collection.GetData();
+            var properties = item.Collection().GetData();
             if (search.FieldEnabled)
             {
                 bool fieldFound = false;
@@ -1176,22 +1192,7 @@ namespace AttribulatorUI
 
         private void TreeView_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
         {
-            var source = e.Source as TreeViewItem;
-            if (source != null)
-            {
-                if (source.Tag is ClassTag)
-                {
-                    this.currentClass = source;
-                    this.currentCollection = null;
-                    this.CreateClassContextMenu();
-                }
-                else
-                {
-                    this.currentCollection = source;
-                    this.currentClass = null;
-                    this.CreateCollectionContextMenu();
-                }
-            }
+            this.SetCurrent(e.Source as TreeViewItem, true);
         }
 
         private void MenuItem_Hasher_Click(object sender, RoutedEventArgs e)
