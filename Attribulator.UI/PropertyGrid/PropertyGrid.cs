@@ -1,7 +1,6 @@
 ﻿using AttribulatorUI;
 using System;
 using System.Collections;
-using System.Diagnostics;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -23,32 +22,6 @@ namespace Attribulator.UI.PropertyGrid
             }
 
             return new PrimitiveItem(parent, name, prop, padding);
-        }
-    }
-
-    public class EditFieldItem : Control
-    {
-        public string FieldName { get; private set; }
-
-        public bool IsChecked { get; private set; }
-
-        public EditFieldItem(string name, bool isChecked)
-        {
-            this.FieldName = name;
-            this.IsChecked = isChecked;
-        }
-
-        public override void OnApplyTemplate()
-        {
-            base.OnApplyTemplate();
-
-            var nameTextBlock = this.GetTemplateChild("PART_Name") as TextBlock;
-            nameTextBlock.Text = this.FieldName;
-
-            var checkbox = this.GetTemplateChild("PART_Checkbox") as CheckBox;
-            checkbox.IsChecked = this.IsChecked;
-            checkbox.Checked += (s, e) => this.IsChecked = true;
-            checkbox.Unchecked += (s, e) => this.IsChecked = false;
         }
     }
 

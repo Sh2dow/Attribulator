@@ -1,5 +1,6 @@
 ﻿using AttribulatorUI;
 using System.ComponentModel;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using VaultLib.Core.Data;
@@ -64,6 +65,79 @@ namespace Attribulator.UI
     public class WelcomeScreen : Control
     {
 
+    }
+
+    public class EditFieldItem : Control
+    {
+        public string FieldName { get; private set; }
+
+        public bool IsChecked { get; private set; }
+
+        public EditFieldItem(string name, bool isChecked)
+        {
+            this.FieldName = name;
+            this.IsChecked = isChecked;
+        }
+
+        public override void OnApplyTemplate()
+        {
+            base.OnApplyTemplate();
+
+            var nameTextBlock = this.GetTemplateChild("PART_Name") as TextBlock;
+            nameTextBlock.Text = this.FieldName;
+
+            var checkbox = this.GetTemplateChild("PART_Checkbox") as CheckBox;
+            checkbox.IsChecked = this.IsChecked;
+            checkbox.Checked += (s, e) => this.IsChecked = true;
+            checkbox.Unchecked += (s, e) => this.IsChecked = false;
+        }
+    }
+
+    public class CommandModel
+    {
+        public string Line { get; set; }
+
+        public string File { get; set; }
+
+        public long LineNumber { get; set; }
+    }
+
+    public class ScriptErrorItem : Control
+    {
+        private string message;
+        private string file;
+        private string line;
+        private long lineNumber;
+
+        public ScriptErrorItem(string message, string file, long lineNumber, string line)
+        {
+            this.message = message;
+            this.file = file;
+            this.line = line;
+            this.lineNumber = lineNumber;
+        }
+
+        public override void OnApplyTemplate()
+        {
+            if (string.IsNullOrEmpty(this.file))
+            {
+                var grid = this.GetTemplateChild("PART_Grid") as Grid;
+                grid.ColumnDefinitions[0].Width = new GridLength(0, GridUnitType.Pixel);
+            }
+            else
+            {
+                var fileTextBlock = this.GetTemplateChild("PART_File") as TextBlock;
+                fileTextBlock.Text = this.file;
+                fileTextBlock.ToolTip = this.file;
+            }
+
+            var messageTextBlock = this.GetTemplateChild("PART_Message") as TextBlock;
+            messageTextBlock.Text = this.message;
+            messageTextBlock.ToolTip = this.line;
+
+            var lineNumberTextBlock = this.GetTemplateChild("PART_LineNumber") as TextBlock;
+            lineNumberTextBlock.Text = this.lineNumber.ToString();
+        }
     }
 
     public class BaseTag

@@ -6,13 +6,13 @@ namespace Attribulator.UI.Windows
 {
     public partial class ScriptErrorWindow : Window
     {
-        public ScriptErrorWindow(IEnumerable<string> errors)
+        public ScriptErrorWindow(IEnumerable<ScriptErrorItem> errors)
         {
             InitializeComponent();
 
-            foreach (string error in errors)
+            foreach (var error in errors)
             {
-                this.ErrorStack.Items.Add(error);
+                this.ErrorStack.Items.Add(new ListBoxItem { Content = error });
             }
         }
 

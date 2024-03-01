@@ -26,7 +26,7 @@
             <RowDefinition Height="50px"/>
         </Grid.RowDefinitions>
 
-        <TextBlock Grid.Row="0" VerticalAlignment="Center" FontWeight="Bold" Foreground="Red" Margin="10 0 0 0">The mod has been installed hovewer the following errors occurred during instalation:</TextBlock>
+        <TextBlock Grid.Row="0" VerticalAlignment="Center" FontWeight="Bold" Foreground="Red" Margin="10 0 0 0">The script has been executed hovewer the following errors occurred:</TextBlock>
 
         <ListBox x:Name="ErrorStack" Grid.Row="1"/>
 

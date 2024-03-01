@@ -1,5 +1,4 @@
-﻿using Attribulator.UI.PropertyGrid;
-using AttribulatorUI;
+﻿using AttribulatorUI;
 using System;
 using System.Collections.Generic;
 using System.Linq;

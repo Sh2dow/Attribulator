@@ -14,6 +14,8 @@ namespace Attribulator.ModScript.API
         /// <returns>A stream of <see cref="IModScriptCommand" /> objects.</returns>
         IEnumerable<IModScriptCommand> ParseCommands(IEnumerable<string> commands);
 
+        IModScriptCommand ParseCommand(string command, long lineNumber);
+
         /// <summary>
         ///     Registers a new command type under the given name.
         /// </summary>

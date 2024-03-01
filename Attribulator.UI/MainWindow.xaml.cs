@@ -113,7 +113,7 @@ namespace AttribulatorUI
 
         private void SetTitle()
         {
-            this.Title = $"OGVI v1.1 by ARCHIE";
+            this.Title = $"OGVI v1.2 by ARCHIE";
             var selectedGame = this.settings.Root.SelectedGame;
             if (selectedGame != null)
             {
@@ -614,32 +614,32 @@ namespace AttribulatorUI
             if (this.database != null && this.ScriptEditor.Text.Length > 0)
             {
                 var lines = this.ScriptEditor.Text.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries);
-                this.ExecuteScript(lines);
+                List<CommandModel> commands = new List<CommandModel>();
+                for (int i = 0; i < lines.Length; i++)
+                {
+                    commands.Add(new CommandModel { Line = lines[i], LineNumber = i + 1 });
+                }
+
+                this.ExecuteScript(commands);
                 this.StatusLabel.Content = "Executed script";
             }
         }
 
-        private void ExecuteScript(IEnumerable<string> lines)
+        private void ExecuteScript(IEnumerable<CommandModel> commandModels)
         {
-            var errors = new List<string>();
+            var errors = new List<ScriptErrorItem>();
 
-            try
+            foreach (var commandModel in commandModels)
             {
-                foreach (var command in this.modScriptService.ParseCommands(lines))
+                try
                 {
-                    try
-                    {
-                        command.Execute(this.modScriptDatabase);
-                    }
-                    catch (Exception e)
-                    {
-                        errors.Add(e.Message);
-                    }
+                    var command = this.modScriptService.ParseCommand(commandModel.Line, commandModel.LineNumber);
+                    command.Execute(this.modScriptDatabase);
                 }
-            }
-            catch (Exception e)
-            {
-                errors.Add(e.Message);
+                catch (Exception e)
+                {
+                    errors.Add(new ScriptErrorItem(e.Message, commandModel.File, commandModel.LineNumber, commandModel.Line));
+                }
             }
 
             if (errors.Count > 0)

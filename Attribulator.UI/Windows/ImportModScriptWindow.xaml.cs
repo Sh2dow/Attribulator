@@ -9,7 +9,7 @@ namespace Attribulator.UI
 {
     public partial class ImportModScriptWindow : Window
     {
-        public List<string> ResultScript { get; private set; } = new List<string>();
+        public List<CommandModel> ResultScript { get; private set; } = new List<CommandModel>();
 
         private string[] initialScript;
 
@@ -119,20 +119,20 @@ namespace Attribulator.UI
             }
         }
 
-        private void PopulateResultScript(string[] lines, string currentScriptFolder)
+        private void PopulateResultScript(string[] lines, string currentScriptFolder, string scriptFile)
         {
             bool skip = false;
             bool inOption = false;
-            foreach (string line in lines)
+            for (int i = 0; i < lines.Length; i++)
             {
+                var command = lines[i].Trim();
+
                 try
                 {
-                    if (string.IsNullOrEmpty(line))
+                    if (string.IsNullOrEmpty(command))
                     {
                         continue;
                     }
-
-                    var command = line.Trim();
 
                     if (command.StartsWith("ui_option"))
                     {
@@ -175,7 +175,8 @@ namespace Attribulator.UI
                     if (command.StartsWith("script", StringComparison.OrdinalIgnoreCase))
                     {
                         var subScript = Path.Combine(currentScriptFolder, command.Substring("script ".Length).Trim('"'));
-                        this.PopulateResultScript(File.ReadAllLines(subScript), Path.GetDirectoryName(subScript));
+                        string file = subScript.Replace(this.scriptFolder + "\\", "");
+                        this.PopulateResultScript(File.ReadAllLines(subScript), Path.GetDirectoryName(subScript), file);
                     }
                     else
                     {
@@ -191,13 +192,13 @@ namespace Attribulator.UI
 
                         if (!ignore)
                         {
-                            this.ResultScript.Add(command);
+                            this.ResultScript.Add(new CommandModel { Line = command, File = scriptFile, LineNumber = i + 1 });
                         }
                     }
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show("Invalid script line:\n" + line, "Script import error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    MessageBox.Show($"Invalid script line", "Script import error", MessageBoxButton.OK, MessageBoxImage.Warning);
                     this.ResultScript.Clear();
                     break;
                 }
@@ -206,7 +207,8 @@ namespace Attribulator.UI
 
         private void Button_Import_Click(object sender, RoutedEventArgs e)
         {
-            this.PopulateResultScript(this.initialScript, this.scriptFolder);
+            string file = this.scriptPath.Replace(this.scriptFolder + "\\", "");
+            this.PopulateResultScript(this.initialScript, this.scriptFolder, file);
             this.DialogResult = true;
             this.Close();
         }

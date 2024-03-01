@@ -294,10 +294,10 @@
         </Setter>
     </Style>
 
-    <Style TargetType="{x:Type local:EditFieldItem}">
+    <Style TargetType="{x:Type ui:EditFieldItem}">
         <Setter Property="Template">
             <Setter.Value>
-                <ControlTemplate TargetType="{x:Type local:EditFieldItem}">
+                <ControlTemplate TargetType="{x:Type ui:EditFieldItem}">
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="20px"/>
@@ -306,6 +306,26 @@
 
                         <CheckBox x:Name="PART_Checkbox" Grid.Column="0" HorizontalAlignment="Right"/>
                         <TextBlock x:Name="PART_Name" Grid.Column="1" Margin="5,0,0,0"/>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style TargetType="{x:Type ui:ScriptErrorItem}">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type ui:ScriptErrorItem}">
+                    <Grid x:Name="PART_Grid">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="200px"/>
+                            <ColumnDefinition Width="40px"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock x:Name="PART_File" Grid.Column="0" />
+                        <TextBlock x:Name="PART_LineNumber" Grid.Column="1" HorizontalAlignment="Right"/>
+                        <TextBlock x:Name="PART_Message" Grid.Column="2" Margin="5,0,0,0"/>
                     </Grid>
                 </ControlTemplate>
             </Setter.Value>

@@ -14,7 +14,7 @@
         <Label Content="OGVI" HorizontalAlignment="Center" Margin="0,10,0,0" VerticalAlignment="Top" FontWeight="Bold" FontSize="36"/>
         <Label Content="An open source graphical interface for vault editing" HorizontalAlignment="Center" Margin="0,68,0,0" VerticalAlignment="Top" FontSize="14"/>
         <Label Content="Made by ARCHIE" HorizontalAlignment="Left" Margin="10,111,0,0" VerticalAlignment="Top"/>
-        <Label Content="version 1.1" HorizontalAlignment="Right" Margin="0,0,10,10" VerticalAlignment="Bottom"/>
+        <Label Content="version 1.2" HorizontalAlignment="Right" Margin="0,0,10,10" VerticalAlignment="Bottom"/>
         <Label Content="Credits:" HorizontalAlignment="Left" Margin="10,148,0,0" VerticalAlignment="Top"/>
         <Label Content="🞄 Attribulator by NFSTools" HorizontalAlignment="Left" Margin="10,170,0,0" VerticalAlignment="Top"/>
         <Label Content="🞄 VaultLib by NFSTools" HorizontalAlignment="Left" Margin="10,193,0,0" VerticalAlignment="Top"/>
