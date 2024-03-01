@@ -529,10 +529,13 @@ namespace AttribulatorUI
 
             var windowSettings = this.settings.Root.Window;
             windowSettings.Maximized = this.WindowState == WindowState.Maximized;
-            windowSettings.Top = this.Top;
-            windowSettings.Left = this.Left;
-            windowSettings.Height = this.Height;
-            windowSettings.Width = this.Width;            
+            if (this.WindowState == WindowState.Normal)
+            {
+                windowSettings.Top = this.Top;
+                windowSettings.Left = this.Left;
+                windowSettings.Height = this.Height;
+                windowSettings.Width = this.Width;
+            }
 
             this.settings.Save();
         }
