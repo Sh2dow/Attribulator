@@ -761,13 +761,17 @@ namespace AttribulatorUI
                 {
                     string newName = newNodeWindow.ResultName;
                     var newCollection = this.database.RowManager.FindCollectionByName(className, newName);
-                    this.currentClass.Items.Add(new TreeViewItem
+                    var newNode = new TreeViewItem
                     {
                         Tag = new CollectionTag(newCollection, this.currentClass),
                         Header = newName,
                         ContextMenu = this.collectionContextMenu
-                    });
+                    };
+                    this.currentClass.Items.Add(newNode);
+                    newNode.IsSelected = true;
+                    newNode.BringIntoView();
                     this.StatusLabel.Content = $"Added node: {newCollection.ShortPath}";
+                    return;
                 }
             }
 
@@ -780,12 +784,15 @@ namespace AttribulatorUI
                 {
                     string newName = newNodeWindow.ResultName;
                     var newCollection = this.database.RowManager.FindCollectionByName(className, newName);
-                    this.currentCollection.Items.Add(new TreeViewItem
+                    var newNode = new TreeViewItem
                     {
                         Tag = new CollectionTag(newCollection, this.currentCollection),
                         Header = newName,
                         ContextMenu = this.collectionContextMenu
-                    });
+                    };
+                    this.currentCollection.Items.Add(newNode);
+                    newNode.IsSelected = true;
+                    newNode.BringIntoView();
                     this.StatusLabel.Content = $"Added node: {newCollection.ShortPath}";
                 }
             }
