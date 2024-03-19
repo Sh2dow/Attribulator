@@ -140,7 +140,7 @@ namespace AttribulatorUI
 
         private void SetTitle()
         {
-            this.Title = $"OGVI v1.2 by ARCHIE";
+            this.Title = $"OGVI v1.3 by ARCHIE";
             var selectedGame = this.settings.Root.SelectedGame;
             if (selectedGame != null)
             {
@@ -242,7 +242,7 @@ namespace AttribulatorUI
                 this.database = new Database(new DatabaseOptions(profile.GetGameId(), profile.GetDatabaseType()));
                 this.files = profile.LoadFiles(database, this.gameGlobalFolder);
                 this.database.CompleteLoad();
-                this.modScriptDatabase = new DatabaseHelper(this.database);
+                this.modScriptDatabase = new DatabaseHelper(this.database, this.files);
 
                 this.PopulateTreeView();
                 if (!this.folderMode)

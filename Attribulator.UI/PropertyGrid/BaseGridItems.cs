@@ -1,4 +1,5 @@
-﻿using AttribulatorUI;
+﻿using Attribulator.UI.Windows;
+using AttribulatorUI;
 using System;
 using System.ComponentModel;
 using System.Globalization;
@@ -71,6 +72,7 @@ namespace Attribulator.UI.PropertyGrid
         protected string name;
         private string lastValue;
         private int padding;
+        private TextBox textBox;
 
         public BaseEditItem(IParent parent, string name, int padding)
         {
@@ -83,41 +85,60 @@ namespace Attribulator.UI.PropertyGrid
         {
             base.OnApplyTemplate();
 
+            textBox = this.GetTemplateChild("PART_TextBox") as TextBox;
             var contextMenu = this.CreateContextMenu();
+            var val = this.GetValue();
+            var type = val.GetType();
+            if (type == typeof(uint))
+            {
+                var menuItem = new MenuItem();
+                menuItem.Header = "Edit as color (RGBA)";
+                menuItem.Click += (sender, e) =>
+                {
+                    var val = this.GetValue();
+                    var colorDialog = new ColorPickerWindow(Convert.ToUInt32(val));
+                    if (colorDialog.ShowDialog().Value)
+                    {
+                        textBox.Text = colorDialog.Result.ToString();
+                        this.TextBoxUpdated(null, null);
+                    }
+                };
+                contextMenu.Items.Add(menuItem);
+            }
 
             var textBlock = this.GetTemplateChild("PART_TextBlock") as TextBlock;
             textBlock.Text = this.name;
             textBlock.Padding = new Thickness(this.padding, 0, 0, 0);
             textBlock.ContextMenu = contextMenu;
 
-            var textBox = this.GetTemplateChild("PART_TextBox") as TextBox;
-            var val = this.GetValue();
             textBox.Text = val?.ToString(CultureInfo.InvariantCulture);
             textBox.ContextMenu = contextMenu;
             this.lastValue = textBox.Text;
-            textBox.LostFocus += (s, e) =>
+            textBox.LostFocus += this.TextBoxUpdated;
+        }
+
+        private void TextBoxUpdated(object sender, RoutedEventArgs e)
+        {
+            var val = this.GetValue();
+            var type = val.GetType();
+            try
             {
-                var val = this.GetValue();
-                var type = val.GetType();
-                try
+                if (textBox.Text != this.lastValue)
                 {
-                    if (textBox.Text != this.lastValue)
-                    {
-                        var converter = TypeDescriptor.GetConverter(type);
-                        var result = converter.ConvertFromInvariantString(textBox.Text);
-                        this.SetValue(result as IConvertible);
-                        this.lastValue = textBox.Text;
-                        MainWindow.UnsavedChanges = true;
-                        this.GenerateUpdateCommand(textBox.Text);
-                        (this.parent as IParentUpdate)?.Update();
-                    }
+                    var converter = TypeDescriptor.GetConverter(type);
+                    var result = converter.ConvertFromInvariantString(textBox.Text);
+                    this.SetValue(result as IConvertible);
+                    this.lastValue = textBox.Text;
+                    MainWindow.UnsavedChanges = true;
+                    this.GenerateUpdateCommand(textBox.Text);
+                    (this.parent as IParentUpdate)?.Update();
                 }
-                catch
-                {
-                    MessageBox.Show($"{textBox.Text} is not a valid value for {type}", "Property error", MessageBoxButton.OK, MessageBoxImage.Warning);
-                    textBox.Text = this.lastValue;
-                }
-            };
+            }
+            catch
+            {
+                MessageBox.Show($"{textBox.Text} is not a valid value for {type}", "Property error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                textBox.Text = this.lastValue;
+            }
         }
 
         protected override string GetStringValue()
