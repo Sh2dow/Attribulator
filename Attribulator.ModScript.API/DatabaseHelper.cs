@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using Attribulator.API.Data;
 using Attribulator.ModScript.API.Utils;
 using VaultLib.Core;
 using VaultLib.Core.Data;
@@ -11,15 +12,17 @@ namespace Attribulator.ModScript.API
 {
     public class DatabaseHelper
     {
-        public DatabaseHelper(Database database)
+        public DatabaseHelper(Database database, IEnumerable<LoadedFile> files = null)
         {
             Database = database;
             Collections = database.RowManager.GetFlattenedCollections().ToDictionary(c => c.ShortPath, c => c);
+            Files = files;
         }
 
         public Dictionary<string, VltCollection> Collections { get; }
         public Database Database { get; }
         public List<Vault> Vaults => Database.Vaults;
+        public IEnumerable<LoadedFile> Files;
 
         public VltCollection FindCollectionByName(string className, string collectionName)
         {

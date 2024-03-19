@@ -21,7 +21,7 @@ namespace Attribulator.API.Data
         /// <summary>
         /// Gets the vaults loaded from the file.
         /// </summary>
-        public IEnumerable<Vault> Vaults { get; }
+        public IList<Vault> Vaults { get; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="LoadedFile"/> class.
@@ -29,7 +29,7 @@ namespace Attribulator.API.Data
         /// <param name="name">The name of the file.</param>
         /// <param name="group"></param>
         /// <param name="vaults">The list of vaults in the file.</param>
-        public LoadedFile(string name, string group, IEnumerable<Vault> vaults)
+        public LoadedFile(string name, string group, IList<Vault> vaults)
         {
             this.Name = name;
             this.Group = group;
