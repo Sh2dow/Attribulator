@@ -6,7 +6,8 @@
         <Description>Plugin providing ModScript support for Attribulator</Description>
         <Platforms>x86</Platforms>
         <Product>Attribulator - ModScript Support</Product>
-        <TargetFramework>netcoreapp3.1</TargetFramework>
+        <LangVersion>default</LangVersion>
+        <TargetFramework>net8.0-windows</TargetFramework>
         <Version>2.0.0</Version>
     </PropertyGroup>
 
@@ -16,13 +17,13 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="CommandLineParser" Version="2.8.0" />
-        <PackageReference Include="JetBrains.Annotations" Version="2020.1.0" />
-        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="2.0.0" />
+        <PackageReference Include="CommandLineParser" Version="2.9.2-ci-210" />
+        <PackageReference Include="JetBrains.Annotations" Version="2023.3.0" />
+        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.0-preview.2.24128.5" />
     </ItemGroup>
 
     <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-      <Exec Command="xcopy /Y $(OutDir) $(SolutionDir)Attribulator.UI\bin\$(Configuration)\netcoreapp3.1\plugins\Attribulator.Plugins.ModScript" />
+      <Exec Command="xcopy /Y $(OutDir) $(SolutionDir)Attribulator.UI\bin\$(Configuration)\net8.0-windows\plugins\Attribulator.Plugins.ModScript" />
     </Target>
 
 </Project>

@@ -6,7 +6,8 @@
         <Description>Plugin providing profiles for the Speed engine games</Description>
         <Platforms>x86</Platforms>
         <Product>Attribulator - Speed Profiles</Product>
-        <TargetFramework>netcoreapp3.1</TargetFramework>
+        <LangVersion>default</LangVersion>
+        <TargetFramework>net8.0-windows</TargetFramework>
         <Version>2.0.0</Version>
         <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     </PropertyGroup>
@@ -31,7 +32,7 @@
     </ItemGroup>
 
     <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-      <Exec Command="xcopy /Y $(OutDir) $(SolutionDir)Attribulator.UI\bin\$(Configuration)\netcoreapp3.1\plugins\Attribulator.Plugins.SpeedProfiles" />
+      <Exec Command="xcopy /Y $(OutDir) $(SolutionDir)Attribulator.UI\bin\$(Configuration)\net8.0-windows\plugins\Attribulator.Plugins.SpeedProfiles" />
     </Target>
 
 </Project>

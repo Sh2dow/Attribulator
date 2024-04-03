@@ -30,7 +30,7 @@ namespace Attribulator.Plugins.ModScript.Commands
 
             RemoveCollectionFromCache(collection);
             databaseHelper.RenameCollection(collection, NewName);
-            HashManager.AddUserHash(NewName);
+            HashManager.AddVLT(NewName);
         }
     }
 }

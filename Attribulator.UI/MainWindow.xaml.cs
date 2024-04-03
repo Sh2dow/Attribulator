@@ -65,9 +65,9 @@ namespace AttribulatorUI
 
             this.settings = new Settings();
             this.Search = new SearchResult();
-            this.Search.Settings = this.settings.Root.Search;
+            this.Search.Settings = this.settings.Root?.Search;
 
-            ThemesController.SetTheme(settings.Root.Theme);
+            if (settings.Root != null) ThemesController.SetTheme(settings.Root.Theme);
         }
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
@@ -97,7 +97,7 @@ namespace AttribulatorUI
 
                 this.modScriptService = this.serviceProvider.GetRequiredService<IModScriptService>();
 
-                this.ScriptEditor.Text = this.settings.Root.Srcipt;
+                this.ScriptEditor.Text = this.settings?.Root.Script;
 
                 this.PopulateGameMenuItems();
                 this.CreateWelcomeScreen();
@@ -113,17 +113,21 @@ namespace AttribulatorUI
 
         private void Window_SourceInitialized(object sender, EventArgs e)
         {
-            var windowSettings = this.settings.Root.Window;
+            var windowSettings = this.settings?.Root?.Window;
             if (windowSettings == null)
             {
-                this.settings.Root.Window = new WindowSettings
+                if (this.settings.Root == null)
                 {
-                    Top = this.Top,
-                    Left = this.Left,
-                    Height = this.Height,
-                    Width = this.Width,
-                    Maximized = false
-                };
+                    this.settings.Root = new RootSettings();
+                    this.settings.Root.Window = new WindowSettings
+                    {
+                        Top = this.Top,
+                        Left = this.Left,
+                        Height = this.Height,
+                        Width = this.Width,
+                        Maximized = false
+                    };
+                }
             }
             else
             {
@@ -194,7 +198,8 @@ namespace AttribulatorUI
             }
             else
             {
-                MessageBox.Show("Please select game profile first", "No game profile selected", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show("Please select game profile first", "No game profile selected", MessageBoxButton.OK,
+                    MessageBoxImage.Information);
             }
         }
 
@@ -218,7 +223,8 @@ namespace AttribulatorUI
             }
             else
             {
-                MessageBox.Show("Please select game profile first", "No game profile selected", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show("Please select game profile first", "No game profile selected", MessageBoxButton.OK,
+                    MessageBoxImage.Information);
             }
         }
 
@@ -314,7 +320,8 @@ namespace AttribulatorUI
         {
             if (MainWindow.UnsavedChanges)
             {
-                var result = MessageBox.Show("There are unsaved changes. Do you really want to proceed?", "Unsaved changes", MessageBoxButton.YesNo, MessageBoxImage.Question);
+                var result = MessageBox.Show("There are unsaved changes. Do you really want to proceed?",
+                    "Unsaved changes", MessageBoxButton.YesNo, MessageBoxImage.Question);
                 return result == MessageBoxResult.No;
             }
 
@@ -501,7 +508,8 @@ namespace AttribulatorUI
         {
             if (this.folderMode)
             {
-                MessageBox.Show("No game exe selected", "Unable to run the game", MessageBoxButton.OK, MessageBoxImage.Information);
+                MessageBox.Show("No game exe selected", "Unable to run the game", MessageBoxButton.OK,
+                    MessageBoxImage.Information);
             }
             else if (!string.IsNullOrEmpty(this.gameExe))
             {
@@ -523,9 +531,8 @@ namespace AttribulatorUI
 
         private void Window_Closed(object sender, EventArgs e)
         {
-            HashManager.Save();
-
-            this.settings.Root.Srcipt = this.ScriptEditor.Text;
+            // HashManager.Save();
+            this.settings.Root.Script = this.ScriptEditor.Text;
 
             var windowSettings = this.settings.Root.Window;
             windowSettings.Maximized = this.WindowState == WindowState.Maximized;
@@ -553,6 +560,7 @@ namespace AttribulatorUI
                 this.CloseGame();
                 this.Open(gameExe);
             }
+
             this.StatusLabel.Content = "Reloaded";
         }
 
@@ -611,7 +619,8 @@ namespace AttribulatorUI
                     var dirs = Directory.GetDirectories(this.backupsFolder);
                     if (dirs.Length > 0)
                     {
-                        string backup = dirs.Where(x => !x.Contains("SaveBackup")).OrderByDescending(x => Path.GetFileName(x)).FirstOrDefault();
+                        string backup = dirs.Where(x => !x.Contains("SaveBackup"))
+                            .OrderByDescending(x => Path.GetFileName(x)).FirstOrDefault();
                         if (!string.IsNullOrEmpty(backup))
                         {
                             this.Restore(backup);
@@ -636,7 +645,8 @@ namespace AttribulatorUI
                 }
 
                 this.StatusLabel.Content = $"Restored backup: {folderName}";
-                var result = MessageBox.Show("Backup successfully restored, do you want to reload database?", "Backup restored", MessageBoxButton.YesNo, MessageBoxImage.Question);
+                var result = MessageBox.Show("Backup successfully restored, do you want to reload database?",
+                    "Backup restored", MessageBoxButton.YesNo, MessageBoxImage.Question);
                 if (result == MessageBoxResult.Yes)
                 {
                     this.Command_Reload(null, null);
@@ -652,7 +662,8 @@ namespace AttribulatorUI
         {
             if (this.database != null && this.ScriptEditor.Text.Length > 0)
             {
-                var lines = this.ScriptEditor.Text.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries);
+                var lines = this.ScriptEditor.Text.Split(new[] { "\r\n", "\r", "\n" },
+                    StringSplitOptions.RemoveEmptyEntries);
                 List<CommandModel> commands = new List<CommandModel>();
                 for (int i = 0; i < lines.Length; i++)
                 {
@@ -677,7 +688,8 @@ namespace AttribulatorUI
                 }
                 catch (Exception e)
                 {
-                    errors.Add(new ScriptErrorItem(e.Message, commandModel.File, commandModel.LineNumber, commandModel.Line));
+                    errors.Add(new ScriptErrorItem(e.Message, commandModel.File, commandModel.LineNumber,
+                        commandModel.Line));
                 }
             }
 
@@ -847,7 +859,9 @@ namespace AttribulatorUI
         }
 
         private SolidColorBrush SearchHighlight => (SolidColorBrush)FindResource("ABrush.Search.Highlight");
-        private SolidColorBrush SearchParentHighlight => (SolidColorBrush)FindResource("ABrush.Search.Parent.Highlight");
+
+        private SolidColorBrush SearchParentHighlight =>
+            (SolidColorBrush)FindResource("ABrush.Search.Parent.Highlight");
 
         private void HighlightParent(TreeViewItem item)
         {
@@ -905,7 +919,8 @@ namespace AttribulatorUI
                 bool valueFound = false;
                 foreach (var property in properties)
                 {
-                    if (property.Value.ToString().Contains(search.ValueText, StringComparison.InvariantCultureIgnoreCase))
+                    if (property.Value.ToString()
+                        .Contains(search.ValueText, StringComparison.InvariantCultureIgnoreCase))
                     {
                         valueFound = true;
                         break;
@@ -1027,7 +1042,8 @@ namespace AttribulatorUI
         {
             if (this.currentCollection != null && this.currentCollection.Collection().Class.Name == "gameplay")
             {
-                if (new ChangeVaultWindow(this.currentCollection.Collection(), this.CreateImageSource("Settings.png")).ShowDialog().Value)
+                if (new ChangeVaultWindow(this.currentCollection.Collection(), this.CreateImageSource("Settings.png"))
+                    .ShowDialog().Value)
                 {
                     this.GetSelectedGrid()?.Draw();
                     this.StatusLabel.Content = "Changed vault";
@@ -1114,7 +1130,8 @@ namespace AttribulatorUI
                 if (this.currentCollection != null)
                 {
                     var collection = this.collectionToCopy.Collection();
-                    command = $"{collection.Class.Name} {this.collectionToCopy.Collection().Name} {this.currentCollection.Collection().Name}";
+                    command =
+                        $"{collection.Class.Name} {this.collectionToCopy.Collection().Name} {this.currentCollection.Collection().Name}";
                     newParentItem = this.currentCollection;
                 }
 
@@ -1138,7 +1155,8 @@ namespace AttribulatorUI
                     }
                     else
                     {
-                        var copyWindow = new CopyNodeWindow(this.CreateImageSource("Paste.png"), this.collectionToCopy.Collection().Name, command);
+                        var copyWindow = new CopyNodeWindow(this.CreateImageSource("Paste.png"),
+                            this.collectionToCopy.Collection().Name, command);
                         if (copyWindow.ShowDialog().Value)
                         {
                             var newCollection = this.HandleAddCommand(newParentItem, copyWindow.Result);
@@ -1214,7 +1232,8 @@ namespace AttribulatorUI
             menuItem.InputGestureText = "Ctrl+X";
             contextMenu.Items.Add(menuItem);
 
-            if (this.collectionToCopy != null && this.collectionToCopy.Collection().Class == this.currentCollection.Collection().Class)
+            if (this.collectionToCopy != null &&
+                this.collectionToCopy.Collection().Class == this.currentCollection.Collection().Class)
             {
                 menuItem = new MenuItem();
                 menuItem.Header = $"Paste ({this.collectionToCopy.Header})";
@@ -1282,7 +1301,7 @@ namespace AttribulatorUI
             if (this.currentCollection != null)
             {
                 return this.Tabs.Items.Cast<TabItem>().Select(x => x.Content as MainGrid)
-                     .FirstOrDefault(x => x.Collection == this.currentCollection.Collection());
+                    .FirstOrDefault(x => x.Collection == this.currentCollection.Collection());
             }
 
             return null;
@@ -1293,7 +1312,7 @@ namespace AttribulatorUI
         private TabItem GetTab(VltCollection collection)
         {
             return this.Tabs.Items.Cast<TabItem>()
-                 .FirstOrDefault(x => (x.Content as MainGrid).Collection == collection);
+                .FirstOrDefault(x => (x.Content as MainGrid).Collection == collection);
         }
 
         private void MenuItem_Settings_Click(object sender, RoutedEventArgs e)

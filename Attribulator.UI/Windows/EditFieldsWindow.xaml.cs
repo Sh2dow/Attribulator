@@ -20,7 +20,7 @@ namespace Attribulator.UI
             this.Title += collection.Name;
 
             var data = this.collection.GetData().Select(x => x.Key).ToList();
-            foreach (var field in collection.Class.OptionalFields.OrderBy(x => x.Name))
+            foreach (var field in collection.Class.StaticFields.OrderBy(x => x.Name))
             {
                 this.FieldStack.Items.Add(new ListBoxItem { Content = new EditFieldItem(field.Name, data.Contains(field.Name)) });
             }

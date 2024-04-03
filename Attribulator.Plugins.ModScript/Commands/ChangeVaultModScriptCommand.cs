@@ -54,7 +54,7 @@ namespace Attribulator.Plugins.ModScript.Commands
                 databaseHelper.Database.Vaults.Remove(oldVault);
             }
 
-            HashManager.AddUserHash(VaultName);
+            HashManager.AddVLT(VaultName);
         }
     }
 }
