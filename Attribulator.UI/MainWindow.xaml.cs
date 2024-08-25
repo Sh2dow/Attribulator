@@ -945,6 +945,7 @@ namespace AttribulatorUI
 
             item.Background = this.SearchHighlight;
             this.HighlightParent(item);
+			this.Search.Found++;
         }
 
         private void RedrawTabs()
@@ -980,7 +981,7 @@ namespace AttribulatorUI
 
         public void FindNext()
         {
-            if (this.Search.Executed)
+			if (this.Search.Executed && this.Search.Found > 0)
             {
                 var selectedItem = this.TreeView.SelectedItem as TreeViewItem;
                 if (selectedItem == null)
@@ -1039,6 +1040,7 @@ namespace AttribulatorUI
                 }
 
                 this.Search.Executed = false;
+				this.Search.Found = 0;
                 this.RedrawTabs();
             }
         }
