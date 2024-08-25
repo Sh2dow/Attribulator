@@ -19,10 +19,12 @@ namespace Attribulator.UI
                 this.executed = value;
                 if (this.PropertyChanged != null)
                 {
-                    this.PropertyChanged(this, new PropertyChangedEventArgs(nameof(Executed)));
+                    this.PropertyChanged(this, new PropertyChangedEventArgs(nameof(this.Executed)));
                 }
             }
         }
+
+        public int Found { get; set; }
 
         public SearchSettings Settings { get; set; }
 

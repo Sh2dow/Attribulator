@@ -7,8 +7,8 @@
     <PlatformTarget>x86</PlatformTarget>
     <ApplicationIcon>Resources\icon.ico</ApplicationIcon>
     <AssemblyName>OGVI</AssemblyName>
-    <FileVersion>1.3</FileVersion>
-    <AssemblyVersion>1.3</AssemblyVersion>
+    <FileVersion>1.4</FileVersion>
+    <AssemblyVersion>1.4</AssemblyVersion>
   </PropertyGroup>
 
   <ItemGroup>

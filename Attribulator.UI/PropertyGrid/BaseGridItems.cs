@@ -103,6 +103,8 @@ namespace Attribulator.UI.PropertyGrid
                         this.TextBoxUpdated(null, null);
                     }
                 };
+
+                contextMenu.Items.Add(new Separator());
                 contextMenu.Items.Add(menuItem);
             }
 
