@@ -846,8 +846,33 @@ namespace AttribulatorUI
             }
         }
 
-        private SolidColorBrush SearchHighlight => (SolidColorBrush)FindResource("ABrush.Search.Highlight");
-        private SolidColorBrush SearchParentHighlight => (SolidColorBrush)FindResource("ABrush.Search.Parent.Highlight");
+		private SolidColorBrush _searchHighlight;
+		private SolidColorBrush SearchHighlight
+		{
+			get
+			{
+				if (this._searchHighlight == null)
+				{
+					this._searchHighlight = (SolidColorBrush)FindResource("ABrush.Search.Highlight");
+				}
+
+				return this._searchHighlight;
+			}
+		}
+
+		private SolidColorBrush _searchParentHighlight;
+		private SolidColorBrush SearchParentHighlight
+		{
+			get
+			{
+				if (this._searchParentHighlight == null)
+				{
+					this._searchParentHighlight = (SolidColorBrush)FindResource("ABrush.Search.Parent.Highlight");
+				}
+
+				return this._searchParentHighlight;
+			}
+		}
 
         private void HighlightParent(TreeViewItem item)
         {
