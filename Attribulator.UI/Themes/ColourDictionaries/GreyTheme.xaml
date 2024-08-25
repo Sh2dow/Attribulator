@@ -101,6 +101,7 @@
 
     <Color x:Key="AColour.Search.Highlight"                    R="0" G="128" B="0" A="255"/>
     <Color x:Key="AColour.Search.Parent.Highlight"             R="85" G="107" B="47" A="255"/>
+    <Color x:Key="AColour.Cut.Highlight"                       R="230" G="157" B="97" A="255"/>
 
     <Color x:Key="AColour.Foreground.Static"                   R="210" G="210" B="210" A="255"/>
     <Color x:Key="AColour.Foreground.Deeper"                   R="200" G="200" B="200" A="255"/>
@@ -204,6 +205,7 @@
     
     <SolidColorBrush x:Key="ABrush.Search.Highlight"                       Color="{StaticResource AColour.Search.Highlight}"/>
     <SolidColorBrush x:Key="ABrush.Search.Parent.Highlight"                Color="{StaticResource AColour.Search.Parent.Highlight}"/>
+    <SolidColorBrush x:Key="ABrush.Cut.Highlight"                          Color="{StaticResource AColour.Cut.Highlight}"/>
 
     <SolidColorBrush x:Key="ABrush.AccentTone1.Background.Static"          Color="{StaticResource AColour.AccentTone1.Background.Static}"/>
     <SolidColorBrush x:Key="ABrush.AccentTone1.Border.Static"              Color="{StaticResource AColour.AccentTone1.Border.Static}"/>

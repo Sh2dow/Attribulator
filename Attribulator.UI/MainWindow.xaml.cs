@@ -103,12 +103,20 @@ namespace AttribulatorUI
 				this.CreateWelcomeScreen();
 
 				this.CheckSelectedGame();
+
+				this.InitSearchHighlistBrush();
 			}
 			catch (Exception ex)
 			{
 				MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
 				throw ex;
 			}
+		}
+
+		public void InitSearchHighlistBrush()
+		{
+			this.SearchHighlight = (SolidColorBrush)FindResource("ABrush.Search.Highlight");
+			this.SearchParentHighlight = (SolidColorBrush)FindResource("ABrush.Search.Parent.Highlight");
 		}
 
 		private void Window_SourceInitialized(object sender, EventArgs e)
@@ -329,18 +337,26 @@ namespace AttribulatorUI
 			}
 		}
 
+		private TreeViewItem CreateTreeViewItem(VltCollection collection, TreeViewItem node)
+		{
+			return new TreeViewItem
+			{
+				Tag = new CollectionTag(collection, node),
+				ContextMenu = this.collectionContextMenu,
+				Header = collection.Name,
+				BorderThickness = new Thickness(1, 1, 1, 1),
+				BorderBrush = Brushes.Transparent,
+				Padding = new Thickness(3, 0, 3, 0)
+			};
+		}
+
 		private void PopulateTreeNode(VltCollection collection, TreeViewItem node)
 		{
 			if (collection.Children.Count > 0)
 			{
 				foreach (var childCollection in collection.Children.OrderBy(x => x.Name))
 				{
-					var childNode = new TreeViewItem
-					{
-						Tag = new CollectionTag(childCollection, node),
-						ContextMenu = this.collectionContextMenu,
-						Header = childCollection.Name
-					};
+					var childNode = this.CreateTreeViewItem(childCollection, node);
 
 					node.Items.Add(childNode);
 					PopulateTreeNode(childCollection, childNode);
@@ -372,12 +388,7 @@ namespace AttribulatorUI
 					var collections = this.database.RowManager.EnumerateCollections(cls.Name).OrderBy(x => x.Name);
 					foreach (var collection in collections)
 					{
-						var childNode = new TreeViewItem
-						{
-							Tag = new CollectionTag(collection, classNode),
-							ContextMenu = this.collectionContextMenu,
-							Header = collection.Name
-						};
+						var childNode = this.CreateTreeViewItem(collection, classNode);
 
 						classNode.Items.Add(childNode);
 						PopulateTreeNode(collection, childNode);
@@ -855,33 +866,10 @@ namespace AttribulatorUI
 			}
 		}
 
-		private SolidColorBrush _searchHighlight;
-		private SolidColorBrush SearchHighlight
-		{
-			get
-			{
-				if (this._searchHighlight == null)
-				{
-					this._searchHighlight = (SolidColorBrush)FindResource("ABrush.Search.Highlight");
-				}
+		private SolidColorBrush SearchHighlight;
 
-				return this._searchHighlight;
-			}
-		}
+		private SolidColorBrush SearchParentHighlight;
 
-		private SolidColorBrush _searchParentHighlight;
-		private SolidColorBrush SearchParentHighlight
-		{
-			get
-			{
-				if (this._searchParentHighlight == null)
-				{
-					this._searchParentHighlight = (SolidColorBrush)FindResource("ABrush.Search.Parent.Highlight");
-				}
-
-				return this._searchParentHighlight;
-			}
-		}
 
 		private void HighlightParent(TreeViewItem item)
 		{
@@ -1100,7 +1088,16 @@ namespace AttribulatorUI
 		{
 			if (this.currentCollection != null)
 			{
+				if (this.collectionToCopy != null)
+				{
+					this.collectionToCopy.BorderBrush = Brushes.Transparent;
+				}
+
 				this.collectionToCopy = this.currentCollection;
+
+				this.collectionToCopy.BorderBrush = (SolidColorBrush)FindResource("ABrush.Cut.Highlight");
+				this.collectionToCopy.BorderThickness = new Thickness(1, 1, 1, 1);
+
 				this.cutNode = true;
 			}
 		}
