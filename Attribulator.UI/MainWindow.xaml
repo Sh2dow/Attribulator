@@ -118,6 +118,9 @@
                 <Separator />
                 <!--Here go games from settings-->
             </MenuItem>
+            <MenuItem Header="View">
+                <MenuItem Header="Close all tabs" Click="MenuItem_View_CloseTabs"/>
+            </MenuItem>
             <MenuItem Header="Search">
                 <MenuItem Header="Find" Command="Find">
                     <MenuItem.Icon>

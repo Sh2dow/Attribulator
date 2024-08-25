@@ -1376,5 +1376,10 @@ namespace AttribulatorUI
 				this.Collapse(item);
 			}
 		}
-	}
+
+		private void MenuItem_View_CloseTabs(object sender, RoutedEventArgs e)
+		{
+			this.Tabs.Items.Clear();
+		}
+    }
 }
