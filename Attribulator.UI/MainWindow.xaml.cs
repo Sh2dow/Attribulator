@@ -140,7 +140,7 @@ namespace AttribulatorUI
 
 		private void SetTitle()
 		{
-			this.Title = $"OGVI v1.3 by ARCHIE";
+			this.Title = $"OGVI v1.4 by ARCHIE";
 			var selectedGame = this.settings.Root.SelectedGame;
 			if (selectedGame != null)
 			{
@@ -350,36 +350,45 @@ namespace AttribulatorUI
 
 		public void PopulateTreeView()
 		{
+			this.TreeView.BeginInit();
+
 			this.TreeView.Items.Clear();
 			this.Tabs.Items.Clear();
 			this.currentClass = null;
 			this.currentCollection = null;
 
-			var classes = this.database.Classes.OrderBy(x => x.Name);
-			foreach (var cls in classes)
+			try
 			{
-				var classNode = new TreeViewItem
+				var classes = this.database.Classes.OrderBy(x => x.Name);
+				foreach (var cls in classes)
 				{
-					Tag = new ClassTag(cls, this.TreeView),
-					ContextMenu = this.classContextMenu,
-					Header = cls.Name
-				};
-
-				var collections = this.database.RowManager.EnumerateCollections(cls.Name).OrderBy(x => x.Name);
-				foreach (var collection in collections)
-				{
-					var childNode = new TreeViewItem
+					var classNode = new TreeViewItem
 					{
-						Tag = new CollectionTag(collection, classNode),
-						ContextMenu = this.collectionContextMenu,
-						Header = collection.Name
+						Tag = new ClassTag(cls, this.TreeView),
+						ContextMenu = this.classContextMenu,
+						Header = cls.Name
 					};
 
-					classNode.Items.Add(childNode);
-					PopulateTreeNode(collection, childNode);
-				}
+					var collections = this.database.RowManager.EnumerateCollections(cls.Name).OrderBy(x => x.Name);
+					foreach (var collection in collections)
+					{
+						var childNode = new TreeViewItem
+						{
+							Tag = new CollectionTag(collection, classNode),
+							ContextMenu = this.collectionContextMenu,
+							Header = collection.Name
+						};
 
-				this.TreeView.Items.Add(classNode);
+						classNode.Items.Add(childNode);
+						PopulateTreeNode(collection, childNode);
+					}
+
+					this.TreeView.Items.Add(classNode);
+				}
+			}
+			finally
+			{
+				this.TreeView.EndInit();
 			}
 		}
 
