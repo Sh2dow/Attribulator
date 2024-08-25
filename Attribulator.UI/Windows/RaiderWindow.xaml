@@ -5,6 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Attribulator.UI"
         mc:Ignorable="d"
+        FocusManager.FocusedElement="{Binding ElementName=InputTextBox}"
         ResizeMode="NoResize"
         WindowStyle="ToolWindow"
         Icon="/Resources/icon.ico"
