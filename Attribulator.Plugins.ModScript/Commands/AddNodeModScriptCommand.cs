@@ -43,8 +43,8 @@ namespace Attribulator.Plugins.ModScript.Commands
                 addToVault = parentCollection.Vault;
             else
                 addToVault = databaseHelper.Vaults.FirstOrDefault(vault =>
-                    databaseHelper.GetCollectionsInVault(vault.Value)
-                        .Any(collection => collection.Class.Name == ClassName)).Value;
+                    databaseHelper.GetCollectionsInVault(vault)
+                        .Any(collection => collection.Class.Name == ClassName));
 
             if (addToVault == null)
                 throw new CommandExecutionException("failed to determine vault to insert new collection into");
