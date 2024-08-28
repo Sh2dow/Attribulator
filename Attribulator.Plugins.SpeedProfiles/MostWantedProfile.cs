@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Attribulator.API;
@@ -36,7 +37,7 @@ namespace Attribulator.Plugins.SpeedProfiles
                 Directory.CreateDirectory(Path.Combine(directory, file.Group));
                 var outPath = Path.Combine(directory, file.Group, file.Name + ".bin");
                 using var bw = new BinaryWriter(File.Open(outPath, FileMode.Create, FileAccess.ReadWrite));
-                vaultPack.Save(bw, file.Vaults.ToList(), new PackSavingOptions());
+                vaultPack.Save(bw, file.Vaults.OrderBy(x => x.Name, StringComparer.Ordinal).ToList(), new PackSavingOptions());
                 bw.Close();
 
                 if (file.Name == "gameplay")

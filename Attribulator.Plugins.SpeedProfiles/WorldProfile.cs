@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -41,7 +42,7 @@ namespace Attribulator.Plugins.SpeedProfiles
         {
             foreach (var file in files)
             {
-                var vaultsToSave = file.Vaults.ToList();
+                var vaultsToSave = file.Vaults.OrderBy(x => x.Name, StringComparer.Ordinal).ToList();
 
                 IVaultPack vaultPack = new StandardVaultPack();
 
