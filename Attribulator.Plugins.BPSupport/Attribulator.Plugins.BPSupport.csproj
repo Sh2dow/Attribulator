@@ -12,7 +12,6 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="VaultLib.Core" Version="1.2.0" />
         <PackageReference Include="VaultLib.ModernBase" Version="1.2.0" />
     </ItemGroup>
 
@@ -24,6 +23,14 @@
 
     <ItemGroup>
         <ProjectReference Include="..\Attribulator.API\Attribulator.API.csproj" />
+        <ProjectReference Include="..\Modules\VaultLib\VaultLib.Core\VaultLib.Core.csproj" />
     </ItemGroup>
+
+    <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+        <Exec Command="if not exist $(SolutionDir)Attribulator.UI\bin\$(Configuration)\netcoreapp3.1\plugins\Attribulator.Plugins.BPSupport mkdir $(SolutionDir)Attribulator.UI\bin\$(Configuration)\netcoreapp3.1\plugins\Attribulator.Plugins.BPSupport" />
+        <Exec Command="xcopy /Y $(OutDir) $(SolutionDir)Attribulator.UI\bin\$(Configuration)\netcoreapp3.1\plugins\Attribulator.Plugins.BPSupport" />
+        <Exec Command="if not exist $(SolutionDir)Attribulator.UI\bin\$(Configuration)\netcoreapp3.1\plugins\Attribulator.Plugins.BPSupport\Resources mkdir $(SolutionDir)Attribulator.UI\bin\$(Configuration)\netcoreapp3.1\plugins\Attribulator.Plugins.BPSupport\Resources" />
+        <Exec Command="xcopy /Y Resources\hashes.txt $(SolutionDir)Attribulator.UI\bin\$(Configuration)\netcoreapp3.1\plugins\Attribulator.Plugins.BPSupport\Resources" />
+    </Target>
 
 </Project>

@@ -21,7 +21,8 @@
     </ItemGroup>
 
     <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-      <Exec Command="xcopy /Y $(OutDir) $(SolutionDir)Attribulator.UI\bin\$(Configuration)\netcoreapp3.1\plugins\Attribulator.Plugins.YAMLSupport" />
+        <Exec Command="if not exist $(SolutionDir)Attribulator.UI\bin\$(Configuration)\netcoreapp3.1\plugins\Attribulator.Plugins.YAMLSupport mkdir $(SolutionDir)Attribulator.UI\bin\$(Configuration)\netcoreapp3.1\plugins\Attribulator.Plugins.YAMLSupport" />
+        <Exec Command="xcopy /Y /E $(OutDir) $(SolutionDir)Attribulator.UI\bin\$(Configuration)\netcoreapp3.1\plugins\Attribulator.Plugins.YAMLSupport\" />
     </Target>
 
 </Project>

@@ -22,7 +22,8 @@
     </ItemGroup>
 
     <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-      <Exec Command="xcopy /Y $(OutDir) $(SolutionDir)Attribulator.UI\bin\$(Configuration)\netcoreapp3.1\plugins\Attribulator.Plugins.ModScript" />
+        <Exec Command="if not exist $(SolutionDir)Attribulator.UI\bin\$(Configuration)\netcoreapp3.1\plugins\Attribulator.Plugins.ModScript mkdir $(SolutionDir)Attribulator.UI\bin\$(Configuration)\netcoreapp3.1\plugins\Attribulator.Plugins.ModScript" />
+        <Exec Command="xcopy /Y $(OutDir) $(SolutionDir)Attribulator.UI\bin\$(Configuration)\netcoreapp3.1\plugins\Attribulator.Plugins.ModScript" />
     </Target>
 
 </Project>
