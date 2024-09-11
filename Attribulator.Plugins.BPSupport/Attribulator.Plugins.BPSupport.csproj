@@ -31,7 +31,7 @@
         <Exec Command="if not exist $(SolutionDir)Attribulator.UI\bin\$(Configuration)\net8.0-windows\plugins\Attribulator.Plugins.BPSupport mkdir $(SolutionDir)Attribulator.UI\bin\$(Configuration)\net8.0-windows\plugins\Attribulator.Plugins.BPSupport"/>
         <Exec Command="xcopy /Y $(OutDir) $(SolutionDir)Attribulator.UI\bin\$(Configuration)\net8.0-windows\plugins\Attribulator.Plugins.BPSupport"/>
         <Exec Command="if not exist $(SolutionDir)Attribulator.UI\bin\$(Configuration)\net8.0-windows\plugins\Attribulator.Plugins.BPSupport\Resources mkdir $(SolutionDir)Attribulator.UI\bin\$(Configuration)\net8.0-windows\plugins\Attribulator.Plugins.BPSupport\Resources"/>
-        <Exec Command="xcopy /Y Resources\hashes.txt $(SolutionDir)Attribulator.UI\bin\$(Configuration)\net8.0-windows\plugins\Attribulator.Plugins.BPSupport\Resources"/>
+        <Exec Command="xcopy /Y Resources $(SolutionDir)Attribulator.UI\bin\$(Configuration)\net8.0-windows\plugins\Attribulator.Plugins.BPSupport\Resources"/>
     </Target>
 
 </Project>

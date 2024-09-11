@@ -17,7 +17,6 @@
         <EmbeddedResource Include="Resources\hashes.txt">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </EmbeddedResource>
-        <None Remove="Resources\UserHashes.txt" />
         <EmbeddedResource Include="Resources\UserHashes.txt">
           <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </EmbeddedResource>
@@ -37,7 +36,7 @@
         <Exec Command="if not exist $(SolutionDir)Attribulator.UI\bin\$(Configuration)\net8.0-windows\plugins\Attribulator.Plugins.SpeedProfiles mkdir $(SolutionDir)Attribulator.UI\bin\$(Configuration)\net8.0-windows\plugins\Attribulator.Plugins.SpeedProfiles" />
         <Exec Command="xcopy /Y $(OutDir) $(SolutionDir)Attribulator.UI\bin\$(Configuration)\net8.0-windows\plugins\Attribulator.Plugins.SpeedProfiles" />
         <Exec Command="if not exist $(SolutionDir)Attribulator.UI\bin\$(Configuration)\net8.0-windows\plugins\Attribulator.Plugins.SpeedProfiles\Resources mkdir $(SolutionDir)Attribulator.UI\bin\$(Configuration)\net8.0-windows\plugins\Attribulator.Plugins.SpeedProfiles\Resources" />
-        <Exec Command="xcopy /Y Resources\hashes.txt $(SolutionDir)Attribulator.UI\bin\$(Configuration)\net8.0-windows\plugins\Attribulator.Plugins.SpeedProfiles\Resources" />
+        <Exec Command="xcopy /Y Resources $(SolutionDir)Attribulator.UI\bin\$(Configuration)\net8.0-windows\plugins\Attribulator.Plugins.SpeedProfiles\Resources" />
     </Target>
 
 </Project>
