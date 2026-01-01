@@ -1,0 +1,3 @@
+[submodule "Modules/VaultLib"]
+    path = Modules/VaultLib
+    url = https://github.com/Sh2dow/VaultLib.git

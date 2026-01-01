@@ -6,12 +6,13 @@
         <Description>ModScript API for Attribulator</Description>
         <Platforms>x86</Platforms>
         <Product>Attribulator - ModScript API</Product>
-        <TargetFramework>netcoreapp3.1</TargetFramework>
+        <LangVersion>default</LangVersion>
+        <TargetFramework>net9.0-windows</TargetFramework>
         <Version>2.0.0</Version>
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="JetBrains.Annotations" Version="2020.1.0"/>
+        <PackageReference Include="JetBrains.Annotations" Version="2024.2.0" />
     </ItemGroup>
 
     <ItemGroup>

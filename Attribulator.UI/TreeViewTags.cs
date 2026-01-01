@@ -188,32 +188,32 @@ namespace Attribulator.UI
     {
         public static VltClass Class(this TreeViewItem treeViewItem)
         {
-            return (treeViewItem.Tag as ClassTag)?.Class;
+            return (treeViewItem?.Tag as ClassTag)?.Class;
         }
 
         public static VltCollection Collection(this TreeViewItem treeViewItem)
         {
-            return (treeViewItem.Tag as CollectionTag)?.Collection;
+            return (treeViewItem?.Tag as CollectionTag)?.Collection;
         }
 
         public static ItemsControl GetParent(this TreeViewItem treeViewItem)
         {
-            return (treeViewItem.Tag as BaseTag).Parent;
+            return (treeViewItem?.Tag as BaseTag).Parent;
         }
 
         public static void SetParent(this TreeViewItem treeViewItem, TreeViewItem parent)
         {
-            (treeViewItem.Tag as BaseTag).SetParent(parent);
+            (treeViewItem?.Tag as BaseTag).SetParent(parent);
         }
 
         public static string Header(this TreeViewItem treeViewItem)
         {
-            return treeViewItem.Header as string;
+            return treeViewItem?.Header as string;
         }
 
         public static TreeViewItem GetNextSibling(this TreeViewItem treeViewItem)
         {
-            var parent = treeViewItem.GetParent();
+            var parent = treeViewItem?.GetParent();
             if (parent != null)
             {
                 int indexInParent = parent.Items.IndexOf(treeViewItem);
@@ -229,20 +229,20 @@ namespace Attribulator.UI
 
         public static TreeViewItem GetNextItem(this TreeViewItem treeViewItem)
         {
-            if (treeViewItem.Items.Count > 0)
+            if (treeViewItem?.Items.Count > 0)
             {
-                return treeViewItem.Items[0] as TreeViewItem;
+                return treeViewItem?.Items[0] as TreeViewItem;
             }
             else
             {
-                var sibling = treeViewItem.GetNextSibling();
+                var sibling = treeViewItem?.GetNextSibling();
                 if (sibling != null)
                 {
                     return sibling;
                 }
                 else
                 {
-                    var parent = treeViewItem.GetParent();
+                    var parent = treeViewItem?.GetParent();
                     while (true)
                     {
                         if (parent is TreeViewItem parentTvi)
@@ -270,8 +270,11 @@ namespace Attribulator.UI
 
         public static void Select(this TreeViewItem treeViewItem)
         {
-            treeViewItem.IsSelected = true;
-            treeViewItem.BringIntoView();
+            if (treeViewItem != null)
+            {
+                treeViewItem.IsSelected = true;
+            }
+            treeViewItem?.BringIntoView();
         }
     }
 }
