@@ -6,14 +6,14 @@
         <Description>Plugin providing support for Burnout Paradise.</Description>
         <Platforms>x86</Platforms>
         <Product>Attribulator - Burnout Paradise Support</Product>
-        <TargetFramework>netcoreapp3.1</TargetFramework>
+        <LangVersion>default</LangVersion>
+        <TargetFramework>net9.0-windows</TargetFramework>
         <Version>2.0.0</Version>
         <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="VaultLib.Core" Version="1.2.0" />
-        <PackageReference Include="VaultLib.ModernBase" Version="1.2.0" />
+        <PackageReference Include="VaultLib.ModernBase" Version="1.2.0"/>
     </ItemGroup>
 
     <ItemGroup>
@@ -23,7 +23,15 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Attribulator.API\Attribulator.API.csproj" />
+        <ProjectReference Include="..\Attribulator.API\Attribulator.API.csproj"/>
+        <ProjectReference Include="..\Modules\VaultLib\VaultLib.Core\VaultLib.Core.csproj"/>
     </ItemGroup>
+
+    <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+        <Exec Command="if not exist $(SolutionDir)Attribulator.UI\bin\$(Configuration)\net9.0-windows\plugins\Attribulator.Plugins.BPSupport mkdir $(SolutionDir)Attribulator.UI\bin\$(Configuration)\net9.0-windows\plugins\Attribulator.Plugins.BPSupport"/>
+        <Exec Command="xcopy /Y $(OutDir) $(SolutionDir)Attribulator.UI\bin\$(Configuration)\net9.0-windows\plugins\Attribulator.Plugins.BPSupport"/>
+        <Exec Command="if not exist $(SolutionDir)Attribulator.UI\bin\$(Configuration)\net9.0-windows\plugins\Attribulator.Plugins.BPSupport\Resources mkdir $(SolutionDir)Attribulator.UI\bin\$(Configuration)\net9.0-windows\plugins\Attribulator.Plugins.BPSupport\Resources"/>
+        <Exec Command="xcopy /Y Resources $(SolutionDir)Attribulator.UI\bin\$(Configuration)\net9.0-windows\plugins\Attribulator.Plugins.BPSupport\Resources"/>
+    </Target>
 
 </Project>

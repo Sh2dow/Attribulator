@@ -6,32 +6,37 @@
         <Description>Plugin providing profiles for the Speed engine games</Description>
         <Platforms>x86</Platforms>
         <Product>Attribulator - Speed Profiles</Product>
-        <TargetFramework>netcoreapp3.1</TargetFramework>
+        <LangVersion>default</LangVersion>
+        <TargetFramework>net9.0-windows</TargetFramework>
         <Version>2.0.0</Version>
         <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+        <LangVersion>default</LangVersion>
     </PropertyGroup>
-
-    <ItemGroup>
-        <PackageReference Include="VaultLib.Core" Version="1.2.0" />
-        <PackageReference Include="VaultLib.Support.Carbon" Version="1.2.0" />
-        <PackageReference Include="VaultLib.Support.MostWanted" Version="1.2.0" />
-        <PackageReference Include="VaultLib.Support.ProStreet" Version="1.2.0" />
-        <PackageReference Include="VaultLib.Support.Undercover" Version="1.2.0" />
-        <PackageReference Include="VaultLib.Support.World" Version="1.2.0" />
-    </ItemGroup>
 
     <ItemGroup>
         <EmbeddedResource Include="Resources\hashes.txt">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </EmbeddedResource>
+        <EmbeddedResource Include="Resources\UserHashes.txt">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </EmbeddedResource>
     </ItemGroup>
 
     <ItemGroup>
         <ProjectReference Include="..\Attribulator.API\Attribulator.API.csproj" />
+        <ProjectReference Include="..\Modules\VaultLib\VaultLib.Core\VaultLib.Core.csproj" />
+        <ProjectReference Include="..\Modules\VaultLib\VaultLib.Support.Carbon\VaultLib.Support.Carbon.csproj" />
+        <ProjectReference Include="..\Modules\VaultLib\VaultLib.Support.MostWanted\VaultLib.Support.MostWanted.csproj" />
+        <ProjectReference Include="..\Modules\VaultLib\VaultLib.Support.ProStreet\VaultLib.Support.ProStreet.csproj" />
+        <ProjectReference Include="..\Modules\VaultLib\VaultLib.Support.Undercover\VaultLib.Support.Undercover.csproj" />
+        <ProjectReference Include="..\Modules\VaultLib\VaultLib.Support.World\VaultLib.Support.World.csproj" />
     </ItemGroup>
 
     <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-      <Exec Command="xcopy /Y $(OutDir) $(SolutionDir)Attribulator.UI\bin\$(Configuration)\netcoreapp3.1\plugins\Attribulator.Plugins.SpeedProfiles" />
+        <Exec Command="if not exist $(SolutionDir)Attribulator.UI\bin\$(Configuration)\net9.0-windows\plugins\Attribulator.Plugins.SpeedProfiles mkdir $(SolutionDir)Attribulator.UI\bin\$(Configuration)\net9.0-windows\plugins\Attribulator.Plugins.SpeedProfiles" />
+        <Exec Command="xcopy /Y $(OutDir) $(SolutionDir)Attribulator.UI\bin\$(Configuration)\net9.0-windows\plugins\Attribulator.Plugins.SpeedProfiles" />
+        <Exec Command="if not exist $(SolutionDir)Attribulator.UI\bin\$(Configuration)\net9.0-windows\plugins\Attribulator.Plugins.SpeedProfiles\Resources mkdir $(SolutionDir)Attribulator.UI\bin\$(Configuration)\net9.0-windows\plugins\Attribulator.Plugins.SpeedProfiles\Resources" />
+        <Exec Command="xcopy /Y Resources $(SolutionDir)Attribulator.UI\bin\$(Configuration)\net9.0-windows\plugins\Attribulator.Plugins.SpeedProfiles\Resources" />
     </Target>
 
 </Project>

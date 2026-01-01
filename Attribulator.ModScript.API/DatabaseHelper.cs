@@ -15,7 +15,7 @@ namespace Attribulator.ModScript.API
         public DatabaseHelper(Database database, IEnumerable<LoadedFile> files = null)
         {
             Database = database;
-            Collections = database.RowManager.GetFlattenedCollections().ToDictionary(c => c.ShortPath, c => c);
+            Collections = BuildCollectionIndex(database);
             Files = files;
         }
 
@@ -23,6 +23,23 @@ namespace Attribulator.ModScript.API
         public Database Database { get; }
         public List<Vault> Vaults => Database.Vaults;
         public IEnumerable<LoadedFile> Files;
+
+        private static Dictionary<string, VltCollection> BuildCollectionIndex(Database database)
+        {
+            var collections = database.RowManager.GetFlattenedCollections()
+                .OrderByDescending(c => c.Vault != null && c.Vault.IsPrimaryVault);
+            var lookup = new Dictionary<string, VltCollection>();
+
+            foreach (var collection in collections)
+            {
+                if (!lookup.ContainsKey(collection.ShortPath))
+                {
+                    lookup.Add(collection.ShortPath, collection);
+                }
+            }
+
+            return lookup;
+        }
 
         public VltCollection FindCollectionByName(string className, string collectionName)
         {

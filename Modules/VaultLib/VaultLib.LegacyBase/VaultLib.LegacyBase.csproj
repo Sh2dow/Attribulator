@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Authors>heyitsleo/NFSTools</Authors>
+    <Company>NFSTools</Company>
+    <Description>Implements the classic AttribSys format</Description>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageId>VaultLib.LegacyBase</PackageId>
+    <Platforms>x86</Platforms>
+    <Product>VaultLib.LegacyBase</Product>
+    <LangVersion>default</LangVersion>
+    <TargetFramework>net9.0-windows</TargetFramework>
+    <Version>1.2.0</Version>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\VaultLib.Core\VaultLib.Core.csproj" />
+  </ItemGroup>
+
+</Project>

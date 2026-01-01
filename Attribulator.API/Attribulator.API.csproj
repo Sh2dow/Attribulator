@@ -6,13 +6,17 @@
         <Description>API for Attribulator extensions</Description>
         <Platforms>x86</Platforms>
         <Product>Attribulator API</Product>
-        <TargetFramework>netcoreapp3.1</TargetFramework>
+        <LangVersion>default</LangVersion>
+        <TargetFramework>net9.0-windows</TargetFramework>
         <Version>2.0.0</Version>
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="3.1.5" />
-        <PackageReference Include="VaultLib.Core" Version="1.2.0" />
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.0-rc.1.24431.7" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Modules\VaultLib\VaultLib.Core\VaultLib.Core.csproj" />
     </ItemGroup>
 
 </Project>

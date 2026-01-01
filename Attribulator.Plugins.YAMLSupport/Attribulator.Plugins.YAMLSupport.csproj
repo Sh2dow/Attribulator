@@ -6,14 +6,15 @@
         <Description>Plugin providing support for the YAML storage format</Description>
         <Platforms>x86</Platforms>
         <Product>Attribulator - YAML Support</Product>
-        <TargetFramework>netcoreapp3.1</TargetFramework>
+        <LangVersion>default</LangVersion>
+        <TargetFramework>net9.0-windows</TargetFramework>
         <Version>2.0.0</Version>
         <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     </PropertyGroup>
 
     <ItemGroup>
         <PackageReference Include="AsyncEnumerator" Version="4.0.2" />
-        <PackageReference Include="YamlDotNet" Version="8.1.0" />
+        <PackageReference Include="YamlDotNet" Version="16.1.0" />
     </ItemGroup>
 
     <ItemGroup>
@@ -21,7 +22,8 @@
     </ItemGroup>
 
     <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-      <Exec Command="xcopy /Y $(OutDir) $(SolutionDir)Attribulator.UI\bin\$(Configuration)\netcoreapp3.1\plugins\Attribulator.Plugins.YAMLSupport" />
+        <Exec Command="if not exist $(SolutionDir)Attribulator.UI\bin\$(Configuration)\net9.0-windows\plugins\Attribulator.Plugins.YAMLSupport mkdir $(SolutionDir)Attribulator.UI\bin\$(Configuration)\net9.0-windows\plugins\Attribulator.Plugins.YAMLSupport" />
+        <Exec Command="xcopy /Y /E $(OutDir) $(SolutionDir)Attribulator.UI\bin\$(Configuration)\net9.0-windows\plugins\Attribulator.Plugins.YAMLSupport\" />
     </Target>
 
 </Project>

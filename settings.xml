@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<settings xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <games>
+    <game header="Most Wanted" profile="MOST_WANTED">
+      <selected>false</selected>
+    </game>
+    <game header="Carbon" profile="CARBON">
+      <selected>false</selected>
+    </game>
+    <game header="Pro Street" profile="PROSTREET">
+      <selected>false</selected>
+    </game>
+    <game header="Undercover" profile="UNDERCOVER">
+      <selected>false</selected>
+    </game>
+    <game header="World" profile="WORLD">
+      <selected>false</selected>
+    </game>
+  </games>
+  <openCollectionByDoubleClick>true</openCollectionByDoubleClick>
+  <showWelcomeTab>true</showWelcomeTab>
+  <script />
+  <theme>DarkGreyTheme</theme>
+  <search>
+    <nodeEnabled>false</nodeEnabled>
+    <fieldEnabled>false</fieldEnabled>
+    <valueEnabled>false</valueEnabled>
+  </search>
+</settings>

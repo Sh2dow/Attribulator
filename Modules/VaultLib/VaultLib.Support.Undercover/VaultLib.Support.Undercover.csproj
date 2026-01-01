@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <Authors>heyitsleo/NFSTools</Authors>
+        <Company>NFSTools</Company>
+        <Description>Support for Need for Speed: Undercover</Description>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <PackageId>VaultLib.Support.Undercover</PackageId>
+        <Platforms>x86</Platforms>
+        <Product>VaultLib.Support.Undercover</Product>
+        <LangVersion>default</LangVersion>
+        <TargetFramework>net9.0-windows</TargetFramework>
+        <Version>1.2.0</Version>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\..\NFSTools\CoreLibraries.ModuleSystem\CoreLibraries.ModuleSystem.csproj" />
+        <ProjectReference Include="..\VaultLib.Frameworks.Speed\VaultLib.Frameworks.Speed.csproj"/>
+        <ProjectReference Include="..\VaultLib.ModernBase\VaultLib.ModernBase.csproj"/>
+    </ItemGroup>
+
+</Project>

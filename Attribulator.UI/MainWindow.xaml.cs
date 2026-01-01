@@ -527,7 +527,13 @@ namespace AttribulatorUI
 			{
 				try
 				{
-					Process.Start(new ProcessStartInfo(this.gameExe) { WorkingDirectory = this.gameFolder });
+					ProcessStartInfo processInfo = new ProcessStartInfo(this.gameExe)
+					{
+						WorkingDirectory = this.gameFolder,
+						UseShellExecute = true, // Make sure to use shell execute
+						Verb = "runas" // Request elevated privileges
+					};
+					Process.Start(processInfo);
 				}
 				catch (Exception ex)
 				{
