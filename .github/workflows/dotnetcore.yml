@@ -20,7 +20,12 @@ jobs:
           xcopy /s /E /I /Y /q "Attribulator.Plugins.YAMLSupport\\bin\\x86\\Release\\net9.0-windows\\publish" "Attribulator.CLI\\bin\\x86\\Release\\net9.0-windows\\publish\\plugins\\Attribulator.Plugins.YAMLSupport"
           xcopy /s /E /I /Y /q "Attribulator.Plugins.SpeedProfiles\\bin\\x86\\Release\\net9.0-windows\\publish" "Attribulator.CLI\\bin\\x86\\Release\\net9.0-windows\\publish\\plugins\\Attribulator.Plugins.SpeedProfiles"
       - name: Add NativeLibrary.dll
-        run: copy external/NativeLibrary.dll Attribulator.CLI/bin/x86/Release/net9.0-windows/publish/
+        shell: pwsh
+        run: |
+          Copy-Item `
+            Attribulator.UI\NativeLibrary.dll `
+            Attribulator.CLI\bin\x86\Release\net9.0-windows\publish\NativeLibrary.dll `
+            -Force
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
