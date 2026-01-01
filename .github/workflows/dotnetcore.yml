@@ -26,20 +26,21 @@ jobs:
       - name: Install plugins
         shell: pwsh
         run: |
-          $dst = "Attribulator.UI\bin\x86\Release\net9.0-windows\publish\plugins"
+          $uiPublish = "Attribulator.UI\bin\Release\net9.0-windows\publish\plugins"
 
-          New-Item -ItemType Directory -Force "$dst\Attribulator.Plugins.ModScript"
-          New-Item -ItemType Directory -Force "$dst\Attribulator.Plugins.YAMLSupport"
-          New-Item -ItemType Directory -Force "$dst\Attribulator.Plugins.SpeedProfiles"
+          New-Item -ItemType Directory -Force "$uiPublish\Attribulator.Plugins.ModScript"
+          New-Item -ItemType Directory -Force "$uiPublish\Attribulator.Plugins.YAMLSupport"
+          New-Item -ItemType Directory -Force "$uiPublish\Attribulator.Plugins.SpeedProfiles"
 
           Copy-Item Attribulator.Plugins.ModScript\bin\x86\Release\net9.0-windows\*.dll `
-            "$dst\Attribulator.Plugins.ModScript" -Force
+            "$uiPublish\Attribulator.Plugins.ModScript" -Force
 
           Copy-Item Attribulator.Plugins.YAMLSupport\bin\x86\Release\net9.0-windows\*.dll `
-            "$dst\Attribulator.Plugins.YAMLSupport" -Force
+            "$uiPublish\Attribulator.Plugins.YAMLSupport" -Force
 
           Copy-Item Attribulator.Plugins.SpeedProfiles\bin\x86\Release\net9.0-windows\*.dll `
-            "$dst\Attribulator.Plugins.SpeedProfiles" -Force
+            "$uiPublish\Attribulator.Plugins.SpeedProfiles" -Force
+      
       
       # 4️⃣ Upload UI artifact
       - name: Upload UI artifact
