@@ -26,21 +26,20 @@ jobs:
       - name: Install plugins
         shell: pwsh
         run: |
-          New-Item -ItemType Directory -Force Attribulator.UI\bin\Release\net9.0-windows\publish\plugins\Attribulator.Plugins.ModScript
-          New-Item -ItemType Directory -Force Attribulator.UI\bin\Release\net9.0-windows\publish\plugins\Attribulator.Plugins.YAMLSupport
-          New-Item -ItemType Directory -Force Attribulator.UI\bin\Release\net9.0-windows\publish\plugins\Attribulator.Plugins.SpeedProfiles
+          $dst = "Attribulator.UI\bin\x86\Release\net9.0-windows\publish\plugins"
 
-          Copy-Item Attribulator.Plugins.ModScript\bin\Release\net9.0-windows\*.dll `
-            Attribulator.UI\bin\Release\net9.0-windows\publish\plugins\Attribulator.Plugins.ModScript `
-            -Force
+          New-Item -ItemType Directory -Force "$dst\Attribulator.Plugins.ModScript"
+          New-Item -ItemType Directory -Force "$dst\Attribulator.Plugins.YAMLSupport"
+          New-Item -ItemType Directory -Force "$dst\Attribulator.Plugins.SpeedProfiles"
 
-          Copy-Item Attribulator.Plugins.YAMLSupport\bin\Release\net9.0-windows\*.dll `
-            Attribulator.UI\bin\Release\net9.0-windows\publish\plugins\Attribulator.Plugins.YAMLSupport `
-            -Force
+          Copy-Item Attribulator.Plugins.ModScript\bin\x86\Release\net9.0-windows\*.dll `
+            "$dst\Attribulator.Plugins.ModScript" -Force
 
-          Copy-Item Attribulator.Plugins.SpeedProfiles\bin\Release\net9.0-windows\*.dll `
-            Attribulator.UI\bin\Release\net9.0-windows\publish\plugins\Attribulator.Plugins.SpeedProfiles `
-            -Force
+          Copy-Item Attribulator.Plugins.YAMLSupport\bin\x86\Release\net9.0-windows\*.dll `
+            "$dst\Attribulator.Plugins.YAMLSupport" -Force
+
+          Copy-Item Attribulator.Plugins.SpeedProfiles\bin\x86\Release\net9.0-windows\*.dll `
+            "$dst\Attribulator.Plugins.SpeedProfiles" -Force
       
       # 4️⃣ Upload UI artifact
       - name: Upload UI artifact
