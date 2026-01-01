@@ -20,7 +20,7 @@ jobs:
 
       # 2️⃣ Publish UI (entrypoint)
       - name: Publish Attribulator.UI
-        run: dotnet publish Attribulator.UI/Attribulator.UI.csproj -c Release --no-build
+        run: dotnet publish Attribulator.UI/Attribulator.UI.csproj -c Release
 
       # 3️⃣ Install plugins (now guaranteed to exist)
       - name: Install plugins
