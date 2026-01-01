@@ -26,27 +26,39 @@ jobs:
       - name: Install plugins
         shell: pwsh
         run: |
-          $uiPublish = "Attribulator.UI\bin\Release\net9.0-windows\publish\plugins"
+          $uiPlugins = "Attribulator.UI\bin\Release\net9.0-windows\publish\plugins"
 
-          New-Item -ItemType Directory -Force "$uiPublish\Attribulator.Plugins.ModScript"
-          New-Item -ItemType Directory -Force "$uiPublish\Attribulator.Plugins.YAMLSupport"
-          New-Item -ItemType Directory -Force "$uiPublish\Attribulator.Plugins.SpeedProfiles"
-
+          # --- ModScript ---
+          New-Item -ItemType Directory -Force "$uiPlugins\Attribulator.Plugins.ModScript"
           Copy-Item Attribulator.Plugins.ModScript\bin\x86\Release\net9.0-windows\*.dll `
-            "$uiPublish\Attribulator.Plugins.ModScript" -Force
+            "$uiPlugins\Attribulator.Plugins.ModScript" -Force
 
+          # --- YAMLSupport ---
+          New-Item -ItemType Directory -Force "$uiPlugins\Attribulator.Plugins.YAMLSupport"
           Copy-Item Attribulator.Plugins.YAMLSupport\bin\x86\Release\net9.0-windows\*.dll `
-            "$uiPublish\Attribulator.Plugins.YAMLSupport" -Force
+            "$uiPlugins\Attribulator.Plugins.YAMLSupport" -Force
 
-          Copy-Item Attribulator.Plugins.SpeedProfiles\bin\x86\Release\net9.0-windows\*.dll `
-            "$uiPublish\Attribulator.Plugins.SpeedProfiles" -Force
-      
+          # --- SpeedProfiles (DLL + Resources) ---
+          $speedSrc = "Attribulator.Plugins.SpeedProfiles\bin\x86\Release\net9.0-windows"
+          $speedDst = "$uiPlugins\Attribulator.Plugins.SpeedProfiles"
+
+          New-Item -ItemType Directory -Force $speedDst
+
+          # DLLs
+          Copy-Item "$speedSrc\*.dll" $speedDst -Force
+
+          # Resources (REQUIRED)
+          if (Test-Path "$speedSrc\Resources") {
+            Copy-Item "$speedSrc\Resources" "$speedDst\Resources" -Recurse -Force
+          } else {
+            throw "SpeedProfiles Resources folder missing"
+          }
       
       # 4️⃣ Upload UI artifact
       - name: Upload UI artifact
         uses: actions/upload-artifact@v4
         with:
-          name: release_ui
+          name: OGVI
           path: Attribulator.UI/bin/Release/net9.0-windows/publish
   
   upload-release:
@@ -57,12 +69,12 @@ jobs:
 
       - uses: actions/download-artifact@v4
         with:
-          name: release_ui
-          path: release_ui
+          name: OGVI
+          path: OGVI
 
       - name: Zip artifact
         run: |
-          zip -r Attribulator.UI.zip release_ui
+          zip -r OGVI.zip OGVI
 
       - name: Create release if missing
         env:
@@ -79,6 +91,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh release upload "${{ github.ref_name }}" \
-            Attribulator.UI.zip \
+            OGVI.zip \
             --clobber
   
