@@ -19,15 +19,15 @@ jobs:
 
       - name: Install plugins
         run: |
-          xcopy /s /E /I /Y /q "Attribulator.Plugins.ModScript\\bin\\x86\\Release\\net9.0-windows\\publish" "Attribulator.UI\\bin\\x86\\Release\\net9.0-windows\\publish\\plugins\\Attribulator.Plugins.ModScript"
-          xcopy /s /E /I /Y /q "Attribulator.Plugins.YAMLSupport\\bin\\x86\\Release\\net9.0-windows\\publish" "Attribulator.UI\\bin\\x86\\Release\\net9.0-windows\\publish\\plugins\\Attribulator.Plugins.YAMLSupport"
-          xcopy /s /E /I /Y /q "Attribulator.Plugins.SpeedProfiles\\bin\\x86\\Release\\net9.0-windows\\publish" "Attribulator.UI\\bin\\x86\\Release\\net9.0-windows\\publish\\plugins\\Attribulator.Plugins.SpeedProfiles"
+          xcopy /s /E /I /Y /q "Attribulator.Plugins.ModScript\\bin\\x86\\Release\\net9.0-windows\\publish" "Attribulator.UI\\bin\\Release\\net9.0-windows\\publish\\plugins\\Attribulator.Plugins.ModScript"
+          xcopy /s /E /I /Y /q "Attribulator.Plugins.YAMLSupport\\bin\\x86\\Release\\net9.0-windows\\publish" "Attribulator.UI\\bin\\Release\\net9.0-windows\\publish\\plugins\\Attribulator.Plugins.YAMLSupport"
+          xcopy /s /E /I /Y /q "Attribulator.Plugins.SpeedProfiles\\bin\\x86\\Release\\net9.0-windows\\publish" "Attribulator.UI\\bin\\Release\\net9.0-windows\\publish\\plugins\\Attribulator.Plugins.SpeedProfiles"
 
       - name: Upload UI artifact
         uses: actions/upload-artifact@v4
         with:
           name: release_ui
-          path: Attribulator.UI/bin/x86/Release/net9.0-windows/publish
+          path: Attribulator.UI/bin/Release/net9.0-windows/publish
   
   upload-release:
     needs: [ build-windows ]
