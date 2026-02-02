@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Attribulator.API.Data;
 using Attribulator.API.Exceptions;
 using Attribulator.API.Plugin;
+using Attribulator.API.Serialization;
 using Attribulator.API.Services;
 using Attribulator.CLI.Build;
 using CommandLine;
@@ -44,6 +45,10 @@ namespace Attribulator.CLI.Commands
         [UsedImplicitly]
         public bool MakeBackup { get; set; }
 
+        [Option('r', "override-rules", HelpText = "Allow YAML data to override attribute constraints (e.g., array size limits).")]
+        [UsedImplicitly]
+        public bool OverrideRules { get; set; }
+
         public override void SetServiceProvider(IServiceProvider serviceProvider)
         {
             base.SetServiceProvider(serviceProvider);
@@ -59,6 +64,8 @@ namespace Attribulator.CLI.Commands
             if (!Directory.Exists(OutputDirectory)) Directory.CreateDirectory(OutputDirectory);
 
             var profile = ServiceProvider.GetRequiredService<IProfileService>().GetProfile(ProfileName);
+            var serializationOptions = ServiceProvider.GetRequiredService<SerializationOptions>();
+            serializationOptions.AllowArraySizeOverride = OverrideRules;
             var storageFormatService = ServiceProvider.GetRequiredService<IStorageFormatService>();
             var storageFormat = storageFormatService.GetStorageFormats()
                 .FirstOrDefault(testStorageFormat => testStorageFormat.CanDeserializeFrom(InputDirectory));

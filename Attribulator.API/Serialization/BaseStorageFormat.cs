@@ -93,7 +93,7 @@ namespace Attribulator.API.Serialization
                     var newVltCollection = new VltCollection(newVault, vltClass, loadedCollection.Name);
 
                     if (!seenCollections.TryAdd(newVltCollection.ShortPath, true))
-                        throw new Exception("Duplicate collection detected: " + newVltCollection.ShortPath);
+                        continue;
 
                     foreach (var (key, value) in loadedCollection.Data)
                     {

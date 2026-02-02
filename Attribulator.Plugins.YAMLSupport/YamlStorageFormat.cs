@@ -27,6 +27,12 @@ namespace Attribulator.Plugins.YAMLSupport
     public class YamlStorageFormat : BaseStorageFormat
     {
         private static readonly IDeserializer Deserializer = new DeserializerBuilder().Build();
+        private readonly SerializationOptions _serializationOptions;
+
+        public YamlStorageFormat(SerializationOptions serializationOptions)
+        {
+            _serializationOptions = serializationOptions ?? new SerializationOptions();
+        }
 
         public override SerializedDatabaseInfo LoadInfo(string sourceDirectory)
         {
@@ -313,13 +319,21 @@ namespace Attribulator.Plugins.YAMLSupport
         {
             var capacity = ushort.Parse(dictionary["Capacity"].ToString()!);
             var rawItemList = (List<object>) dictionary["Data"];
+            var allowOverride = _serializationOptions.AllowArraySizeOverride;
 
             if (capacity < rawItemList.Count)
-                throw new InvalidDataException(
-                    $"In collection {vltCollection.ShortPath}, the capacity of array field [{field.Name}] ({capacity}) is less than the number of elements in the array ({rawItemList.Count}).");
+            {
+                if (!allowOverride)
+                    throw new InvalidDataException(
+                        $"In collection {vltCollection.ShortPath}, the capacity of array field [{field.Name}] ({capacity}) is less than the number of elements in the array ({rawItemList.Count}).");
+                capacity = (ushort) rawItemList.Count;
+            }
             if (field.MaxCount > 0 && (capacity > field.MaxCount || rawItemList.Count > field.MaxCount))
-                throw new InvalidDataException(
-                    $"In collection {vltCollection.ShortPath}, the size or capacity of array field [{field.Name}] is greater than the allowed size ({field.MaxCount}).");
+            {
+                if (!allowOverride)
+                    throw new InvalidDataException(
+                        $"In collection {vltCollection.ShortPath}, the size or capacity of array field [{field.Name}] is greater than the allowed size ({field.MaxCount}).");
+            }
             array.Capacity = capacity;
             array.Items = new List<VLTBaseType>();
             array.ItemAlignment = field.Alignment;

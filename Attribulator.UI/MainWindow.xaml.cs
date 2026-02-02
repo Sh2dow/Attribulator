@@ -1,5 +1,6 @@
 ﻿using Attribulator.API;
 using Attribulator.API.Data;
+using Attribulator.API.Serialization;
 using Attribulator.API.Services;
 using Attribulator.CLI;
 using Attribulator.CLI.Services;
@@ -84,6 +85,7 @@ namespace AttribulatorUI
 				services.AddSingleton<IProfileService, ProfileServiceImpl>();
 				services.AddSingleton<IStorageFormatService, StorageFormatServiceImpl>();
 				services.AddSingleton<IPluginService, PluginServiceImpl>();
+				services.AddSingleton<SerializationOptions>();
 
 				var plugins = Program.ConfigurePlugins(services, loaders);
 				serviceProvider = services.BuildServiceProvider();

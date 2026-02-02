@@ -1,5 +1,7 @@
-Attribulator.CLI pack -i "C:\Users\Despe\Desktop\Attribulator\Unpacked\Main\attributes\db" -o C:\Users\Despe\Desktop -p CARBON
+Attribulator.CLI pack -i "C:\Users\Despe\Desktop\Attribulator\Unpacked\Main\attributes\db" -o C:\Users\Despe\Desktop -p CARBON --override-rules
 
+pack
+    --override-rules         to bypass vlt restrictions like arrays max capacity
 
 .\Attribulator.CLI.exe apply-script -i Unpacked -o Packed -p CARBON -s C:\path\to\scripts\folder
 
@@ -27,7 +29,7 @@ unpack
 
 
 
-.\Attribulator.CLI.exe apply-script -i Unpacked -o Packed -p CARBON -s C:\path\to\scripts\folder
+.\Attribulator.CLI.exe apply-script -i Unpacked -o Packed -p CARBON -s C:\path\to\scripts\folder 
 
 
   plugins              List the loaded plugins.

@@ -29,6 +29,7 @@ namespace Attribulator.CLI
             services.AddSingleton<IProfileService, ProfileServiceImpl>();
             services.AddSingleton<IStorageFormatService, StorageFormatServiceImpl>();
             services.AddSingleton<IPluginService, PluginServiceImpl>();
+            services.AddSingleton<SerializationOptions>();
 
             // Set up logging
             Log.Logger = new LoggerConfiguration().MinimumLevel.Debug().WriteTo.Console().CreateLogger();
