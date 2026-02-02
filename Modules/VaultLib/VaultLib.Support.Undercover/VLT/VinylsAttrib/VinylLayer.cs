@@ -1,53 +1,66 @@
-﻿using System.Diagnostics;
-using System.IO;
-using System.Linq;
+﻿using System.IO;
 using CoreLibraries.IO;
 using VaultLib.Core;
-using VaultLib.Core.Data;
+using VaultLib.Core.DataInterfaces;
 using VaultLib.Core.Types;
+using VaultLib.Core.Utils;
 
-namespace VaultLib.Support.Undercover.VLT.VinylsAttrib
+namespace VaultLib.Support.Undercover.VLT.VinylsAttrib;
+
+[VltTypeInfo("VinylsAttrib::VinylLayer")]
+public class VinylLayer : VltBaseType<Core.DataInterfaces.Key32>
 {
-    [VLTTypeInfo("VinylsAttrib::VinylLayer")]
-    public class VinylLayer : VLTBaseType
+    public VinylLayer()
     {
-        public VinylLayer(VltClass @class, VltClassField field, VltCollection collection = null) : base(@class, field, collection)
+        Transform = new VinylTransform();
+        Colors = new VinylColor[4];
+        for (int i = 0; i < 4; i++)
         {
-            Transform = new VinylTransform(Class, Field, Collection);
-            Colors = new VinylColor[4];
-            for (int i = 0; i < 4; i++)
-            {
-                Colors[i] = new VinylColor(Class, Field, Collection);
-            }
+            Colors[i] = new VinylColor();
         }
+    }
 
-        public uint PartNameHash { get; set; }
-        public bool Mirrored { get; set; }
-        public VinylTransform Transform { get; set; }
-        public VinylColor[] Colors { get; set; }
+    public BinKey32 PartNameHash { get; set; }
+    public bool Mirrored { get; set; }
+    public VinylTransform Transform { get; set; }
+    public VinylColor[] Colors { get; set; }
 
-        public override void Read(Vault vault, BinaryReader br)
+    public override void Read(VaultReadContext<Core.DataInterfaces.Key32> context,
+        FieldReadWriteContext<Core.DataInterfaces.Key32> fieldContext, BinaryReader br)
+    {
+        PartNameHash = BinKey32.Read(br);
+        Mirrored = br.ReadBoolean();
+        br.AlignReader(2);
+        Transform.Read(context, fieldContext, br);
+        br.AlignReader(2);
+        foreach (var t in Colors)
         {
-            PartNameHash = br.ReadUInt32(); // 4
-            Mirrored = br.ReadBoolean(); // 5
-            br.AlignReader(4); // 5 + (4 - 5 % 4) = 8
-            Transform.Read(vault, br);
-            for (int i = 0; i < 4; i++)
-            {
-                Colors[i].Read(vault, br);
-            }
+            t.Read(context, fieldContext, br);
         }
+    }
 
-        public override void Write(Vault vault, BinaryWriter bw)
+    public override void Write(VaultWriteContext<Core.DataInterfaces.Key32> context,
+        FieldReadWriteContext<Core.DataInterfaces.Key32> fieldContext, BinaryWriter bw)
+    {
+        PartNameHash.Write(bw);
+        bw.Write(Mirrored);
+        bw.AlignWriter(2);
+        Transform.Write(context, fieldContext, bw);
+        bw.AlignWriter(2);
+        for (var i = 0; i < 4; i++)
         {
-            bw.Write(PartNameHash);
-            bw.Write(Mirrored);
-            bw.AlignWriter(4);
-            Transform.Write(vault, bw);
-            for (int i = 0; i < 4; i++)
-            {
-                Colors[i].Write(vault, bw);
-            }
+            Colors[i].Write(context, fieldContext, bw);
         }
+    }
+
+    public override object Clone()
+    {
+        return new VinylLayer
+        {
+            PartNameHash = PartNameHash,
+            Mirrored = Mirrored,
+            Transform = (VinylTransform)Transform.Clone(),
+            Colors = Colors.CloneComplex()
+        };
     }
 }

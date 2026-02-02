@@ -1,44 +1,50 @@
 ﻿using System.IO;
 using CoreLibraries.IO;
 using VaultLib.Core;
-using VaultLib.Core.Data;
 using VaultLib.Core.Types;
 using VaultLib.Core.Types.Attrib;
-using VaultLib.Frameworks.Speed;
+using VaultLib.Frameworks.Speed.VLT;
 
-namespace VaultLib.Support.Undercover.VLT
+namespace VaultLib.Support.Undercover.VLT;
+
+[VltTypeInfo(nameof(TireEffectRecord))]
+public class TireEffectRecord : VltBaseType<Core.DataInterfaces.Key32>
 {
-    [VLTTypeInfo(nameof(TireEffectRecord))]
-    public class TireEffectRecord : VLTBaseType
+    public TireCondition mTireCondition { get; set; }
+    public RefSpec32 mEmitter { get; set; } = new();
+    public RefSpec32 mEmitterLowLod { get; set; } = new();
+    public float mMinSpeed { get; set; }
+    public float mMaxSpeed { get; set; }
+
+    public override void Read(VaultReadContext<Core.DataInterfaces.Key32> context,
+        FieldReadWriteContext<Core.DataInterfaces.Key32> fieldContext, BinaryReader br)
     {
-        public TireEffectRecord(VltClass @class, VltClassField field, VltCollection collection = null) : base(@class, field, collection)
-        {
-            mEmitter = new RefSpec(Class, Field, Collection);
-            mEmitterLowLod = new RefSpec(Class, Field, Collection);
-        }
+        mTireCondition = br.ReadEnum<TireCondition>();
+        mEmitter.Read(context, fieldContext, br);
+        mEmitterLowLod.Read(context, fieldContext, br);
+        mMinSpeed = br.ReadSingle();
+        mMaxSpeed = br.ReadSingle();
+    }
 
-        public TireCondition mTireCondition { get; set; }
-        public RefSpec mEmitter { get; set; }
-        public RefSpec mEmitterLowLod { get; set; }
-        public float mMinSpeed { get; set; }
-        public float mMaxSpeed { get; set; }
+    public override void Write(VaultWriteContext<Core.DataInterfaces.Key32> context,
+        FieldReadWriteContext<Core.DataInterfaces.Key32> fieldContext, BinaryWriter bw)
+    {
+        bw.WriteEnum(mTireCondition);
+        mEmitter.Write(context, fieldContext, bw);
+        mEmitterLowLod.Write(context, fieldContext, bw);
+        bw.Write(mMinSpeed);
+        bw.Write(mMaxSpeed);
+    }
 
-        public override void Read(Vault vault, BinaryReader br)
+    public override object Clone()
+    {
+        return new TireEffectRecord
         {
-            mTireCondition = br.ReadEnum<TireCondition>();
-            mEmitter.Read(vault, br);
-            mEmitterLowLod.Read(vault, br);
-            mMinSpeed = br.ReadSingle();
-            mMaxSpeed = br.ReadSingle();
-        }
-
-        public override void Write(Vault vault, BinaryWriter bw)
-        {
-            bw.WriteEnum(mTireCondition);
-            mEmitter.Write(vault, bw);
-            mEmitterLowLod.Write(vault, bw);
-            bw.Write(mMinSpeed);
-            bw.Write(mMaxSpeed);
-        }
+            mTireCondition = mTireCondition,
+            mEmitter = (RefSpec32)mEmitter.Clone(),
+            mEmitterLowLod = (RefSpec32)mEmitterLowLod.Clone(),
+            mMinSpeed = mMinSpeed,
+            mMaxSpeed = mMaxSpeed
+        };
     }
 }

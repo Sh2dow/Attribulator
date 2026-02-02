@@ -3,421 +3,364 @@
 // Created: 09/25/2019 @ 7:04 PM.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
+using VaultLib.Core.DataInterfaces;
 using VaultLib.Core.Types;
-using VaultLib.Core.Types.EA.Reflection;
-using VaultLib.Core.Utils;
 
-namespace VaultLib.Core.Data
+namespace VaultLib.Core.Data;
+
+/// <summary>
+///     A collection in VLT is like a row in a SQL database.
+///     A collection specifies values for the fields of its class.
+/// </summary>
+public class VltCollection<TKey> where TKey : struct, IKey<TKey>
 {
     /// <summary>
-    ///     A collection in VLT is like a row in a SQL database.
-    ///     A collection specifies values for the fields of its class.
+    /// Gets the class that the collection belongs to.
     /// </summary>
-    public class VltCollection : IEquatable<VltCollection>
+    public VltClass<TKey> Class { get; }
+
+    /// <summary>
+    /// Gets or sets the vault that the collection belongs to.
+    /// </summary>
+    public Vault<TKey> Vault { get; private set; }
+
+    public TKey Key { get; private set; }
+
+    /// <summary>
+    /// Gets the collection's parent.
+    /// </summary>
+    public VltCollection<TKey>? Parent { get; private set; }
+
+    /// <summary>
+    /// Gets the collection's data table.
+    /// </summary>
+    private VltDataTable<TKey> Data { get; }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="VltCollection{TKey}"/> class.
+    /// </summary>
+    /// <param name="vault">The vault that contains the collection.</param>
+    /// <param name="vltClass">The class that the collection is part of.</param>
+    /// <param name="key">The collection's unique key.</param>
+    public VltCollection(Vault<TKey> vault, VltClass<TKey> vltClass, TKey key)
     {
-        /// <summary>
-        /// Gets the <see cref="VltClass"/> that this collection is part of.
-        /// </summary>
-        public VltClass Class { get; }
-
-        /// <summary>
-        /// Gets or sets the <see cref="Core.Vault"/> that this collection is part of.
-        /// </summary>
-        public Vault Vault { get; private set; }
-
-        /// <summary>
-        /// Gets the name of this collection.
-        /// </summary>
-        public string Name { get; private set; }
-
-        /// <summary>
-        /// Gets the parent collection of this collection.
-        /// </summary>
-        public VltCollection Parent { get; private set; }
-
-        /// <summary>
-        /// Gets the child collections of this collection.
-        /// </summary>
-        public ObservableCollection<VltCollection> Children { get; }
-
-        /// <summary>
-        /// Gets the short path of the collection.
-        /// </summary>
-        /// <example>gameplay/baseelement</example>
-        public string ShortPath => $"{Class.Name}/{Name}";
-
-        /// <summary>
-        /// Gets the collection's data.
-        /// </summary>
-        /// <remarks> This is a mapping between a <see cref="VltClassField"/>'s name and a <see cref="VLTBaseType"/> instance.</remarks>
-        private Dictionary<string, VLTBaseType> Data { get; }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="VltCollection"/> class.
-        /// </summary>
-        /// <param name="vault">The vault that contains the collection.</param>
-        /// <param name="vltClass">The <see cref="VltClass"/> that the collection is part of.</param>
-        /// <param name="name">The name of the collection.</param>
-        public VltCollection(Vault vault, VltClass vltClass, string name)
-        {
-            Vault = vault;
-            Class = vltClass;
-            Name = name;
-            Children = new ObservableCollection<VltCollection>();
-            Data = new Dictionary<string, VLTBaseType>();
-        }
-
-        #region API Members
-
-        /// <summary>
-        /// Updates the name of the collection.
-        /// </summary>
-        /// <param name="name"></param>
-        /// <remarks>This method does not perform any validation. It is assumed that you know what you're doing!</remarks>
-        public void SetName(string name)
-        {
-            Name = name;
-        }
-
-        /// <summary>
-        /// Adds the given collection to the list of child collections and associates it with its new parent.
-        /// </summary>
-        /// <param name="collection">The collection to add to the child list.</param>
-        public void AddChild(VltCollection collection)
-        {
-            if (collection.Parent != null && collection.Parent.ShortPath == this.ShortPath)
-            {
-                throw new ArgumentException("Attempted to associate an already-related collection");
-            }
-
-            Children.Add(collection);
-
-            // Disassociate old parent
-            collection.Parent?.RemoveChild(collection);
-            // Set new parent
-            collection.Parent = this;
-        }
-
-        /// <summary>
-        /// Removes the given collection from the list of child collections and disassociates it from its parent collection.
-        /// </summary>
-        /// <param name="collection">The collection to remove from the child list.</param>
-        public void RemoveChild(VltCollection collection)
-        {
-            if (collection.Parent == null || collection.Parent.ShortPath != this.ShortPath)
-            {
-                throw new ArgumentException("Attempted to disassociate a non-related collection");
-            }
-
-            Children.Remove(collection);
-            collection.Parent = null;
-        }
-
-        /// <summary>
-        /// Changes the vault that the collection is associated with.
-        /// </summary>
-        /// <param name="vault">The new parent vault.</param>
-        public void SetVault(Vault vault)
-        {
-            Vault = vault;
-        }
-
-        /// <summary>
-        /// Gets a read-only copy of the collection's data dictionary.
-        /// </summary>
-        /// <remarks>This method does not perform any conversions. It returns the underlying objects for everything.</remarks>
-        /// <returns>The read-only data dictionary.</returns>
-        public IReadOnlyDictionary<string, VLTBaseType> GetData()
-        {
-            return new ReadOnlyDictionary<string, VLTBaseType>(Data);
-        }
-
-        /// <summary>
-        /// Determines if the collection has a data entry with the given key.
-        /// </summary>
-        /// <param name="key"></param>
-        /// <returns><c>true</c> if an entry exists; otherwise, <c>false</c>.</returns>
-        public bool HasEntry(string key) => Data.ContainsKey(key);
-
-        /// <summary>
-        /// Obtains the value mapped to <paramref name="key"/> from the collection's data dictionary.
-        /// </summary>
-        /// <param name="key">The name of the field to obtain the value of.</param>
-        /// <returns>The <see cref="VLTBaseType"/> instance mapped to <paramref name="key"/>.</returns>
-        /// <exception cref="KeyNotFoundException">If there is no value mapped to <paramref name="key"/>.</exception>
-        public VLTBaseType GetRawValue(string key)
-        {
-            return GetRawValue<VLTBaseType>(key);
-        }
-
-        /// <summary>
-        /// Obtains the value mapped to <paramref name="key"/> from the collection's data dictionary.
-        /// </summary>
-        /// <param name="key">The name of the field to obtain the value of.</param>
-        /// <returns>The <see cref="VLTBaseType"/> instance mapped to <paramref name="key"/>.</returns>
-        /// <exception cref="KeyNotFoundException">If there is no value mapped to <paramref name="key"/>.</exception>
-        public T GetRawValue<T>(string key) where T : VLTBaseType
-        {
-            if (Data.TryGetValue(key, out VLTBaseType data))
-            {
-                return (T)data;
-            }
-
-            throw new KeyNotFoundException($"Collection {ShortPath} does not have a value for field {key}");
-        }
-
-        public T GetDataValue<T>(string key)
-        {
-            VLTBaseType originalData = GetRawValue(key);
-
-            return (T)BaseTypeToData(originalData);
-        }
-
-        /// <summary>
-        /// Gets the value of type <typeparamref name="T"/> mapped to <paramref name="key"/> in the collection's data dictionary.
-        /// </summary>
-        /// <typeparam name="T">The data type to be obtained.</typeparam>
-        /// <param name="key">The mapping key.</param>
-        /// <param name="index">The array index to retrieve the value from.</param>
-        /// <returns>The mapping value.</returns>
-        public VLTBaseType GetRawValue(string key, int index)
-        {
-            return GetRawValue<VLTBaseType>(key, index);
-        }
-
-        /// <summary>
-        /// Gets the value of type <typeparamref name="T"/> mapped to <paramref name="key"/> in the collection's data dictionary.
-        /// </summary>
-        /// <typeparam name="T">The data type to be obtained.</typeparam>
-        /// <param name="key">The mapping key.</param>
-        /// <param name="index">The array index to retrieve the value from.</param>
-        /// <returns>The mapping value.</returns>
-        public T GetRawValue<T>(string key, int index) where T : VLTBaseType
-        {
-            VLTArrayType array = GetRawValue<VLTArrayType>(key);
-
-            if (index < 0 || index >= array.Items.Count)
-            {
-                throw new ArgumentException($"Failed condition: 0 <= {index} < {array.Items.Count}");
-            }
-
-            return (T)array.Items[index];
-        }
-
-        public T GetDataValue<T>(string key, int index)
-        {
-            return (T) BaseTypeToData(GetRawValue(key, index));
-        }
-
-        /// <summary>
-        /// Updates or creates a mapping in the data dictionary between <paramref name="key"/> and <paramref name="data"/>.
-        /// </summary>
-        /// <param name="key">The mapping key. (Typically the VLT field name.)</param>
-        /// <param name="data">The mapping value.</param>
-        public void SetRawValue(string key, VLTBaseType data)
-        {
-            if (Class.HasField(key))
-            {
-                Data[key] = data;
-            }
-            else
-            {
-                throw new KeyNotFoundException($"Class '{Class.Name}' does not have field '{key}'");
-            }
-        }
-
-        /// <summary>
-        /// Updates or creates a mapping in the data dictionary between <paramref name="key"/> and <paramref name="data"/>.
-        /// </summary>
-        /// <param name="key">The mapping key. (Typically the VLT field name.)</param>
-        /// <param name="data">The mapping value.</param>
-        public void SetDataValue<T>(string key, T data)
-        {
-            if (Class.HasField(key))
-            {
-                if (HasEntry(key))
-                {
-                    SetRawValue(key, DataToBaseType(Class[key], GetRawValue(key), data));
-                }
-                else
-                {
-                    VLTBaseType rawValue =
-                        TypeRegistry.CreateInstance(Vault.Database.Options.GameId, Class, Class[key], this);
-                    SetRawValue(key, DataToBaseType(Class[key], rawValue, data));
-                }
-            }
-            else
-            {
-                throw new KeyNotFoundException($"Class '{Class.Name}' does not have field '{key}'");
-            }
-        }
-
-        /// <summary>
-        /// Updates or creates a mapping in the data dictionary between <paramref name="key"/> and <paramref name="data"/>.
-        /// </summary>
-        /// <param name="key">The mapping key. (Typically the VLT field name.)</param>
-        /// <param name="index"></param>
-        /// <param name="data">The mapping value.</param>
-        public void SetRawValue<T>(string key, int index, T data) where T : VLTBaseType
-        {
-            VLTArrayType array = GetRawValue<VLTArrayType>(key);
-
-            if (index < 0 || index >= array.Items.Count)
-            {
-                throw new ArgumentException($"Failed condition: 0 <= {index} < {array.Items.Count}");
-            }
-
-            if (data.GetType() != array.ItemType)
-            {
-                throw new ArgumentException($"Type mismatch: T={data.GetType()} A={array.ItemType}");
-            }
-
-            array.Items[index] = data;
-        }
-
-        /// <summary>
-        /// Updates or creates a mapping in the data dictionary between <paramref name="key"/> and <paramref name="data"/>.
-        /// </summary>
-        /// <param name="key">The mapping key. (Typically the VLT field name.)</param>
-        /// <param name="index"></param>
-        /// <param name="data">The mapping value.</param>
-        public void SetDataValue<T>(string key, int index, T data)
-        {
-            if (Class.HasField(key))
-            {
-                if (HasEntry(key))
-                {
-                    SetRawValue(key, index, DataToBaseType(Class[key], GetRawValue(key, index), data));
-                }
-                else
-                {
-                    VLTBaseType rawValue =
-                        TypeRegistry.ConstructInstance(
-                            TypeRegistry.ResolveType(Vault.Database.Options.GameId, Class[key].TypeName), Class,
-                            Class[key], this);
-                    SetRawValue(key, index, DataToBaseType(Class[key], rawValue, data));
-                }
-            }
-            else
-            {
-                throw new KeyNotFoundException($"Class '{Class.Name}' does not have field '{key}'");
-            }
-        }
-
-        /// <summary>
-        /// Removes an entry from the data dictionary.
-        /// This is only valid for optional fields.
-        /// </summary>
-        /// <param name="key">The mapping key.</param>
-        public void RemoveValue(string key)
-        {
-            if (Class.HasField(key))
-            {
-                var field = Class[key];
-
-                if (field.IsInLayout)
-                {
-                    throw new Exception($"Cannot remove in-layout field: {key}");
-                }
-
-                if (HasEntry(key))
-                {
-                    Data.Remove(key);
-                }
-                else
-                {
-                    throw new KeyNotFoundException($"Collection '{ShortPath}' does not have an entry for '{key}'");
-                }
-            }
-            else
-            {
-                throw new KeyNotFoundException($"Class '{Class.Name}' does not have field '{key}'");
-            }
-        }
-
-        #endregion
-
-        #region IEquatable Members
-
-        public bool Equals(VltCollection other)
-        {
-            if (other is null) return false;
-            if (ReferenceEquals(this, other)) return true;
-            return Equals(Class, other.Class) && Equals(Vault, other.Vault) && string.Equals(Name, other.Name, StringComparison.InvariantCulture) && Equals(Parent, other.Parent) && Equals(Children, other.Children) && Equals(Data, other.Data);
-        }
-
-        public override bool Equals(object obj)
-        {
-            if (ReferenceEquals(null, obj)) return false;
-            if (ReferenceEquals(this, obj)) return true;
-            return obj.GetType() == typeof(VltCollection) && Equals((VltCollection)obj);
-        }
-
-        public override int GetHashCode()
-        {
-            var hashCode = new HashCode();
-            hashCode.Add(Class);
-            hashCode.Add(Vault);
-            hashCode.Add(Name, StringComparer.InvariantCulture);
-            hashCode.Add(Parent);
-            hashCode.Add(Children);
-            hashCode.Add(Data);
-            return hashCode.ToHashCode();
-        }
-
-        #endregion
-
-        #region Internal stuff
-
-        private object BaseTypeToData(VLTBaseType baseType)
-        {
-            // if we have a primitive or string value, return that
-            // if we have an array, return a list where each item in the array has been converted (recursion FTW)
-            // otherwise, just return the original data
-
-            return baseType switch
-            {
-                PrimitiveTypeBase ptb => ptb.GetValue(),
-                IStringValue sv => sv.GetString(),
-                VLTArrayType array => array.Items.Select(BaseTypeToData).ToList(),
-                _ => baseType
-            };
-        }
-
-        private VLTBaseType DataToBaseType(VltClassField field, VLTBaseType originalData, object data)
-        {
-            switch (data)
-            {
-                case string s:
-                    {
-                        if (originalData is IStringValue sv)
-                        {
-                            sv.SetString(s);
-                            return originalData;
-                        }
-
-                        break;
-                    }
-                case IConvertible ic:
-                    {
-                        if (originalData is PrimitiveTypeBase ptb)
-                        {
-                            ptb.SetValue(ic);
-                            return originalData;
-                        }
-                        break;
-                    }
-                case VLTBaseType vbt:
-                    return vbt;
-            }
-
-            throw new ArgumentException($"Cannot convert {data.GetType()} to VLTBaseType.");
-        }
-
-        #endregion
+        Vault = vault;
+        Class = vltClass;
+        Key = key;
+        Data = new VltDataTable<TKey>();
     }
+
+    #region API Members
+
+    public void SetParent(VltCollection<TKey>? parent)
+    {
+        if (parent != null)
+        {
+            if (!ReferenceEquals(parent.Class, Class))
+            {
+                throw new ArgumentException("New parent collection belongs to a different class.");
+            }
+        }
+        
+        Parent = parent;
+    }
+
+    /// <summary>
+    /// Changes the vault that the collection is associated with.
+    /// </summary>
+    /// <param name="vault">The new parent vault.</param>
+    public void SetVault(Vault<TKey> vault)
+    {
+        Vault = vault;
+    }
+
+    public void SetKey(TKey newKey)
+    {
+        if (Key == newKey)
+            return;
+
+        if (Vault.Database.RowManager.FindCollection(Class.Key, newKey) != null)
+        {
+            throw new ArgumentException($"A collection with the same key ({newKey}) already exists", nameof(newKey));
+        }
+
+        Key = newKey;
+    }
+
+    /// <summary>
+    /// Gets a read-only copy of the collection's data dictionary.
+    /// </summary>
+    /// <remarks>This method does not perform any conversions. It returns the underlying objects for everything.</remarks>
+    /// <returns>The read-only data dictionary.</returns>
+    public IReadOnlyDictionary<TKey, object> GetData()
+    {
+        return Data.GetDictionary();
+    }
+
+    public IReadOnlyList<VltDataTable<TKey>.Entry> GetOrderedData()
+    {
+        return Data.GetEntries();
+    }
+
+    /// <summary>
+    /// Determines if the collection has a data entry with the given key.
+    /// </summary>
+    /// <param name="key"></param>
+    /// <returns><c>true</c> if an entry exists; otherwise, <c>false</c>.</returns>
+    public bool HasEntry(TKey key) => Data.HasValue(key);
+
+    /// <summary>
+    /// Determines if the collection's data table has a value associated
+    /// with a particular field.
+    /// </summary>
+    /// <param name="name">The field's name.</param>
+    /// <returns><c>true</c> if an entry exists; otherwise, <c>false</c>.</returns>
+    public bool HasEntry(string name) => HasEntry(TKey.FromString(name));
+
+    /// <summary>
+    /// Gets the value for a particular field from the collection's data table.
+    /// </summary>
+    /// <param name="key">The field's key.</param>
+    /// <returns>The data mapped to the given key.</returns>
+    /// <exception cref="KeyNotFoundException">If there is no value mapped to the given key.</exception>
+    public object GetRawValue(TKey key)
+    {
+        return GetRawValue<object>(key);
+    }
+
+    /// <summary>
+    /// Gets the value for a particular field from the collection's data table.
+    /// </summary>
+    /// <param name="name">The name of the field to obtain the value of.</param>
+    /// <returns>The data mapped to the given key.</returns>
+    /// <exception cref="KeyNotFoundException">If there is no value mapped to the given key.</exception>
+    public object GetRawValue(string name)
+    {
+        return GetRawValue<object>(TKey.FromString(name));
+    }
+
+    /// <summary>
+    /// Gets the value for a particular field from the collection's data table.
+    /// </summary>
+    /// <param name="key">The field's key.</param>
+    /// <returns>The data mapped to the given key.</returns>
+    /// <exception cref="KeyNotFoundException">If there is no value mapped to the given key.</exception>
+    public T GetRawValue<T>(TKey key)
+    {
+        if (!Data.TryGetValue<T>(key, out var data))
+            throw new KeyNotFoundException($"Collection does not have a value for field {key}");
+        return data;
+    }
+
+    /// <summary>
+    /// Gets the value for a particular field from the collection's data table.
+    /// </summary>
+    /// <param name="name">The name of the field to obtain the value of.</param>
+    /// <returns>The data mapped to the given key.</returns>
+    /// <exception cref="KeyNotFoundException">If there is no value mapped to the given key.</exception>
+    public T GetRawValue<T>(string name)
+    {
+        return GetRawValue<T>(TKey.FromString(name));
+    }
+
+    /// <summary>
+    /// Gets the value of type <typeparamref name="T"/> mapped to <paramref name="key"/> in the collection's data dictionary.
+    /// </summary>
+    /// <typeparam name="T">The data type to be obtained.</typeparam>
+    /// <param name="key">The mapping key.</param>
+    /// <param name="index">The array index to retrieve the value from.</param>
+    /// <returns>The mapping value.</returns>
+    public T GetRawValue<T>(TKey key, int index)
+    {
+        var data = GetRawValue(key, index);
+
+        if (data is not T value)
+            throw new InvalidCastException($"Field {key} is not compatible with type {typeof(T)}");
+
+        return value;
+    }
+
+    /// <summary>
+    /// Gets the value of type <typeparamref name="T"/> mapped to <paramref name="name"/> in the collection's data dictionary.
+    /// </summary>
+    /// <typeparam name="T">The data type to be obtained.</typeparam>
+    /// <param name="name">The mapping key.</param>
+    /// <param name="index">The array index to retrieve the value from.</param>
+    /// <returns>The mapping value.</returns>
+    public T GetRawValue<T>(string name, int index)
+    {
+        return GetRawValue<T>(TKey.FromString(name), index);
+    }
+
+    public object GetRawValue(TKey key, int index)
+    {
+        var array = GetRawValue<VltArrayType<TKey>>(key);
+
+        if (index < 0 || index >= array.Items.Count)
+        {
+            throw new ArgumentException($"Failed condition: 0 <= {index} < {array.Items.Count}");
+        }
+
+        return array.Items[index];
+    }
+
+    public object GetRawValue(string name, int index)
+    {
+        return GetRawValue(TKey.FromString(name), index);
+    }
+
+    /// <summary>
+    /// Updates or creates a mapping in the data dictionary between <paramref name="key"/> and <paramref name="data"/>.
+    /// </summary>
+    /// <param name="key">The mapping key. (Typically the VLT field name.)</param>
+    /// <param name="data">The mapping value.</param>
+    public void SetRawValue(TKey key, object data)
+    {
+        if (Class.HasField(key))
+        {
+            Data.SetValue(key, data);
+        }
+        else
+        {
+            throw new KeyNotFoundException($"Field '{key}' not found in class");
+        }
+    }
+
+    /// <summary>
+    /// Updates or creates a mapping in the data dictionary between <paramref name="key"/> and <paramref name="data"/>.
+    /// </summary>
+    /// <param name="key">The mapping key. (Typically the VLT field name.)</param>
+    /// <param name="data">The mapping value.</param>
+    public void SetRawValue(string key, object data)
+    {
+        SetRawValue(TKey.FromString(key), data);
+    }
+
+    /// <summary>
+    /// Updates or creates a mapping in the data dictionary between <paramref name="key"/> and <paramref name="data"/>.
+    /// </summary>
+    /// <param name="key">The mapping key. (Typically the VLT field name.)</param>
+    /// <param name="index"></param>
+    /// <param name="data">The mapping value.</param>
+    public void SetRawValue<T>(TKey key, int index, T data) where T : notnull
+    {
+        var array = GetRawValue<VltArrayType<TKey>>(key);
+
+        if (index < 0 || index >= array.Items.Count)
+        {
+            throw new ArgumentException($"Failed condition: 0 <= {index} < {array.Items.Count}");
+        }
+
+        if (data.GetType() != array.ItemType)
+        {
+            throw new ArgumentException($"Type mismatch: T={data.GetType()} A={array.ItemType}");
+        }
+
+        array.Items[index] = data;
+    }
+
+    /// <summary>
+    /// Updates or creates a mapping in the data dictionary between <paramref name="key"/> and <paramref name="data"/>.
+    /// </summary>
+    /// <param name="key">The mapping key. (Typically the VLT field name.)</param>
+    /// <param name="index"></param>
+    /// <param name="data">The mapping value.</param>
+    public void SetRawValue<T>(string key, int index, T data) where T : notnull
+    {
+        SetRawValue(TKey.FromString(key), index, data);
+    }
+
+    /// <summary>
+    /// Removes an entry from the data dictionary.
+    /// This is only valid for optional fields.
+    /// </summary>
+    /// <param name="key">The mapping key.</param>
+    public void RemoveValue(TKey key)
+    {
+        if (Class.HasField(key))
+        {
+            var field = Class[key];
+
+            if (field.IsInLayout)
+            {
+                throw new Exception($"Cannot remove in-layout field: {key}");
+            }
+
+            if (HasEntry(key))
+            {
+                Data.RemoveValue(key);
+            }
+            else
+            {
+                throw new KeyNotFoundException($"Collection does not have an entry for '{key}'");
+            }
+        }
+        else
+        {
+            throw new KeyNotFoundException($"Class does not have field '{key}'");
+        }
+    }
+
+    /// <summary>
+    /// Removes an entry from the data dictionary.
+    /// This is only valid for optional fields.
+    /// </summary>
+    /// <param name="name">The mapping key.</param>
+    public void RemoveValue(string name)
+    {
+        RemoveValue(TKey.FromString(name));
+    }
+
+    #endregion
+
+    #region Internal stuff
+
+    // private object BaseTypeToData(VltBaseType baseType)
+    // {
+    //     // if we have a primitive or string value, return that
+    //     // if we have an array, return a list where each item in the array has been converted (recursion FTW)
+    //     // otherwise, just return the original data
+    //
+    //     return baseType switch
+    //     {
+    //         PrimitiveTypeBase ptb => ptb.GetValue(),
+    //         IStringValue sv => sv.GetString(),
+    //         VltArrayType array => array.Items.Select(BaseTypeToData).ToList(),
+    //         _ => baseType
+    //     };
+    // }
+
+    // private VltBaseType DataToBaseType(VltClassField field, VltBaseType originalData, object data)
+    // {
+    //     switch (data)
+    //     {
+    //         case string s:
+    //         {
+    //             if (originalData is IStringValue sv)
+    //             {
+    //                 sv.SetString(s);
+    //                 return originalData;
+    //             }
+    //
+    //             break;
+    //         }
+    //         case IConvertible ic:
+    //         {
+    //             if (originalData is PrimitiveTypeBase ptb)
+    //             {
+    //                 ptb.SetValue(ic);
+    //                 return originalData;
+    //             }
+    //
+    //             break;
+    //         }
+    //         case VltBaseType vbt:
+    //             return vbt;
+    //     }
+    //
+    //     throw new ArgumentException($"Cannot convert {data.GetType()} to VLTBaseType.");
+    // }
+
+    #endregion
 }

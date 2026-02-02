@@ -1,36 +1,21 @@
-﻿using System.IO;
-using CoreLibraries.IO;
-using VaultLib.Core;
-using VaultLib.Core.Data;
-using VaultLib.Core.Types;
-using VaultLib.Frameworks.Speed;
+﻿using VaultLib.Core.Types;
+using VaultLib.Frameworks.Speed.VLT;
 
-namespace VaultLib.Support.World.VLT
+namespace VaultLib.Support.World.VLT;
+
+[VltTypeInfo(nameof(FEMsgToSoundTrigger))]
+public struct FEMsgToSoundTrigger : IComplexType
 {
-    [VLTTypeInfo(nameof(FEMsgToSoundTrigger))]
-    public class FEMsgToSoundTrigger : VLTBaseType
+    public uint FEngMsg;
+    public eMenuSoundTriggers SoundTrigger;
+
+    public void EndianSwap()
     {
-        public FEMsgToSoundTrigger(VltClass @class, VltClassField field, VltCollection collection) : base(@class, field, collection)
-        {
-        }
+        throw new System.NotImplementedException();
+    }
 
-        public FEMsgToSoundTrigger(VltClass @class, VltClassField field) : base(@class, field)
-        {
-        }
-
-        public uint FEngMsg { get; set; }
-        public eMenuSoundTriggers SoundTrigger { get; set; }
-
-        public override void Read(Vault vault, BinaryReader br)
-        {
-            FEngMsg = br.ReadUInt32();
-            SoundTrigger = br.ReadEnum<eMenuSoundTriggers>();
-        }
-
-        public override void Write(Vault vault, BinaryWriter bw)
-        {
-            bw.Write(FEngMsg);
-            bw.WriteEnum(SoundTrigger);
-        }
+    public object Clone()
+    {
+        return MemberwiseClone();
     }
 }

@@ -1,79 +1,81 @@
 ﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using VaultLib.Core.DataInterfaces;
 using VaultLib.Core.Exports;
 
-namespace VaultLib.Core.Writer
+namespace VaultLib.Core.Writer;
+
+/// <summary>
+/// Manages information about exports to be built into a file.
+/// </summary>
+public class VaultExportManager<TKey> where TKey : struct, IKey<TKey>
 {
+    private VaultWriteContext<TKey> WriteContext { get; }
+    private List<BaseExport<TKey>> Exports { get; }
+
     /// <summary>
-    /// Manages information about exports to be built into a file.
+    /// Initializes a new instance of the <see cref="VaultExportManager{TKey}"/> class.
     /// </summary>
-    public class VaultExportManager
+    /// <param name="writeContext">The vault to build exports for.</param>
+    public VaultExportManager(VaultWriteContext<TKey> writeContext)
     {
-        private Vault Vault { get; }
-        private List<BaseExport> Exports { get; }
+        WriteContext = writeContext;
+        Exports = new List<BaseExport<TKey>>();
+    }
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="VaultExportManager"/> class.
-        /// </summary>
-        /// <param name="vault">The vault to build exports for.</param>
-        public VaultExportManager(Vault vault)
+    /// <summary>
+    /// Builds exports for the vault.
+    /// </summary>
+    /// <remarks>This resets the list of exports.</remarks>
+    public void BuildVaultExports()
+    {
+        Exports.Clear();
+
+        var exportFactory = WriteContext.Database.ExportFactory;
+            
+        if (WriteContext.Vault.IsPrimaryVault)
         {
-            Vault = vault;
-            Exports = new List<BaseExport>();
-        }
+            Exports.Add(exportFactory.BuildDatabaseLoad());
 
-        /// <summary>
-        /// Builds exports for the vault.
-        /// </summary>
-        /// <remarks>This resets the list of exports.</remarks>
-        public void BuildVaultExports()
-        {
-            Exports.Clear();
-
-            if (Vault.IsPrimaryVault)
+            foreach (var vltClass in WriteContext.Database.Classes)
             {
-                Exports.Add(ExportFactory.BuildDatabaseLoad(Vault));
-
-                foreach (var vltClass in Vault.Database.Classes)
-                {
-                    Exports.Add(ExportFactory.BuildClassLoad(Vault, vltClass));
-                    Exports.AddRange(from collection in Vault.SaveContext.Collections
-                                     where collection.Class.Name == vltClass.Name
-                                     select ExportFactory.BuildCollectionLoad(Vault, collection));
-                }
-            }
-            else
-            {
-                Exports.AddRange(from collection in Vault.SaveContext.Collections
-                                 select ExportFactory.BuildCollectionLoad(Vault, collection));
+                Exports.Add(exportFactory.BuildClassLoad(vltClass));
+                Exports.AddRange(from collection in WriteContext.Collections
+                    where collection.Class.Key == vltClass.Key
+                    select exportFactory.BuildCollectionLoad(collection));
             }
         }
-
-        /// <summary>
-        /// Performs preparation work on each export.
-        /// </summary>
-        public void PrepareExports()
+        else
         {
-            Exports.ForEach(e => e.Prepare(Vault));
+            Exports.AddRange(from collection in WriteContext.Collections
+                select exportFactory.BuildCollectionLoad(collection));
         }
+    }
 
-        /// <summary>
-        /// Adds an export to the list of exports.
-        /// </summary>
-        /// <param name="export">The export to add.</param>
-        public void AddExport(BaseExport export)
-        {
-            Exports.Add(export);
-        }
+    /// <summary>
+    /// Performs preparation work on each export.
+    /// </summary>
+    public void PrepareExports()
+    {
+        Exports.ForEach(e => e.Prepare(WriteContext.Vault));
+    }
 
-        /// <summary>
-        /// Gets a read-only view of the list of exports.
-        /// </summary>
-        /// <returns>The read-only list of exports.</returns>
-        public IList<BaseExport> GetExports()
-        {
-            return new ReadOnlyCollection<BaseExport>(Exports);
-        }
+    /// <summary>
+    /// Adds an export to the list of exports.
+    /// </summary>
+    /// <param name="export">The export to add.</param>
+    public void AddExport(BaseExport<TKey> export)
+    {
+        Exports.Add(export);
+    }
+
+    /// <summary>
+    /// Gets a read-only view of the list of exports.
+    /// </summary>
+    /// <returns>The read-only list of exports.</returns>
+    public IList<BaseExport<TKey>> GetExports()
+    {
+        return new ReadOnlyCollection<BaseExport<TKey>>(Exports);
     }
 }

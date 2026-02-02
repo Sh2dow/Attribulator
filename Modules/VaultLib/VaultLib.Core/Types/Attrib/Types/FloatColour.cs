@@ -2,47 +2,33 @@
 // 
 // Created: 09/27/2019 @ 4:52 PM.
 
-using System.IO;
-using VaultLib.Core.Data;
+using VaultLib.Core.Utils;
 
-namespace VaultLib.Core.Types.Attrib.Types
+namespace VaultLib.Core.Types.Attrib.Types;
+
+[VltTypeInfo("Attrib::Types::FloatColour")]
+public struct FloatColour : IComplexType
 {
-    [VLTTypeInfo("Attrib::Types::FloatColour")]
-    public class FloatColour : VLTBaseType
+    public float R;
+    public float G;
+    public float B;
+    public float A;
+
+    public override string ToString()
     {
-        public FloatColour(VltClass @class, VltClassField field, VltCollection collection) : base(@class, field,
-            collection)
-        {
-        }
+        return $"R: {R} G: {G} B: {B} A: {A}";
+    }
 
-        public FloatColour(VltClass @class, VltClassField field) : base(@class, field)
-        {
-        }
+    public void EndianSwap()
+    {
+        BinaryExtensions.EndianSwap(ref R);
+        BinaryExtensions.EndianSwap(ref G);
+        BinaryExtensions.EndianSwap(ref B);
+        BinaryExtensions.EndianSwap(ref A);
+    }
 
-        public float R { get; set; }
-        public float G { get; set; }
-        public float B { get; set; }
-        public float A { get; set; }
-
-        public override void Read(Vault vault, BinaryReader br)
-        {
-            R = br.ReadSingle();
-            G = br.ReadSingle();
-            B = br.ReadSingle();
-            A = br.ReadSingle();
-        }
-
-        public override void Write(Vault vault, BinaryWriter bw)
-        {
-            bw.Write(R);
-            bw.Write(G);
-            bw.Write(B);
-            bw.Write(A);
-        }
-
-        public override string ToString()
-        {
-            return $"R: {R} G: {G} B: {B} A: {A}";
-        }
+    public object Clone()
+    {
+        return MemberwiseClone();
     }
 }

@@ -4,76 +4,52 @@
 
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using VaultLib.Core;
-using VaultLib.Core.Data;
 using VaultLib.Core.Types;
 using VaultLib.Core.Types.Attrib;
-using VaultLib.Core.Types.EA.Reflection;
 using VaultLib.Core.Utils;
 
-namespace VaultLib.Support.Undercover.VLT.NIS
+namespace VaultLib.Support.Undercover.VLT.NIS;
+
+[VltTypeInfo("NIS::NISCar")]
+public class NISCar : VltBaseType<Core.DataInterfaces.Key32>, IReferencesStrings
 {
-    [VLTTypeInfo("NIS::NISCar")]
-    public class NISCar : VLTBaseType, IReferencesStrings
+    public RefSpec32 PresetRide { get; set; } = new();
+    public string PresetSkinName { get; set; } = string.Empty;
+    public uint VehicleCategory { get; set; }
+    public string ChannelName { get; set; } = string.Empty;
+
+    public override void Read(VaultReadContext<Core.DataInterfaces.Key32> context,
+        FieldReadWriteContext<Core.DataInterfaces.Key32> fieldContext, BinaryReader br)
     {
-        public RefSpec PresetRide { get; set; }
-        public string PresetSkinName { get; set; }
-        public uint VehicleCategory { get; set; }
-        public string ChannelName { get; set; }
+        PresetRide.Read(context, fieldContext, br);
+        PresetSkinName = context.ReadString(br);
+        VehicleCategory = br.ReadUInt32();
+        ChannelName = context.ReadString(br);
+    }
 
-        private Text _presetSkinNameText, _channelNameText;
+    public override void Write(VaultWriteContext<Core.DataInterfaces.Key32> context,
+        FieldReadWriteContext<Core.DataInterfaces.Key32> fieldContext, BinaryWriter bw)
+    {
+        PresetRide.Write(context, fieldContext, bw);
+        context.WriteString(PresetSkinName, fieldContext, bw);
+        bw.Write(VehicleCategory);
+        context.WriteString(ChannelName, fieldContext, bw);
+    }
 
-        public override void Read(Vault vault, BinaryReader br)
+    public IEnumerable<string> GetStrings()
+    {
+        return new[] { PresetSkinName, ChannelName };
+    }
+
+    public override object Clone()
+    {
+        return new NISCar
         {
-            PresetRide.Read(vault, br);
-            _presetSkinNameText.Read(vault, br);
-            VehicleCategory = br.ReadUInt32();
-            _channelNameText.Read(vault, br);
-        }
-
-        public override void Write(Vault vault, BinaryWriter bw)
-        {
-            PresetRide.Write(vault, bw);
-            _presetSkinNameText.Value = PresetSkinName;
-            _presetSkinNameText.Write(vault, bw);
-            bw.Write(VehicleCategory);
-            _channelNameText.Value = ChannelName;
-            _channelNameText.Write(vault, bw);
-        }
-
-        public void ReadPointerData(Vault vault, BinaryReader br)
-        {
-            _presetSkinNameText.ReadPointerData(vault, br);
-            _channelNameText.ReadPointerData(vault, br);
-
-            PresetSkinName = _presetSkinNameText.Value;
-            ChannelName = _channelNameText.Value;
-        }
-
-        public void WritePointerData(Vault vault, BinaryWriter bw)
-        {
-            _presetSkinNameText.WritePointerData(vault, bw);
-            _channelNameText.WritePointerData(vault, bw);
-        }
-
-        public void AddPointers(Vault vault)
-        {
-            _presetSkinNameText.AddPointers(vault);
-            _channelNameText.AddPointers(vault);
-        }
-
-        public IEnumerable<string> GetStrings()
-        {
-            return _presetSkinNameText.GetStrings().Concat(_channelNameText.GetStrings());
-        }
-
-        public NISCar(VltClass @class, VltClassField field, VltCollection collection = null) : base(@class, field, collection)
-        {
-            PresetRide = new RefSpec(Class, Field, Collection);
-            _presetSkinNameText = new Text(Class, Field, Collection);
-            _channelNameText = new Text(Class, Field, Collection);
-            PresetSkinName = ChannelName = string.Empty;
-        }
+            ChannelName = ChannelName,
+            PresetRide = (RefSpec32)PresetRide.Clone(),
+            PresetSkinName = PresetSkinName,
+            VehicleCategory = VehicleCategory,
+        };
     }
 }

@@ -1,46 +1,54 @@
 ﻿using System.IO;
 using CoreLibraries.IO;
 using VaultLib.Core;
-using VaultLib.Core.Data;
 using VaultLib.Core.Types;
 using VaultLib.Core.Types.Attrib;
-using VaultLib.Frameworks.Speed;
+using VaultLib.Frameworks.Speed.VLT;
 
-namespace VaultLib.Support.ProStreet.VLT
+namespace VaultLib.Support.ProStreet.VLT;
+
+[VltTypeInfo(nameof(PresetRidePaint))]
+public class PresetRidePaint : VltBaseType<Core.DataInterfaces.Key32>
 {
-    [VLTTypeInfo(nameof(PresetRidePaint))]
-    public class PresetRidePaint : VLTBaseType
+    public ePaintSlot SlotID { get; set; }
+    public RefSpec32 Group { get; set; } = new();
+    public RefSpec32 Swatch { get; set; } = new();
+    public uint KitNumber { get; set; }
+    public float Saturation { get; set; }
+    public float Variance { get; set; }
+
+    public override void Read(VaultReadContext<Core.DataInterfaces.Key32> context,
+        FieldReadWriteContext<Core.DataInterfaces.Key32> fieldContext, BinaryReader br)
     {
-        public PresetRidePaint(VltClass @class, VltClassField field, VltCollection collection = null) : base(@class, field, collection)
-        {
-            Group = new RefSpec(Class, Field, Collection);
-            Swatch = new RefSpec(Class, Field, Collection);
-        }
+        SlotID = br.ReadEnum<ePaintSlot>();
+        Group.Read(context, fieldContext, br);
+        Swatch.Read(context, fieldContext, br);
+        KitNumber = br.ReadUInt32();
+        Saturation = br.ReadSingle();
+        Variance = br.ReadSingle();
+    }
 
-        public ePaintSlot SlotID { get; set; }
-        public RefSpec Group { get; set; }
-        public RefSpec Swatch { get; set; }
-        public uint KitNumber { get; set; }
-        public float Saturation { get; set; }
-        public float Variance { get; set; }
-        public override void Read(Vault vault, BinaryReader br)
-        {
-            SlotID = br.ReadEnum<ePaintSlot>();
-            Group.Read(vault, br);
-            Swatch.Read(vault, br);
-            KitNumber = br.ReadUInt32();
-            Saturation = br.ReadSingle();
-            Variance = br.ReadSingle();
-        }
+    public override void Write(VaultWriteContext<Core.DataInterfaces.Key32> context,
+        FieldReadWriteContext<Core.DataInterfaces.Key32> fieldContext, BinaryWriter bw)
+    {
+        bw.WriteEnum(SlotID);
+        Group.Write(context, fieldContext, bw);
+        Swatch.Write(context, fieldContext, bw);
+        bw.Write(KitNumber);
+        bw.Write(Saturation);
+        bw.Write(Variance);
+    }
 
-        public override void Write(Vault vault, BinaryWriter bw)
+    public override object Clone()
+    {
+        return new PresetRidePaint
         {
-            bw.WriteEnum(SlotID);
-            Group.Write(vault, bw);
-            Swatch.Write(vault, bw);
-            bw.Write(KitNumber);
-            bw.Write(Saturation);
-            bw.Write(Variance);
-        }
+            SlotID = SlotID,
+            Group = (RefSpec32)Group.Clone(),
+            Swatch = (RefSpec32)Swatch.Clone(),
+            KitNumber = KitNumber,
+            Saturation = Saturation,
+            Variance = Variance
+        };
     }
 }

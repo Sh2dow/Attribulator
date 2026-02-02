@@ -5,64 +5,41 @@
 using System.Collections.Generic;
 using System.IO;
 using VaultLib.Core;
-using VaultLib.Core.Data;
 using VaultLib.Core.Hashing;
 using VaultLib.Core.Types;
-using VaultLib.Core.Types.EA.Reflection;
 using VaultLib.Core.Utils;
 
-namespace VaultLib.Support.World.VLT.GameCore
+namespace VaultLib.Support.World.VLT.GameCore;
+
+[VltTypeInfo("GameCore::KeyValuePair")]
+public class KeyValuePair: VltBaseType<Core.DataInterfaces.Key32>, IReferencesStrings
 {
-    [VLTTypeInfo("GameCore::KeyValuePair")]
-    public class KeyValuePair : VLTBaseType, IReferencesStrings
+    public string KeyString { get; set; } = string.Empty;
+
+    public float Value { get; set; }
+
+    public override void Read(VaultReadContext<Core.DataInterfaces.Key32> context, FieldReadWriteContext<Core.DataInterfaces.Key32> fieldContext, BinaryReader br)
     {
-        private Text _keyString;
+        KeyString = context.ReadString(br);
 
-        public string KeyString { get; set; }
+        br.ReadUInt32(); // stringhash32(KeyString)
+        Value = br.ReadSingle();
+    }
 
-        public float Value { get; set; }
+    public override void Write(VaultWriteContext<Core.DataInterfaces.Key32> context, FieldReadWriteContext<Core.DataInterfaces.Key32> fieldContext, BinaryWriter bw)
+    {
+        context.WriteString(KeyString, fieldContext, bw);
+        bw.Write(Vlt32Hasher.Hash(KeyString));
+        bw.Write(Value);
+    }
 
-        public override void Read(Vault vault, BinaryReader br)
-        {
-            _keyString.Read(vault, br);
+    public IEnumerable<string> GetStrings()
+    {
+        return new[] { KeyString };
+    }
 
-            br.ReadUInt32(); // stringhash32(KeyString)
-            Value = br.ReadSingle();
-        }
-
-        public override void Write(Vault vault, BinaryWriter bw)
-        {
-            _keyString.Value = KeyString;
-            _keyString.Write(vault, bw);
-            bw.Write(VLT32Hasher.Hash(KeyString));
-            bw.Write(Value);
-        }
-
-        public IEnumerable<string> GetStrings()
-        {
-            return new[] { KeyString };
-        }
-
-        public void ReadPointerData(Vault vault, BinaryReader br)
-        {
-            _keyString.ReadPointerData(vault, br);
-            KeyString = _keyString.Value;
-        }
-
-        public void WritePointerData(Vault vault, BinaryWriter bw)
-        {
-            _keyString.WritePointerData(vault, bw);
-        }
-
-        public void AddPointers(Vault vault)
-        {
-            _keyString.AddPointers(vault);
-        }
-
-        public KeyValuePair(VltClass @class, VltClassField field, VltCollection collection = null) : base(@class, field, collection)
-        {
-            _keyString = new Text(Class, Field, Collection);
-            KeyString = string.Empty;
-        }
+    public override object Clone()
+    {
+        return MemberwiseClone();
     }
 }

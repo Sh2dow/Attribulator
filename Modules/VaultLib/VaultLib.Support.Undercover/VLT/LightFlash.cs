@@ -1,35 +1,23 @@
-﻿using System.IO;
-using VaultLib.Core;
-using VaultLib.Core.Data;
-using VaultLib.Core.Types;
+﻿using VaultLib.Core.Types;
+using VaultLib.Core.Utils;
 
-namespace VaultLib.Support.Undercover.VLT
+namespace VaultLib.Support.Undercover.VLT;
+
+// TODO: figure this out
+[VltTypeInfo(nameof(LightFlash))]
+public struct LightFlash : IComplexType
 {
-    // TODO: figure this out
-    [VLTTypeInfo(nameof(LightFlash))]
-    public class LightFlash : VLTBaseType
+    public float Value1;
+    public float Value2;
+
+    public void EndianSwap()
     {
-        public LightFlash(VltClass @class, VltClassField field, VltCollection collection) : base(@class, field, collection)
-        {
-        }
+        Value1 = Value1.EndianSwap();
+        Value2 = Value2.EndianSwap();
+    }
 
-        public LightFlash(VltClass @class, VltClassField field) : base(@class, field)
-        {
-        }
-
-        public float Value1 { get; set; }
-        public float Value2 { get; set; }
-
-        public override void Read(Vault vault, BinaryReader br)
-        {
-            Value1 = br.ReadSingle();
-            Value2 = br.ReadSingle();
-        }
-
-        public override void Write(Vault vault, BinaryWriter bw)
-        {
-            bw.Write(Value1);
-            bw.Write(Value2);
-        }
+    public object Clone()
+    {
+        return MemberwiseClone();
     }
 }

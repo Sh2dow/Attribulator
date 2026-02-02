@@ -1,35 +1,30 @@
 ﻿using System.IO;
 using CoreLibraries.IO;
 using VaultLib.Core;
-using VaultLib.Core.Data;
 using VaultLib.Core.Types;
 
-namespace VaultLib.Support.Undercover.VLT
+namespace VaultLib.Support.Undercover.VLT;
+
+[VltTypeInfo(nameof(FEQuickUpgradeEntry))]
+public class FEQuickUpgradeEntry: VltBaseType<Core.DataInterfaces.Key32>
 {
-    [VLTTypeInfo(nameof(FEQuickUpgradeEntry))]
-    public class FEQuickUpgradeEntry : VLTBaseType
+    public eQuickUpgradePackages Package { get; set; }
+    public eQuickUpgradeLevels Level { get; set; }
+
+    public override void Read(VaultReadContext<Core.DataInterfaces.Key32> context, FieldReadWriteContext<Core.DataInterfaces.Key32> fieldContext, BinaryReader br)
     {
-        public FEQuickUpgradeEntry(VltClass @class, VltClassField field, VltCollection collection) : base(@class, field, collection)
-        {
-        }
+        Package = br.ReadEnum<eQuickUpgradePackages>();
+        Level = br.ReadEnum<eQuickUpgradeLevels>();
+    }
 
-        public FEQuickUpgradeEntry(VltClass @class, VltClassField field) : base(@class, field)
-        {
-        }
+    public override void Write(VaultWriteContext<Core.DataInterfaces.Key32> context, FieldReadWriteContext<Core.DataInterfaces.Key32> fieldContext, BinaryWriter bw)
+    {
+        bw.WriteEnum(Package);
+        bw.WriteEnum(Level);
+    }
 
-        public eQuickUpgradePackages Package { get; set; }
-        public eQuickUpgradeLevels Level { get; set; }
-
-        public override void Read(Vault vault, BinaryReader br)
-        {
-            Package = br.ReadEnum<eQuickUpgradePackages>();
-            Level = br.ReadEnum<eQuickUpgradeLevels>();
-        }
-
-        public override void Write(Vault vault, BinaryWriter bw)
-        {
-            bw.WriteEnum(Package);
-            bw.WriteEnum(Level);
-        }
+    public override object Clone()
+    {
+        return MemberwiseClone();
     }
 }

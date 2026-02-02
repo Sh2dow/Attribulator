@@ -2,86 +2,53 @@
 // 
 // Created: 10/20/2019 @ 11:46 AM.
 
-using CoreLibraries.IO;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
+using CoreLibraries.IO;
 using VaultLib.Core;
-using VaultLib.Core.Data;
 using VaultLib.Core.Types;
-using VaultLib.Core.Types.EA.Reflection;
 using VaultLib.Core.Utils;
 
-namespace VaultLib.Support.Undercover.VLT.NIS
+namespace VaultLib.Support.Undercover.VLT.NIS;
+
+[VltTypeInfo("NIS::NISActor")]
+public class NISActor: VltBaseType<Core.DataInterfaces.Key32>, IReferencesStrings
 {
-    [VLTTypeInfo("NIS::NISActor")]
-    public class NISActor : VLTBaseType, IReferencesStrings
+    public string ActorName { get; set; } = string.Empty;
+    public string CarChannelName { get; set; } = string.Empty;
+    public bool IsDriver { get; set; }
+    public float ExitAnimSec { get; set; }
+    public bool IsFacePixelation { get; set; }
+
+    public override void Read(VaultReadContext<Core.DataInterfaces.Key32> context, FieldReadWriteContext<Core.DataInterfaces.Key32> fieldContext, BinaryReader br)
     {
-        public string ActorName { get; set; }
-        public string CarChannelName { get; set; }
-        public bool IsDriver { get; set; }
-        public float ExitAnimSec { get; set; }
-        public bool IsFacePixelation { get; set; }
+        ActorName = context.ReadString(br);
+        CarChannelName = context.ReadString(br);
+        IsDriver = br.ReadBoolean();
+        br.SafeAlignReader(4);
+        ExitAnimSec = br.ReadSingle();
+        IsFacePixelation = br.ReadBoolean();
+        br.SafeAlignReader(4);
+    }
 
-        private Text _actorNameText, _carChannelNameText;
+    public override void Write(VaultWriteContext<Core.DataInterfaces.Key32> context, FieldReadWriteContext<Core.DataInterfaces.Key32> fieldContext, BinaryWriter bw)
+    {
+        context.WriteString(ActorName, fieldContext, bw);
+        context.WriteString(CarChannelName, fieldContext, bw);
+        bw.Write(IsDriver);
+        bw.AlignWriter(4);
+        bw.Write(ExitAnimSec);
+        bw.Write(IsFacePixelation);
+        bw.AlignWriter(4);
+    }
 
-        public override void Read(Vault vault, BinaryReader br)
-        {
-            _actorNameText.Read(vault, br);
-            _carChannelNameText.Read(vault, br);
+    public IEnumerable<string> GetStrings()
+    {
+        return new[] { ActorName, CarChannelName };
+    }
 
-            IsDriver = br.ReadBoolean();
-            br.AlignReader(4);
-            ExitAnimSec = br.ReadSingle();
-            IsFacePixelation = br.ReadBoolean();
-            br.AlignReader(4);
-        }
-
-        public override void Write(Vault vault, BinaryWriter bw)
-        {
-            _actorNameText.Value = ActorName;
-            _carChannelNameText.Value = CarChannelName;
-            _actorNameText.Write(vault, bw);
-            _carChannelNameText.Write(vault, bw);
-            bw.Write(IsDriver);
-            bw.AlignWriter(4);
-            bw.Write(ExitAnimSec);
-            bw.Write(IsFacePixelation);
-            bw.AlignWriter(4);
-        }
-
-        public void ReadPointerData(Vault vault, BinaryReader br)
-        {
-            _actorNameText.ReadPointerData(vault, br);
-            _carChannelNameText.ReadPointerData(vault, br);
-
-            ActorName = _actorNameText.Value;
-            CarChannelName = _carChannelNameText.Value;
-        }
-
-        public void WritePointerData(Vault vault, BinaryWriter bw)
-        {
-            _actorNameText.WritePointerData(vault, bw);
-            _carChannelNameText.WritePointerData(vault, bw);
-        }
-
-        public void AddPointers(Vault vault)
-        {
-            _actorNameText.AddPointers(vault);
-            _carChannelNameText.AddPointers(vault);
-        }
-
-        public IEnumerable<string> GetStrings()
-        {
-            return _actorNameText.GetStrings().Concat(_carChannelNameText.GetStrings());
-        }
-
-        public NISActor(VltClass @class, VltClassField field, VltCollection collection = null) : base(@class, field, collection)
-        {
-            _actorNameText = new Text(Class, Field, Collection);
-            _carChannelNameText = new Text(Class, Field, Collection);
-            ActorName = string.Empty;
-            CarChannelName = string.Empty;
-        }
+    public override object Clone()
+    {
+        return MemberwiseClone();
     }
 }

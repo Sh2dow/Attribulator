@@ -4,91 +4,61 @@
 
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using VaultLib.Core;
-using VaultLib.Core.Data;
 using VaultLib.Core.Types;
 using VaultLib.Core.Types.Attrib;
-using VaultLib.Core.Types.EA.Reflection;
 using VaultLib.Core.Utils;
 
-namespace VaultLib.Support.Undercover.VLT
+namespace VaultLib.Support.Undercover.VLT;
+
+[VltTypeInfo(nameof(CCarDamageMarkerEntry))]
+public class CCarDamageMarkerEntry : VltBaseType<Core.DataInterfaces.Key32>,
+    IReferencesStrings
 {
-    [VLTTypeInfo(nameof(CCarDamageMarkerEntry))]
-    public class CCarDamageMarkerEntry : VLTBaseType, IReferencesStrings
+    public string MarkerName { get; set; } = string.Empty;
+    public int PartID { get; set; }
+    public int SlotID { get; set; }
+    public string AttachPart { get; set; } = string.Empty;
+    public string SmackableCollisionName { get; set; } = string.Empty;
+    public RefSpec32 SmackableCollisionAttribute { get; set; } = new();
+
+    public override void Read(VaultReadContext<Core.DataInterfaces.Key32> context,
+        FieldReadWriteContext<Core.DataInterfaces.Key32> fieldContext, BinaryReader br)
     {
-        public string MarkerName { get; set; }
-        public int PartID { get; set; }
-        public int SlotID { get; set; }
-        public string AttachPart { get; set; }
-        public string SmackableCollisionName { get; set; }
-        public RefSpec SmackableCollisionAttribute { get; set; }
+        MarkerName = context.ReadString(br);
+        PartID = br.ReadInt32();
+        SlotID = br.ReadInt32();
+        AttachPart = context.ReadString(br);
+        SmackableCollisionName = context.ReadString(br);
+        SmackableCollisionAttribute.Read(context, fieldContext, br);
+    }
 
-        private Text _markerNameText;
-        private Text _attachPartText;
-        private Text _smackableCollisionNameText;
+    public override void Write(VaultWriteContext<Core.DataInterfaces.Key32> context,
+        FieldReadWriteContext<Core.DataInterfaces.Key32> fieldContext, BinaryWriter bw)
+    {
+        context.WriteString(MarkerName, fieldContext, bw);
+        bw.Write(PartID);
+        bw.Write(SlotID);
+        context.WriteString(AttachPart, fieldContext, bw);
+        context.WriteString(SmackableCollisionName, fieldContext, bw);
+        SmackableCollisionAttribute.Write(context, fieldContext, bw);
+    }
 
-        public override void Read(Vault vault, BinaryReader br)
+    public IEnumerable<string> GetStrings()
+    {
+        return new[] { MarkerName, AttachPart, SmackableCollisionName };
+    }
+
+    public override object Clone()
+    {
+        return new CCarDamageMarkerEntry
         {
-            _markerNameText.Read(vault, br);
-            PartID = br.ReadInt32();
-            SlotID = br.ReadInt32();
-            _attachPartText.Read(vault, br);
-            _smackableCollisionNameText.Read(vault, br);
-            SmackableCollisionAttribute.Read(vault, br);
-        }
-
-        public override void Write(Vault vault, BinaryWriter bw)
-        {
-            _markerNameText.Value = MarkerName;
-            _markerNameText.Write(vault, bw);
-            bw.Write(PartID);
-            bw.Write(SlotID);
-            _attachPartText.Value = AttachPart;
-            _attachPartText.Write(vault, bw);
-            _smackableCollisionNameText.Value = SmackableCollisionName;
-            _smackableCollisionNameText.Write(vault, bw);
-            SmackableCollisionAttribute.Write(vault, bw);
-        }
-
-        public void ReadPointerData(Vault vault, BinaryReader br)
-        {
-            _markerNameText.ReadPointerData(vault, br);
-            _attachPartText.ReadPointerData(vault, br);
-            _smackableCollisionNameText.ReadPointerData(vault, br);
-
-            MarkerName = _markerNameText.Value;
-            AttachPart = _attachPartText.Value;
-            SmackableCollisionName = _smackableCollisionNameText.Value;
-        }
-
-        public void WritePointerData(Vault vault, BinaryWriter bw)
-        {
-            _markerNameText.WritePointerData(vault, bw);
-            _attachPartText.WritePointerData(vault, bw);
-            _smackableCollisionNameText.WritePointerData(vault, bw);
-        }
-
-        public void AddPointers(Vault vault)
-        {
-            _markerNameText.AddPointers(vault);
-            _attachPartText.AddPointers(vault);
-            _smackableCollisionNameText.AddPointers(vault);
-        }
-
-        public IEnumerable<string> GetStrings()
-        {
-            return _markerNameText.GetStrings().Concat(_attachPartText.GetStrings())
-                .Concat(_smackableCollisionNameText.GetStrings());
-        }
-
-        public CCarDamageMarkerEntry(VltClass @class, VltClassField field, VltCollection collection = null) : base(@class, field, collection)
-        {
-            _markerNameText = new Text(Class, Field, Collection);
-            _attachPartText = new Text(Class, Field, Collection);
-            _smackableCollisionNameText = new Text(Class, Field, Collection);
-            MarkerName = AttachPart = SmackableCollisionName = string.Empty;
-            SmackableCollisionAttribute = new RefSpec(Class, Field, Collection);
-        }
+            MarkerName = MarkerName,
+            PartID = PartID,
+            SlotID = SlotID,
+            AttachPart = AttachPart,
+            SmackableCollisionName = SmackableCollisionName,
+            SmackableCollisionAttribute = (RefSpec32)SmackableCollisionAttribute.Clone()
+        };
     }
 }

@@ -7,71 +7,63 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using VaultLib.Core;
-using VaultLib.Core.Data;
 using VaultLib.Core.Types;
+using VaultLib.Core.Types.Attrib;
 using VaultLib.Core.Utils;
-using VaultLib.Frameworks.Speed;
+using VaultLib.Frameworks.Speed.VLT;
 using VaultLib.LegacyBase;
 
-namespace VaultLib.Support.MostWanted.VLT
+namespace VaultLib.Support.MostWanted.VLT;
+
+[VltTypeInfo(nameof(ControllerDataRecord))]
+public class ControllerDataRecord : VltBaseType<Core.DataInterfaces.Key32>,
+    IReferencesStrings
 {
-    [VLTTypeInfoAttribute(nameof(ControllerDataRecord))]
-    public class ControllerDataRecord : VLTBaseType, IReferencesStrings
+    public string DeviceID { get; set; } = string.Empty;
+    public InputUpdateType UpdateType { get; set; }
+    public float LowerDZ { get; set; }
+    public float UpperDZ { get; set; }
+
+    private StringKey64 _deviceID { get; set; } = new();
+
+
+    public override void Read(VaultReadContext<Core.DataInterfaces.Key32> context,
+        FieldReadWriteContext<Core.DataInterfaces.Key32> fieldContext, BinaryReader br)
     {
-        public string DeviceID { get; set; }
-        public InputUpdateType UpdateType { get; set; }
-        public float LowerDZ { get; set; }
-        public float UpperDZ { get; set; }
+        _deviceID.Read(context, fieldContext, br);
+        DeviceID = _deviceID.Value;
+        UpdateType = br.ReadEnum<InputUpdateType>();
+        LowerDZ = br.ReadSingle();
+        UpperDZ = br.ReadSingle();
+        uint unk = br.ReadUInt32();
 
-        private StringKey64 _deviceID { get; set; }
+        Debug.Assert(unk == 0);
+    }
 
+    public override void Write(VaultWriteContext<Core.DataInterfaces.Key32> context,
+        FieldReadWriteContext<Core.DataInterfaces.Key32> fieldContext, BinaryWriter bw)
+    {
+        _deviceID.Value = DeviceID;
+        _deviceID.Write(context, fieldContext, bw);
+        bw.WriteEnum(UpdateType);
+        bw.Write(LowerDZ);
+        bw.Write(UpperDZ);
+        bw.Write(0);
+    }
 
-        public override void Read(Vault vault, BinaryReader br)
+    public override object Clone()
+    {
+        return new ControllerDataRecord
         {
-            _deviceID.Read(vault, br);
-            UpdateType = br.ReadEnum<InputUpdateType>();
-            LowerDZ = br.ReadSingle();
-            UpperDZ = br.ReadSingle();
-            uint unk = br.ReadUInt32();
+            DeviceID = DeviceID,
+            LowerDZ = LowerDZ,
+            UpdateType = UpdateType,
+            UpperDZ = UpperDZ,
+        };
+    }
 
-            Debug.Assert(unk == 0);
-        }
-
-        public override void Write(Vault vault, BinaryWriter bw)
-        {
-            _deviceID.Value = DeviceID;
-            _deviceID.Write(vault, bw);
-            bw.WriteEnum(UpdateType);
-            bw.Write(LowerDZ);
-            bw.Write(UpperDZ);
-            bw.Write(0);
-        }
-
-        public void ReadPointerData(Vault vault, BinaryReader br)
-        {
-            _deviceID.ReadPointerData(vault, br);
-            DeviceID = _deviceID.Value;
-        }
-
-        public void WritePointerData(Vault vault, BinaryWriter bw)
-        {
-            _deviceID.WritePointerData(vault, bw);
-        }
-
-        public void AddPointers(Vault vault)
-        {
-            _deviceID.AddPointers(vault);
-        }
-
-        public IEnumerable<string> GetStrings()
-        {
-            return new[] { DeviceID };
-        }
-
-        public ControllerDataRecord(VltClass @class, VltClassField field, VltCollection collection = null) : base(@class, field, collection)
-        {
-            _deviceID = new StringKey64(Class, Field, Collection);
-            DeviceID = string.Empty;
-        }
+    public IEnumerable<string> GetStrings()
+    {
+        return new[] { DeviceID };
     }
 }

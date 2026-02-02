@@ -2,48 +2,46 @@
 // 
 // Created: 10/07/2019 @ 3:34 PM.
 
-using CoreLibraries.IO;
+using System;
 using System.IO;
+using CoreLibraries.IO;
 using VaultLib.Core;
-using VaultLib.Core.Data;
+using VaultLib.Core.DataInterfaces;
 using VaultLib.Core.Types;
 
-namespace VaultLib.Support.World.VLT.GameCore
+namespace VaultLib.Support.World.VLT.GameCore;
+
+[VltTypeInfo("GameCore::BlackBoardSlot")]
+public class BlackBoardSlot : VltBaseType<Core.DataInterfaces.Key32>
 {
-    [VLTTypeInfo("GameCore::BlackBoardSlot")]
-    public class BlackBoardSlot : VLTBaseType
+    [Flags]
+    public enum BlackBoardFlags
     {
-        public enum BlackBoardFlag
-        {
-            kBlackBoardFlag_Loading = 1,
-            kBlackBoardFlag_Running = 2,
-            kBlackBoardFlag_Countdown = 4
-        }
+        kBlackBoardFlag_Loading = 1,
+        kBlackBoardFlag_Running = 2,
+        kBlackBoardFlag_Countdown = 4
+    }
 
-        public BlackBoardChannel mChannel { get; set; }
-        public uint mBlackBoardKey { get; set; }
-        public BlackBoardFlag mFlag { get; set; }
+    public BlackBoardChannel mChannel { get; set; }
+    public Key32 mBlackBoardKey { get; set; }
+    public BlackBoardFlags mFlag { get; set; }
 
-        public override void Read(Vault vault, BinaryReader br)
-        {
-            mChannel = br.ReadEnum<BlackBoardChannel>();
-            mBlackBoardKey = br.ReadUInt32();
-            mFlag = br.ReadEnum<BlackBoardFlag>();
-        }
+    public override void Read(VaultReadContext<Core.DataInterfaces.Key32> context, FieldReadWriteContext<Core.DataInterfaces.Key32> fieldContext, BinaryReader br)
+    {
+        mChannel = br.ReadEnum<BlackBoardChannel>();
+        mBlackBoardKey = Key32.Read(br);
+        mFlag = br.ReadEnum<BlackBoardFlags>();
+    }
 
-        public override void Write(Vault vault, BinaryWriter bw)
-        {
-            bw.WriteEnum(mChannel);
-            bw.Write(mBlackBoardKey);
-            bw.WriteEnum(mFlag);
-        }
+    public override void Write(VaultWriteContext<Core.DataInterfaces.Key32> context, FieldReadWriteContext<Core.DataInterfaces.Key32> fieldContext, BinaryWriter bw)
+    {
+        bw.WriteEnum(mChannel);
+        mBlackBoardKey.Write(bw);
+        bw.WriteEnum(mFlag);
+    }
 
-        public BlackBoardSlot(VltClass @class, VltClassField field, VltCollection collection) : base(@class, field, collection)
-        {
-        }
-
-        public BlackBoardSlot(VltClass @class, VltClassField field) : base(@class, field)
-        {
-        }
+    public override object Clone()
+    {
+        return MemberwiseClone();
     }
 }

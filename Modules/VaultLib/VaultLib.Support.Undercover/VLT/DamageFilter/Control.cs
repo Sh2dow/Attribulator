@@ -1,37 +1,32 @@
 ﻿using System.IO;
 using VaultLib.Core;
-using VaultLib.Core.Data;
 using VaultLib.Core.Types;
 
-namespace VaultLib.Support.Undercover.VLT.DamageFilter
+namespace VaultLib.Support.Undercover.VLT.DamageFilter;
+
+[VltTypeInfo("DamageFilter::Control")]
+public class Control: VltBaseType<Core.DataInterfaces.Key32>
 {
-    [VLTTypeInfo("DamageFilter::Control")]
-    public class Control : VLTBaseType
+    public uint Allow { get; set; }
+    public uint Reject { get; set; }
+    public float MaxCausalityTime { get; set; }
+
+    public override void Read(VaultReadContext<Core.DataInterfaces.Key32> context, FieldReadWriteContext<Core.DataInterfaces.Key32> fieldContext, BinaryReader br)
     {
-        public Control(VltClass @class, VltClassField field, VltCollection collection) : base(@class, field, collection)
-        {
-        }
+        Allow = br.ReadUInt32();
+        Reject = br.ReadUInt32();
+        MaxCausalityTime = br.ReadSingle();
+    }
 
-        public Control(VltClass @class, VltClassField field) : base(@class, field)
-        {
-        }
+    public override void Write(VaultWriteContext<Core.DataInterfaces.Key32> context, FieldReadWriteContext<Core.DataInterfaces.Key32> fieldContext, BinaryWriter bw)
+    {
+        bw.Write(Allow);
+        bw.Write(Reject);
+        bw.Write(MaxCausalityTime);
+    }
 
-        public uint Allow { get; set; }
-        public uint Reject { get; set; }
-        public float MaxCausalityTime { get; set; }
-
-        public override void Read(Vault vault, BinaryReader br)
-        {
-            Allow = br.ReadUInt32();
-            Reject = br.ReadUInt32();
-            MaxCausalityTime = br.ReadSingle();
-        }
-
-        public override void Write(Vault vault, BinaryWriter bw)
-        {
-            bw.Write(Allow);
-            bw.Write(Reject);
-            bw.Write(MaxCausalityTime);
-        }
+    public override object Clone()
+    {
+        return MemberwiseClone();
     }
 }

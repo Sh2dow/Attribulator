@@ -1,89 +1,102 @@
-using CoreLibraries.IO;
 using System;
 using System.IO;
+using CoreLibraries.IO;
 using VaultLib.Core;
 using VaultLib.Core.Data;
+using VaultLib.Core.DataInterfaces;
 using VaultLib.Core.Types;
 
-namespace VaultLib.ModernBase.Exports
+namespace VaultLib.ModernBase.Exports;
+
+public class AttribEntry64 : AttribEntryBase<Key64>
 {
-    public class AttribEntry64 : AttribEntryBase
+    public AttribEntry64(VltCollection<Key64> collection) : base(collection)
     {
-        public AttribEntry64(VltCollection collection) : base(collection)
-        {
-        }
+    }
 
-        public override void Read(Vault vault, BinaryReader br)
-        {
-            Key = br.ReadUInt64();
-            InlineDataPointer = br.BaseStream.Position;
-            br.ReadUInt32(); // skip data for now
-            TypeIndex = br.ReadUInt16();
-            NodeFlags = (NodeFlagsEnum)br.ReadByte();
-            EntryFlags = br.ReadByte();
-        }
+    public override void Read(VaultReadContext<Key64> context, BinaryReader br)
+    {
+        Key = new Key64(br.ReadUInt64());
+        InlineDataPointer = br.BaseStream.Position;
+        br.ReadUInt32(); // skip data for now
+        TypeIndex = br.ReadUInt16();
+        NodeFlags = (NodeFlagsEnum)br.ReadByte();
+        EntryFlags = br.ReadByte();
+    }
 
-        public override bool ReadData(Vault vault, BinaryReader br)
+    public virtual bool ReadData(VaultReadContext<Key64> context, BinaryReader br)
+    {
+        if (Collection.Class.TryGetField(Key, out var field))
         {
-            if (Collection.Class.HasField(Key))
+            br.BaseStream.Position = InlineDataPointer;
+
+            var fieldContext = new FieldReadWriteContext<Key64>(Collection.Class, field, Collection);
+
+            if (IsInline())
             {
-                br.BaseStream.Position = InlineDataPointer;
-
-                if (IsInline())
-                {
-                    InlineData = TypeRegistry.CreateInstance(vault.Database.Options.GameId, Collection.Class, Collection.Class[Key],
-                        Collection);
-                }
-                else
-                {
-                    InlineData = new VLTAttribType(Collection.Class, Collection.Class[Key], Collection);
-                }
-
-                InlineData.Read(vault, br);
-
-                return true;
+                InlineData = context.Database.TypeRegistry.ReadFieldValue(context, fieldContext, br);
+            }
+            else
+            {
+                var attrib = new VltAttribType<Key64>();
+                attrib.Read(context, fieldContext, br);
+                InlineData = attrib;
             }
 
-            return false;
+            return true;
         }
 
-        public override void Write(Vault vault, BinaryWriter bw)
+        return false;
+    }
+
+    public override void Write(VaultWriteContext<Key64> context, BinaryWriter bw)
+    {
+        bw.Write(Key.Hash);
+
+        var fieldContext = new FieldReadWriteContext<Key64>(Collection.Class, Collection.Class[Key], Collection);
+
+        if (InlineData is VltAttribType<Key64> attrib)
         {
-            bw.Write(Key);
-            InlineData.Write(vault, bw);
-            if (HasInlineFlag())
-            {
-                bw.AlignWriter(4);
-            }
-
-            bw.Write(TypeIndex);
-            bw.Write((byte)NodeFlags);
-            bw.Write(EntryFlags);
+            attrib.Write(context, fieldContext, bw);
         }
-
-        private bool HasInlineFlag()
+        else
         {
-            return (NodeFlags & NodeFlagsEnum.IsInline) == NodeFlagsEnum.IsInline;
+            context.Database.TypeRegistry.WriteFieldValue(InlineData, context, fieldContext,
+                bw);
         }
 
-        public bool IsInline()
+        if (HasInlineFlag())
         {
-            return Collection.Class[Key].Size <= 4 && (Collection.Class[Key].Flags & DefinitionFlags.Array) == 0;
+            bw.AlignWriter(4);
         }
 
-        public override void ReadPointerData(Vault vault, BinaryReader br)
-        {
-            throw new NotImplementedException();
-        }
+        bw.Write(TypeIndex);
+        bw.Write((byte)NodeFlags);
+        bw.Write(EntryFlags);
+    }
 
-        public override void WritePointerData(Vault vault, BinaryWriter bw)
-        {
-            throw new NotImplementedException();
-        }
+    private bool HasInlineFlag()
+    {
+        return (NodeFlags & NodeFlagsEnum.IsInline) == NodeFlagsEnum.IsInline;
+    }
 
-        public override void AddPointers(Vault vault)
-        {
-            throw new NotImplementedException();
-        }
+    public bool IsInline()
+    {
+        return Collection.Class[Key].Size <= 4 && (Collection.Class[Key].Flags & DefinitionFlags.Array) == 0;
+    }
+
+    public override void ReadPointerData(VaultReadContext<Key64> context, BinaryReader br)
+    {
+        throw new NotImplementedException();
+    }
+
+    public override void WritePointerData(VaultWriteContext<Key64> context, BinaryWriter bw)
+    {
+        throw new NotImplementedException();
+    }
+
+    public override void AddPointers(VaultWriteContext<Key64> context)
+    {
+        throw new NotImplementedException();
     }
 }

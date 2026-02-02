@@ -1,37 +1,35 @@
 ﻿using System.IO;
 using VaultLib.Core;
-using VaultLib.Core.Data;
+using VaultLib.Core.DataInterfaces;
 using VaultLib.Core.Types;
 
-namespace VaultLib.Support.ProStreet.VLT
+namespace VaultLib.Support.ProStreet.VLT;
+
+[VltTypeInfo(nameof(HelpBarButtonGroup))]
+public class HelpBarButtonGroup : VltBaseType<Core.DataInterfaces.Key32>
 {
-    [VLTTypeInfo(nameof(HelpBarButtonGroup))]
-    public class HelpBarButtonGroup : VLTBaseType
+    public BinKey32 TextureHash { get; set; }
+    public BinKey32 LanguageHash { get; set; }
+    public float TextSizeX { get; set; }
+
+    public override void Read(VaultReadContext<Core.DataInterfaces.Key32> context,
+        FieldReadWriteContext<Core.DataInterfaces.Key32> fieldContext, BinaryReader br)
     {
-        public HelpBarButtonGroup(VltClass @class, VltClassField field, VltCollection collection) : base(@class, field, collection)
-        {
-        }
+        TextureHash = BinKey32.Read(br);
+        LanguageHash = BinKey32.Read(br);
+        TextSizeX = br.ReadSingle();
+    }
 
-        public HelpBarButtonGroup(VltClass @class, VltClassField field) : base(@class, field)
-        {
-        }
+    public override void Write(VaultWriteContext<Core.DataInterfaces.Key32> context,
+        FieldReadWriteContext<Core.DataInterfaces.Key32> fieldContext, BinaryWriter bw)
+    {
+        TextureHash.Write(bw);
+        LanguageHash.Write(bw);
+        bw.Write(TextSizeX);
+    }
 
-        public uint TextureHash { get; set; }
-        public uint LanguageHash { get; set; }
-        public float TextSizeX { get; set; }
-
-        public override void Read(Vault vault, BinaryReader br)
-        {
-            TextureHash = br.ReadUInt32();
-            LanguageHash = br.ReadUInt32();
-            TextSizeX = br.ReadSingle();
-        }
-
-        public override void Write(Vault vault, BinaryWriter bw)
-        {
-            bw.Write(TextureHash);
-            bw.Write(LanguageHash);
-            bw.Write(TextSizeX);
-        }
+    public override object Clone()
+    {
+        return MemberwiseClone();
     }
 }

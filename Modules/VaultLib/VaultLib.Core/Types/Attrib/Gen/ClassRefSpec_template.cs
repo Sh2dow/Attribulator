@@ -2,75 +2,90 @@
 // 
 // Created: 09/27/2019 @ 4:43 PM.
 
+using System;
 using System.IO;
-using VaultLib.Core.Data;
-using VaultLib.Core.DB;
-using VaultLib.Core.Hashing;
-using VaultLib.Core.Types.Abstractions;
+using VaultLib.Core.DataInterfaces;
 
-namespace VaultLib.Core.Types.Attrib.Gen
+namespace VaultLib.Core.Types.Attrib.Gen;
+
+public abstract class ClassRefSpec_template<TKey> : BaseRefSpec<TKey> where TKey : struct, IKey<TKey>
 {
-    public abstract class ClassRefSpec_template : BaseRefSpec
+    protected ClassRefSpec_template(string className) : this(TKey.FromString(className))
     {
-        protected ClassRefSpec_template(VltClass @class, VltClassField field, VltCollection collection, string classKey)
-            : base(@class, field, collection)
-        {
-            ClassKey = classKey;
-        }
+    }
 
-        protected ClassRefSpec_template(VltClass @class, VltClassField field, string classKey) : base(@class, field)
-        {
-            ClassKey = classKey;
-        }
+    protected ClassRefSpec_template(TKey classKey)
+    {
+        ClassKey = classKey;
+    }
 
-        public override string ClassKey { get; set; }
+    public TKey ClassKey { get; }
 
-        public override string CollectionKey
-        {
-            get
-            {
-                if (!string.IsNullOrEmpty(_collectionKey))
-                {
-                    return _collectionKey;
-                }
+    public TKey CollectionKey { get; set; }
 
-                return _hash32 != 0
-                    ? HashManager.ResolveVLT(_hash32)
-                    : _hash64 != 0 ? HashManager.ResolveVLT(_hash64) : string.Empty;
-            }
-            set => _collectionKey = value;
-        }
+    public override void Read(VaultReadContext<TKey> context, FieldReadWriteContext<TKey> fieldContext, BinaryReader br)
+    {
+        CollectionKey = TKey.Read(br);
 
-        public override void Read(Vault vault, BinaryReader br)
-        {
-            if (vault.Database.Options.Type == DatabaseType.X86Database)
-            {
-                _hash32 = br.ReadUInt32();
-            }
-            else
-            {
-                _hash64 = br.ReadUInt64();
-            }
-            br.ReadUInt32();
-        }
+        br.ReadUInt32();
+    }
 
-        public override void Write(Vault vault, BinaryWriter bw)
-        {
-            if (vault.Database.Options.Type == DatabaseType.X86Database)
-                bw.Write(VLT32Hasher.Hash(CollectionKey));
-            else
-                bw.Write(VLT64Hasher.Hash(CollectionKey));
-            bw.Write(0);
-        }
+    public override void Write(VaultWriteContext<TKey> context, FieldReadWriteContext<TKey> fieldContext,
+        BinaryWriter bw)
+    {
+        CollectionKey.Write(bw);
+        bw.Write(0);
+    }
 
-        public override string ToString()
-        {
-            return $"{ClassKey} -> {CollectionKey}";
-        }
+    public override TKey GetClassKey()
+    {
+        return ClassKey;
+    }
 
-        // https://github.com/NFSTools/VaultLib/issues/13
-        private uint _hash32;
-        private ulong _hash64;
-        private string _collectionKey;
+    public override TKey GetCollectionKey()
+    {
+        return CollectionKey;
+    }
+
+    public override void SetClassKey(TKey classKey)
+    {
+        throw new NotImplementedException();
+    }
+
+    public override void SetCollectionKey(TKey collectionKey)
+    {
+        CollectionKey = collectionKey;
+    }
+
+    public override string ToString()
+    {
+        return $"{ClassKey} -> {CollectionKey}";
+    }
+
+    public override object Clone()
+    {
+        return MemberwiseClone();
+    }
+}
+
+public abstract class ClassRefSpec_template32 : ClassRefSpec_template<Key32>
+{
+    protected ClassRefSpec_template32(string className) : base(className)
+    {
+    }
+
+    protected ClassRefSpec_template32(Key32 classKey) : base(classKey)
+    {
+    }
+}
+
+public abstract class ClassRefSpec_template64 : ClassRefSpec_template<Key64>
+{
+    protected ClassRefSpec_template64(string className) : base(className)
+    {
+    }
+
+    protected ClassRefSpec_template64(Key64 classKey) : base(classKey)
+    {
     }
 }

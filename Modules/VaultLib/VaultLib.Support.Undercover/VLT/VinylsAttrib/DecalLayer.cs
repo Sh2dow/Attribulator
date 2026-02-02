@@ -1,41 +1,30 @@
-﻿using System.IO;
-using CoreLibraries.IO;
+﻿using System;
+using System.IO;
 using VaultLib.Core;
-using VaultLib.Core.Data;
 using VaultLib.Core.Types;
 
-namespace VaultLib.Support.Undercover.VLT.VinylsAttrib
+namespace VaultLib.Support.Undercover.VLT.VinylsAttrib;
+
+[VltTypeInfo("VinylsAttrib::DecalLayer")]
+public class DecalLayer: VltBaseType<Core.DataInterfaces.Key32>
 {
-    [VLTTypeInfo("VinylsAttrib::DecalLayer")]
-    public class DecalLayer : VLTBaseType
+    public DecalLayer()
     {
-        public DecalLayer(VltClass @class, VltClassField field, VltCollection collection = null) : base(@class, field, collection)
-        {
-            Transform = new VinylTransform(Class, Field, Collection);
-            Color = new VinylColor(Class, Field, Collection);
-        }
+        throw new NotImplementedException("VinylsAttrib::DecalLayer is not implemented");
+    }
 
-        public uint PartNameHash { get; set; }
-        public bool Mirrored { get; set; }
-        public VinylTransform Transform { get; set; }
-        public VinylColor Color { get; set; }
+    public override void Read(VaultReadContext<Core.DataInterfaces.Key32> context, FieldReadWriteContext<Core.DataInterfaces.Key32> fieldContext, BinaryReader br)
+    {
+        //
+    }
 
-        public override void Read(Vault vault, BinaryReader br)
-        {
-            PartNameHash = br.ReadUInt32();
-            Mirrored = br.ReadBoolean();
-            br.AlignReader(4);
-            Transform.Read(vault, br);
-            Color.Read(vault, br);
-        }
+    public override void Write(VaultWriteContext<Core.DataInterfaces.Key32> context, FieldReadWriteContext<Core.DataInterfaces.Key32> fieldContext, BinaryWriter bw)
+    {
+        //
+    }
 
-        public override void Write(Vault vault, BinaryWriter bw)
-        {
-            bw.Write(PartNameHash);
-            bw.Write(Mirrored);
-            bw.AlignWriter(4);
-            Transform.Write(vault, bw);
-            Color.Write(vault, bw);
-        }
+    public override object Clone()
+    {
+        throw new NotImplementedException();
     }
 }

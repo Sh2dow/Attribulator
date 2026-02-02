@@ -1,40 +1,34 @@
 ﻿using System.IO;
-using CoreLibraries.IO;
 using VaultLib.Core;
-using VaultLib.Core.Data;
 using VaultLib.Core.Types;
 
-namespace VaultLib.Support.Undercover.VLT.VinylsAttrib
+namespace VaultLib.Support.Undercover.VLT.VinylsAttrib;
+
+[VltTypeInfo(nameof(VinylColor))]
+public class VinylColor : VltBaseType<Core.DataInterfaces.Key32>
 {
-    [VLTTypeInfo(nameof(VinylColor))]
-    public class VinylColor : VLTBaseType
+    public byte Swatch { get; set; }
+    public byte Saturation { get; set; }
+    public byte Brightness { get; set; }
+
+    public override void Read(VaultReadContext<Core.DataInterfaces.Key32> context,
+        FieldReadWriteContext<Core.DataInterfaces.Key32> fieldContext, BinaryReader br)
     {
-        public VinylColor(VltClass @class, VltClassField field, VltCollection collection) : base(@class, field, collection)
-        {
-        }
+        Swatch = br.ReadByte();
+        Saturation = br.ReadByte();
+        Brightness = br.ReadByte();
+    }
 
-        public VinylColor(VltClass @class, VltClassField field) : base(@class, field)
-        {
-        }
+    public override void Write(VaultWriteContext<Core.DataInterfaces.Key32> context,
+        FieldReadWriteContext<Core.DataInterfaces.Key32> fieldContext, BinaryWriter bw)
+    {
+        bw.Write(Swatch);
+        bw.Write(Saturation);
+        bw.Write(Brightness);
+    }
 
-        public sbyte Swatch { get; set; }
-        public sbyte Saturation { get; set; }
-        public sbyte Brightness { get; set; }
-
-        public override void Read(Vault vault, BinaryReader br)
-        {
-            Swatch = br.ReadSByte();
-            Saturation = br.ReadSByte();
-            Brightness = br.ReadSByte();
-            br.AlignReader(4);
-        }
-
-        public override void Write(Vault vault, BinaryWriter bw)
-        {
-            bw.Write(Swatch);
-            bw.Write(Saturation);
-            bw.Write(Brightness);
-            bw.AlignWriter(4);
-        }
+    public override object Clone()
+    {
+        return MemberwiseClone();
     }
 }

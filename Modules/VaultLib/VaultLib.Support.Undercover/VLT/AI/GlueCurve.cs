@@ -4,52 +4,58 @@
 
 using System.IO;
 using VaultLib.Core;
-using VaultLib.Core.Data;
 using VaultLib.Core.Types;
 using VaultLib.Core.Utils;
 
-namespace VaultLib.Support.Undercover.VLT.AI
+namespace VaultLib.Support.Undercover.VLT.AI;
+
+[VltTypeInfo("AI::GlueCurve")]
+public class GlueCurve : VltBaseType<Core.DataInterfaces.Key32>, IVltPointerObject<Core.DataInterfaces.Key32>
 {
-    [VLTTypeInfo("AI::GlueCurve")]
-    public class GlueCurve : VLTBaseType, IPointerObject
+    public Curve Easy { get; set; } = new();
+    public Curve Hard { get; set; } = new();
+
+    public override void Read(VaultReadContext<Core.DataInterfaces.Key32> context,
+        FieldReadWriteContext<Core.DataInterfaces.Key32> fieldContext, BinaryReader br)
     {
-        public Curve Easy { get; set; }
-        public Curve Hard { get; set; }
+        Easy.Read(context, fieldContext, br);
+        Hard.Read(context, fieldContext, br);
+    }
 
-        public override void Read(Vault vault, BinaryReader br)
-        {
-            Easy.Read(vault, br);
-            Hard.Read(vault, br);
-        }
+    public override void Write(VaultWriteContext<Core.DataInterfaces.Key32> context,
+        FieldReadWriteContext<Core.DataInterfaces.Key32> fieldContext, BinaryWriter bw)
+    {
+        Easy.Write(context, fieldContext, bw);
+        Hard.Write(context, fieldContext, bw);
+    }
 
-        public override void Write(Vault vault, BinaryWriter bw)
-        {
-            Easy.Write(vault, bw);
-            Hard.Write(vault, bw);
-        }
+    public void ReadPointerData(VaultReadContext<Core.DataInterfaces.Key32> context,
+        FieldReadWriteContext<Core.DataInterfaces.Key32> fieldContext, BinaryReader br)
+    {
+        Easy.ReadPointerData(context, fieldContext, br);
+        Hard.ReadPointerData(context, fieldContext, br);
+    }
 
-        public void ReadPointerData(Vault vault, BinaryReader br)
-        {
-            Easy.ReadPointerData(vault, br);
-            Hard.ReadPointerData(vault, br);
-        }
+    public void WritePointerData(VaultWriteContext<Core.DataInterfaces.Key32> context,
+        FieldReadWriteContext<Core.DataInterfaces.Key32> fieldContext, BinaryWriter bw)
+    {
+        Easy.WritePointerData(context, fieldContext, bw);
+        Hard.WritePointerData(context, fieldContext, bw);
+    }
 
-        public void WritePointerData(Vault vault, BinaryWriter bw)
-        {
-            Easy.WritePointerData(vault, bw);
-            Hard.WritePointerData(vault, bw);
-        }
+    public void AddPointers(VaultWriteContext<Core.DataInterfaces.Key32> context,
+        FieldReadWriteContext<Core.DataInterfaces.Key32> fieldContext)
+    {
+        Easy.AddPointers(context, fieldContext);
+        Hard.AddPointers(context, fieldContext);
+    }
 
-        public void AddPointers(Vault vault)
+    public override object Clone()
+    {
+        return new GlueCurve
         {
-            Easy.AddPointers(vault);
-            Hard.AddPointers(vault);
-        }
-
-        public GlueCurve(VltClass @class, VltClassField field, VltCollection collection = null) : base(@class, field, collection)
-        {
-            Easy = new Curve(Class, Field, Collection);
-            Hard = new Curve(Class, Field, Collection);
-        }
+            Easy = (Curve)Easy.Clone(),
+            Hard = (Curve)Hard.Clone(),
+        };
     }
 }

@@ -3,19 +3,19 @@
 // Created: 10/13/2019 @ 10:24 AM.
 
 using VaultLib.Core.Data;
+using VaultLib.Core.DataInterfaces;
 using VaultLib.Core.Types;
 
-namespace VaultLib.Core.Utils
-{
-    public class CollectionReferenceInfo
-    {
-        public CollectionReferenceInfo(VLTBaseType source, VltCollection destination)
-        {
-            Source = source;
-            Destination = destination;
-        }
+namespace VaultLib.Core.Utils;
 
-        public VLTBaseType Source { get; }
-        public VltCollection Destination { get; }
+public class CollectionReferenceInfo<TKey> where TKey : struct, IKey<TKey>
+{
+    public CollectionReferenceInfo(VltBaseType<TKey> source, VltCollection<TKey> destination)
+    {
+        Source = source;
+        Destination = destination;
     }
+
+    public VltBaseType<TKey> Source { get; }
+    public VltCollection<TKey> Destination { get; }
 }

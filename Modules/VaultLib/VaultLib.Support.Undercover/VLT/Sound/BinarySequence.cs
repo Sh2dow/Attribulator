@@ -5,37 +5,33 @@
 using System.IO;
 using CoreLibraries.IO;
 using VaultLib.Core;
-using VaultLib.Core.Data;
 using VaultLib.Core.Types;
+using VaultLib.Core.Utils;
 
-namespace VaultLib.Support.Undercover.VLT.Sound
+namespace VaultLib.Support.Undercover.VLT.Sound;
+
+[VltTypeInfo("Sound::BinarySequence")]
+public class BinarySequence: VltBaseType<Core.DataInterfaces.Key32>
 {
-    [VLTTypeInfo("Sound::BinarySequence")]
-    public class BinarySequence : VLTBaseType
+    public bool Value { get; set; }
+    public float Duration { get; set; }
+
+    public override void Read(VaultReadContext<Core.DataInterfaces.Key32> context, FieldReadWriteContext<Core.DataInterfaces.Key32> fieldContext, BinaryReader br)
     {
-        public bool Value { get; set; }
-        public float Duration { get; set; }
+        Value = br.ReadBoolean();
+        br.SafeAlignReader(4);
+        Duration = br.ReadSingle();
+    }
 
-        public override void Read(Vault vault, BinaryReader br)
-        {
-            Value = br.ReadBoolean();
-            br.AlignReader(4);
-            Duration = br.ReadSingle();
-        }
+    public override void Write(VaultWriteContext<Core.DataInterfaces.Key32> context, FieldReadWriteContext<Core.DataInterfaces.Key32> fieldContext, BinaryWriter bw)
+    {
+        bw.Write(Value);
+        bw.AlignWriter(4);
+        bw.Write(Duration);
+    }
 
-        public override void Write(Vault vault, BinaryWriter bw)
-        {
-            bw.Write(Value);
-            bw.AlignWriter(4);
-            bw.Write(Duration);
-        }
-
-        public BinarySequence(VltClass @class, VltClassField field, VltCollection collection) : base(@class, field, collection)
-        {
-        }
-
-        public BinarySequence(VltClass @class, VltClassField field) : base(@class, field)
-        {
-        }
+    public override object Clone()
+    {
+        return MemberwiseClone();
     }
 }

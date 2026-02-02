@@ -4,66 +4,65 @@
 
 using System.IO;
 using System.Linq;
-using VaultLib.Core.Data;
+using VaultLib.Core.DataInterfaces;
 using VaultLib.Core.Utils;
 
-namespace VaultLib.Core.Types
+namespace VaultLib.Core.Types;
+
+public class DynamicSizeArray<TKey, TItem> : VltBaseType<TKey>, IVltPointerObject<TKey>
+    where TItem : VltBaseType<TKey> where TKey : struct, IKey<TKey>
 {
-    public class DynamicSizeArray<T> : VLTBaseType, IPointerObject where T : VLTBaseType
+    private long _dstPtr;
+
+    private uint _pointer;
+    private long _srcPtr;
+
+    public TItem[] Items { get; set; }
+
+    public void ReadPointerData(VaultReadContext<TKey> context, FieldReadWriteContext<TKey> fieldContext,
+        BinaryReader br)
     {
-        private long _dstPtr;
+        var databaseTypeRegistry = context.Database.TypeRegistry;
 
-        private uint _pointer;
-        private long _srcPtr;
-
-        public DynamicSizeArray(VltClass @class, VltClassField field, VltCollection collection) : base(@class, field,
-            collection)
+        br.BaseStream.Position = _pointer;
+        for (var i = 0; i < Items.Length; i++)
         {
+            Items[i] = (TItem)databaseTypeRegistry.ConstructTypeInstance(typeof(TItem));
+            Items[i].Read(context, fieldContext, br);
         }
+    }
 
-        public DynamicSizeArray(VltClass @class, VltClassField field) : base(@class, field)
+    public void WritePointerData(VaultWriteContext<TKey> context, FieldReadWriteContext<TKey> fieldContext,
+        BinaryWriter bw)
+    {
+        _dstPtr = bw.BaseStream.Position;
+        foreach (var vltBaseType in Items) vltBaseType.Write(context, fieldContext, bw);
+    }
+
+    public void AddPointers(VaultWriteContext<TKey> context, FieldReadWriteContext<TKey> fieldContext)
+    {
+        context.AddPointer(_srcPtr, _dstPtr, false);
+    }
+
+    public override void Read(VaultReadContext<TKey> context, FieldReadWriteContext<TKey> fieldContext, BinaryReader br)
+    {
+        _pointer = br.ReadUInt32();
+        Items = new TItem[br.ReadInt32()];
+    }
+
+    public override void Write(VaultWriteContext<TKey> context, FieldReadWriteContext<TKey> fieldContext,
+        BinaryWriter bw)
+    {
+        _srcPtr = bw.BaseStream.Position;
+        bw.Write(0);
+        bw.Write(Items.Length);
+    }
+
+    public override object Clone()
+    {
+        return new DynamicSizeArray<TKey, TItem>
         {
-        }
-
-        public T[] Items { get; set; }
-
-        public void ReadPointerData(Vault vault, BinaryReader br)
-        {
-            br.BaseStream.Position = _pointer;
-            for (var i = 0; i < Items.Length; i++)
-            {
-                Items[i] = (T)TypeRegistry.ConstructInstance(typeof(T), Class, Field, Collection);
-                Items[i].Read(vault, br);
-            }
-        }
-
-        public void WritePointerData(Vault vault, BinaryWriter bw)
-        {
-            _dstPtr = bw.BaseStream.Position;
-            foreach (var vltBaseType in Items) vltBaseType.Write(vault, bw);
-        }
-
-        public void AddPointers(Vault vault)
-        {
-            vault.SaveContext.AddPointer(_srcPtr, _dstPtr, false);
-        }
-
-        public override void Read(Vault vault, BinaryReader br)
-        {
-            _pointer = br.ReadUInt32();
-            Items = new T[br.ReadInt32()];
-        }
-
-        public override void Write(Vault vault, BinaryWriter bw)
-        {
-            _srcPtr = bw.BaseStream.Position;
-            bw.Write(0);
-            bw.Write(Items.Length);
-        }
-
-        public override string ToString()
-        {
-            return string.Join(" | ", Items.Select(x => x.ToString()));
-        }
+            Items = this.Items.Select(i => (TItem)i.Clone()).ToArray(),
+        };
     }
 }

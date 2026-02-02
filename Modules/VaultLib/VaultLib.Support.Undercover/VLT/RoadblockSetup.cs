@@ -1,50 +1,63 @@
 ﻿using System.IO;
 using VaultLib.Core;
-using VaultLib.Core.Data;
 using VaultLib.Core.Types;
+using VaultLib.Core.Utils;
 
-namespace VaultLib.Support.Undercover.VLT
+namespace VaultLib.Support.Undercover.VLT;
+
+[VltTypeInfo(nameof(RoadblockSetup))]
+public class RoadblockSetup : VltBaseType<Core.DataInterfaces.Key32>
 {
-    [VLTTypeInfo(nameof(RoadblockSetup))]
-    public class RoadblockSetup : VLTBaseType
+    public RoadblockSetup()
     {
-        public RoadblockSetup(VltClass @class, VltClassField field, VltCollection collection = null) : base(@class, field, collection)
+        Contents = new RoadblockElement[6];
+        for (var i = 0; i < 6; i++)
+            Contents[i] = new RoadblockElement();
+    }
+
+    public float MinimumWidthRequired { get; set; }
+    public uint RequiredVehicles { get; set; }
+    public float MinimumThreatLevel { get; set; }
+    public float MaximumThreatLevel { get; set; }
+    public RoadblockElement[] Contents { get; set; }
+
+    public override void Read(VaultReadContext<Core.DataInterfaces.Key32> context,
+        FieldReadWriteContext<Core.DataInterfaces.Key32> fieldContext, BinaryReader br)
+    {
+        MinimumWidthRequired = br.ReadSingle();
+        RequiredVehicles = br.ReadUInt32();
+        MinimumThreatLevel = br.ReadSingle();
+        MaximumThreatLevel = br.ReadSingle();
+
+        for (int i = 0; i < 6; i++)
         {
-            Contents = new RoadblockElement[6];
-            for (int i = 0; i < 6; i++)
-                Contents[i] = new RoadblockElement(Class, Field, Collection);
+            Contents[i].Read(context, fieldContext, br);
         }
+    }
 
-        public float MinimumWidthRequired { get; set; }
-        public uint RequiredVehicles { get; set; }
-        public float MinimumThreatLevel { get; set; }
-        public float MaximumThreatLevel { get; set; }
-        public RoadblockElement[] Contents { get; set; }
+    public override void Write(VaultWriteContext<Core.DataInterfaces.Key32> context,
+        FieldReadWriteContext<Core.DataInterfaces.Key32> fieldContext, BinaryWriter bw)
+    {
+        bw.Write(MinimumWidthRequired);
+        bw.Write(RequiredVehicles);
+        bw.Write(MinimumThreatLevel);
+        bw.Write(MaximumThreatLevel);
 
-        public override void Read(Vault vault, BinaryReader br)
+        for (int i = 0; i < 6; i++)
         {
-            MinimumWidthRequired = br.ReadSingle();
-            RequiredVehicles = br.ReadUInt32();
-            MinimumThreatLevel = br.ReadSingle();
-            MaximumThreatLevel = br.ReadSingle();
-
-            for (int i = 0; i < 6; i++)
-            {
-                Contents[i].Read(vault, br);
-            }
+            Contents[i].Write(context, fieldContext, bw);
         }
+    }
 
-        public override void Write(Vault vault, BinaryWriter bw)
+    public override object Clone()
+    {
+        return new RoadblockSetup
         {
-            bw.Write(MinimumWidthRequired);
-            bw.Write(RequiredVehicles);
-            bw.Write(MinimumThreatLevel);
-            bw.Write(MaximumThreatLevel);
-
-            for (int i = 0; i < 6; i++)
-            {
-                Contents[i].Write(vault, bw);
-            }
-        }
+            MinimumWidthRequired = MinimumWidthRequired,
+            RequiredVehicles = RequiredVehicles,
+            MinimumThreatLevel = MinimumThreatLevel,
+            MaximumThreatLevel = MaximumThreatLevel,
+            Contents = Contents.CloneComplex()
+        };
     }
 }

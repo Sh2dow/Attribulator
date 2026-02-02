@@ -2,40 +2,27 @@
 // 
 // Created: 10/06/2019 @ 9:00 PM.
 
-using CoreLibraries.IO;
-using System.IO;
-using VaultLib.Core;
-using VaultLib.Core.Data;
+using System.Runtime.InteropServices;
 using VaultLib.Core.Types;
 
-namespace VaultLib.Support.World.VLT.Sound
+namespace VaultLib.Support.World.VLT.Sound;
+
+[VltTypeInfo("Sound::BinarySequence")]
+[StructLayout(LayoutKind.Explicit, Pack = 1, Size = 8)]
+public struct BinarySequence : IComplexType
 {
-    [VLTTypeInfo("Sound::BinarySequence")]
-    public class BinarySequence : VLTBaseType
+    [FieldOffset(0)] [MarshalAs(UnmanagedType.U1)]
+    public bool Value;
+
+    [FieldOffset(4)] public float Duration;
+
+    public void EndianSwap()
     {
-        public bool Value { get; set; }
-        public float Duration { get; set; }
+        throw new System.NotImplementedException();
+    }
 
-        public override void Read(Vault vault, BinaryReader br)
-        {
-            Value = br.ReadBoolean();
-            br.AlignReader(4);
-            Duration = br.ReadSingle();
-        }
-
-        public override void Write(Vault vault, BinaryWriter bw)
-        {
-            bw.Write(Value);
-            bw.AlignWriter(4);
-            bw.Write(Duration);
-        }
-
-        public BinarySequence(VltClass @class, VltClassField field, VltCollection collection) : base(@class, field, collection)
-        {
-        }
-
-        public BinarySequence(VltClass @class, VltClassField field) : base(@class, field)
-        {
-        }
+    public object Clone()
+    {
+        return MemberwiseClone();
     }
 }

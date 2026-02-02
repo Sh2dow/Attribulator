@@ -5,62 +5,52 @@
 using System.Collections.Generic;
 using System.IO;
 using VaultLib.Core;
-using VaultLib.Core.Data;
 using VaultLib.Core.Types;
+using VaultLib.Core.Types.Attrib;
 using VaultLib.Core.Utils;
 using VaultLib.LegacyBase;
 
-namespace VaultLib.Support.MostWanted.VLT
+namespace VaultLib.Support.MostWanted.VLT;
+
+[VltTypeInfo(nameof(CopCountRecord))]
+public class CopCountRecord : VltBaseType<Core.DataInterfaces.Key32>, IReferencesStrings
 {
-    [VLTTypeInfo(nameof(CopCountRecord))]
-    public class CopCountRecord : VLTBaseType, IReferencesStrings
+    public string CopType { get; set; } = string.Empty;
+    public uint Count { get; set; }
+    public uint Chance { get; set; }
+
+    private StringKey64 _copType = new();
+
+    public override void Read(VaultReadContext<Core.DataInterfaces.Key32> context,
+        FieldReadWriteContext<Core.DataInterfaces.Key32> fieldContext, BinaryReader br)
     {
-        public string CopType { get; set; }
-        public uint Count { get; set; }
-        public uint Chance { get; set; }
+        _copType.Read(context, fieldContext, br);
+        CopType = _copType.Value;
+        Count = br.ReadUInt32();
+        Chance = br.ReadUInt32();
+    }
 
-        private StringKey64 _copType;
+    public override void Write(VaultWriteContext<Core.DataInterfaces.Key32> context,
+        FieldReadWriteContext<Core.DataInterfaces.Key32> fieldContext, BinaryWriter bw)
+    {
+        _copType.Value = CopType;
+        _copType.Write(context, fieldContext, bw);
+        bw.Write(Count);
+        bw.Write(Chance);
+    }
 
-        public override void Read(Vault vault, BinaryReader br)
+    public override object Clone()
+    {
+        return new CopCountRecord
         {
-            _copType.Read(vault, br);
-            Count = br.ReadUInt32();
-            Chance = br.ReadUInt32();
-        }
+            CopType = CopType,
+            Chance = Chance,
+            Count = Count,
+        };
+    }
 
-        public override void Write(Vault vault, BinaryWriter bw)
-        {
-            _copType.Value = CopType;
-            _copType.Write(vault, bw);
-            bw.Write(Count);
-            bw.Write(Chance);
-        }
-
-        public void ReadPointerData(Vault vault, BinaryReader br)
-        {
-            _copType.ReadPointerData(vault, br);
-            CopType = _copType.Value;
-        }
-
-        public void WritePointerData(Vault vault, BinaryWriter bw)
-        {
-            _copType.WritePointerData(vault, bw);
-        }
-
-        public void AddPointers(Vault vault)
-        {
-            _copType.AddPointers(vault);
-        }
-
-        public IEnumerable<string> GetStrings()
-        {
-            return new[] { CopType };
-        }
-
-        public CopCountRecord(VltClass @class, VltClassField field, VltCollection collection = null) : base(@class, field, collection)
-        {
-            _copType = new StringKey64(Class, Field, Collection);
-            CopType = string.Empty;
-        }
+    public IEnumerable<string> GetStrings()
+    {
+        return new[] { CopType };
     }
 }

@@ -6,21 +6,19 @@
     <Description>Core library for processing VLT files - requires supplemental game modules</Description>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageId>VaultLib.Core</PackageId>
-    <Platforms>x86</Platforms>
     <Product>VaultLib.Core</Product>
-    <LangVersion>default</LangVersion>
     <TargetFramework>net9.0</TargetFramework>
-    <Version>1.2.0</Version>
+    <Version>3.0.0-dev</Version>
+    <Configurations>Debug;Release</Configurations>
+    <Platforms>AnyCPU</Platforms>
+    <LangVersion>13</LangVersion>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="MSBuildGitHash" Version="2.0.2" />
-    <PackageReference Include="MvvmCross" Version="9.2.0" />
-    <PackageReference Include="System.ComponentModel.Composition" Version="9.0.0-rc.1.24431.7" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\..\NFSTools\CoreLibraries.IO\CoreLibraries.IO.csproj" />
+    <PackageReference Include="MSBuildGitHash" Version="0.5.0" />
+    <PackageReference Include="NFSTools.Core.IO" Version="2.0.0" />
+    <PackageReference Include="NFSTools.Core.ModuleSystem" Version="2.0.0" />
   </ItemGroup>
 
 </Project>

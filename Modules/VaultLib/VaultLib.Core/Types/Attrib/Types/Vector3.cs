@@ -1,45 +1,20 @@
-﻿// This file is part of VaultLib by heyitsleo.
-// 
-// Created: 09/28/2019 @ 3:53 PM.
+﻿using VaultLib.Core.Utils;
 
-using System.Globalization;
-using System.IO;
-using VaultLib.Core.Data;
+namespace VaultLib.Core.Types.Attrib.Types;
 
-namespace VaultLib.Core.Types.Attrib.Types
+public struct Vector3 : IComplexType
 {
-    [VLTTypeInfo("Attrib::Types::Vector3")]
-    public class Vector3 : VLTBaseType
+    public float X, Y, Z;
+
+    public void EndianSwap()
     {
-        public Vector3(VltClass @class, VltClassField field, VltCollection collection) : base(@class, field, collection)
-        {
-        }
+        X = X.EndianSwap();
+        Y = Y.EndianSwap();
+        Z = Z.EndianSwap();
+    }
 
-        public Vector3(VltClass @class, VltClassField field) : base(@class, field)
-        {
-        }
-
-        public float X { get; set; }
-        public float Y { get; set; }
-        public float Z { get; set; }
-
-        public override void Read(Vault vault, BinaryReader br)
-        {
-            X = br.ReadSingle();
-            Y = br.ReadSingle();
-            Z = br.ReadSingle();
-        }
-
-        public override void Write(Vault vault, BinaryWriter bw)
-        {
-            bw.Write(X);
-            bw.Write(Y);
-            bw.Write(Z);
-        }
-
-        public override string ToString()
-        {
-            return $"({X.ToString(CultureInfo.InvariantCulture)}, {Y.ToString(CultureInfo.InvariantCulture)}, {Z.ToString(CultureInfo.InvariantCulture)})";
-        }
+    public object Clone()
+    {
+        return MemberwiseClone();
     }
 }

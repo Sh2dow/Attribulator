@@ -1,94 +1,98 @@
 using System.IO;
 using VaultLib.Core;
-using VaultLib.Core.Data;
 using VaultLib.Core.Types;
+using VaultLib.Core.Utils;
 
-namespace VaultLib.Support.World.VLT.Sound
+namespace VaultLib.Support.World.VLT.Sound;
+
+[VltTypeInfo("Sound::ChasedownMusicTuning")]
+public class ChasedownMusicTuning : VltBaseType<Core.DataInterfaces.Key32>
 {
-    [VLTTypeInfo("Sound::ChasedownMusicTuning")]
-    public class ChasedownMusicTuning : VLTBaseType
+    public float[] StartTimeLimit { get; set; } = new float[2];
+    public float[] LowTimeLimit { get; set; } = new float[2];
+    public float[] FailureTimeLimit { get; set; } = new float[2];
+    public float[] MediumTimeLimit { get; set; } = new float[2];
+    public float[] HighTimeLimit { get; set; } = new float[2];
+    public float[] OpponentDamageThreshold { get; set; } = new float[2];
+
+    public override void Read(VaultReadContext<Core.DataInterfaces.Key32> context,
+        FieldReadWriteContext<Core.DataInterfaces.Key32> fieldContext, BinaryReader br)
     {
-        public float[] StartTimeLimit { get; set; }
-        public float[] LowTimeLimit { get; set; }
-        public float[] FailureTimeLimit { get; set; }
-        public float[] MediumTimeLimit { get; set; }
-        public float[] HighTimeLimit { get; set; }
-        public float[] OpponentDamageThreshold { get; set; }
-
-        public override void Read(Vault vault, BinaryReader br)
+        for (int i = 0; i < StartTimeLimit.Length; i++)
         {
-            for (int i = 0; i < StartTimeLimit.Length; i++)
-            {
-                StartTimeLimit[i] = br.ReadSingle();
-            }
-
-            for (int i = 0; i < LowTimeLimit.Length; i++)
-            {
-                LowTimeLimit[i] = br.ReadSingle();
-            }
-
-            for (int i = 0; i < FailureTimeLimit.Length; i++)
-            {
-                FailureTimeLimit[i] = br.ReadSingle();
-            }
-
-            for (int i = 0; i < MediumTimeLimit.Length; i++)
-            {
-                MediumTimeLimit[i] = br.ReadSingle();
-            }
-
-            for (int i = 0; i < HighTimeLimit.Length; i++)
-            {
-                HighTimeLimit[i] = br.ReadSingle();
-            }
-
-            for (int i = 0; i < OpponentDamageThreshold.Length; i++)
-            {
-                OpponentDamageThreshold[i] = br.ReadSingle();
-            }
+            StartTimeLimit[i] = br.ReadSingle();
         }
 
-        public override void Write(Vault vault, BinaryWriter bw)
+        for (int i = 0; i < LowTimeLimit.Length; i++)
         {
-            for (int i = 0; i < StartTimeLimit.Length; i++)
-            {
-                bw.Write(StartTimeLimit[i]);
-            }
-
-            for (int i = 0; i < LowTimeLimit.Length; i++)
-            {
-                bw.Write(LowTimeLimit[i]);
-            }
-
-            for (int i = 0; i < FailureTimeLimit.Length; i++)
-            {
-                bw.Write(FailureTimeLimit[i]);
-            }
-
-            for (int i = 0; i < MediumTimeLimit.Length; i++)
-            {
-                bw.Write(MediumTimeLimit[i]);
-            }
-
-            for (int i = 0; i < HighTimeLimit.Length; i++)
-            {
-                bw.Write(HighTimeLimit[i]);
-            }
-
-            for (int i = 0; i < OpponentDamageThreshold.Length; i++)
-            {
-                bw.Write(OpponentDamageThreshold[i]);
-            }
+            LowTimeLimit[i] = br.ReadSingle();
         }
 
-        public ChasedownMusicTuning(VltClass @class, VltClassField field, VltCollection collection = null) : base(@class, field, collection)
+        for (int i = 0; i < FailureTimeLimit.Length; i++)
         {
-            StartTimeLimit = new float[2];
-            LowTimeLimit = new float[2];
-            FailureTimeLimit = new float[2];
-            MediumTimeLimit = new float[2];
-            HighTimeLimit = new float[2];
-            OpponentDamageThreshold = new float[2];
+            FailureTimeLimit[i] = br.ReadSingle();
         }
+
+        for (int i = 0; i < MediumTimeLimit.Length; i++)
+        {
+            MediumTimeLimit[i] = br.ReadSingle();
+        }
+
+        for (int i = 0; i < HighTimeLimit.Length; i++)
+        {
+            HighTimeLimit[i] = br.ReadSingle();
+        }
+
+        for (int i = 0; i < OpponentDamageThreshold.Length; i++)
+        {
+            OpponentDamageThreshold[i] = br.ReadSingle();
+        }
+    }
+
+    public override void Write(VaultWriteContext<Core.DataInterfaces.Key32> context,
+        FieldReadWriteContext<Core.DataInterfaces.Key32> fieldContext, BinaryWriter bw)
+    {
+        for (int i = 0; i < StartTimeLimit.Length; i++)
+        {
+            bw.Write(StartTimeLimit[i]);
+        }
+
+        for (int i = 0; i < LowTimeLimit.Length; i++)
+        {
+            bw.Write(LowTimeLimit[i]);
+        }
+
+        for (int i = 0; i < FailureTimeLimit.Length; i++)
+        {
+            bw.Write(FailureTimeLimit[i]);
+        }
+
+        for (int i = 0; i < MediumTimeLimit.Length; i++)
+        {
+            bw.Write(MediumTimeLimit[i]);
+        }
+
+        for (int i = 0; i < HighTimeLimit.Length; i++)
+        {
+            bw.Write(HighTimeLimit[i]);
+        }
+
+        for (int i = 0; i < OpponentDamageThreshold.Length; i++)
+        {
+            bw.Write(OpponentDamageThreshold[i]);
+        }
+    }
+
+    public override object Clone()
+    {
+        return new ChasedownMusicTuning
+        {
+            StartTimeLimit = StartTimeLimit.CloneSimple(),
+            LowTimeLimit = LowTimeLimit.CloneSimple(),
+            FailureTimeLimit = FailureTimeLimit.CloneSimple(),
+            MediumTimeLimit = MediumTimeLimit.CloneSimple(),
+            HighTimeLimit = HighTimeLimit.CloneSimple(),
+            OpponentDamageThreshold = OpponentDamageThreshold.CloneSimple()
+        };
     }
 }

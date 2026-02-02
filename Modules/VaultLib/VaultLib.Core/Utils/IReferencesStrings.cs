@@ -3,11 +3,11 @@
 // Created: 09/29/2019 @ 11:12 PM.
 
 using System.Collections.Generic;
+using VaultLib.Core.DataInterfaces;
 
-namespace VaultLib.Core.Utils
+namespace VaultLib.Core.Utils;
+
+public interface IReferencesStrings
 {
-    public interface IReferencesStrings : IPointerObject
-    {
-        IEnumerable<string> GetStrings();
-    }
+    IEnumerable<string> GetStrings();
 }

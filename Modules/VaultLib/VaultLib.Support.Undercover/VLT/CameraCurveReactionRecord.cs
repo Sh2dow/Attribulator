@@ -4,48 +4,55 @@
 
 using System.IO;
 using VaultLib.Core;
-using VaultLib.Core.Data;
 using VaultLib.Core.Types;
 using VaultLib.Core.Utils;
 
-namespace VaultLib.Support.Undercover.VLT
+namespace VaultLib.Support.Undercover.VLT;
+
+[VltTypeInfo(nameof(CameraCurveReactionRecord))]
+public class CameraCurveReactionRecord : VltBaseType<Core.DataInterfaces.Key32>,
+    IVltPointerObject<Core.DataInterfaces.Key32>
 {
-    [VLTTypeInfo(nameof(CameraCurveReactionRecord))]
-    public class CameraCurveReactionRecord : VLTBaseType, IPointerObject
+    public Curve Curve { get; set; } = new();
+
+    public override void Read(VaultReadContext<Core.DataInterfaces.Key32> context,
+        FieldReadWriteContext<Core.DataInterfaces.Key32> fieldContext, BinaryReader br)
     {
-        public Curve Curve { get; set; }
+        if (br.ReadUInt32() != 0)
+            throw new InvalidDataException();
+        Curve.Read(context, fieldContext, br);
+    }
 
-        public override void Read(Vault vault, BinaryReader br)
-        {
-            if (br.ReadUInt32() != 0)
-                throw new InvalidDataException();
-            Curve.Read(vault, br);
-        }
+    public override void Write(VaultWriteContext<Core.DataInterfaces.Key32> context,
+        FieldReadWriteContext<Core.DataInterfaces.Key32> fieldContext, BinaryWriter bw)
+    {
+        bw.Write(0);
+        Curve.Write(context, fieldContext, bw);
+    }
 
-        public override void Write(Vault vault, BinaryWriter bw)
-        {
-            bw.Write(0);
-            Curve.Write(vault, bw);
-        }
+    public void ReadPointerData(VaultReadContext<Core.DataInterfaces.Key32> context,
+        FieldReadWriteContext<Core.DataInterfaces.Key32> fieldContext, BinaryReader br)
+    {
+        Curve.ReadPointerData(context, fieldContext, br);
+    }
 
-        public void ReadPointerData(Vault vault, BinaryReader br)
-        {
-            Curve.ReadPointerData(vault, br);
-        }
+    public void WritePointerData(VaultWriteContext<Core.DataInterfaces.Key32> context,
+        FieldReadWriteContext<Core.DataInterfaces.Key32> fieldContext, BinaryWriter bw)
+    {
+        Curve.WritePointerData(context, fieldContext, bw);
+    }
 
-        public void WritePointerData(Vault vault, BinaryWriter bw)
-        {
-            Curve.WritePointerData(vault, bw);
-        }
+    public void AddPointers(VaultWriteContext<Core.DataInterfaces.Key32> context,
+        FieldReadWriteContext<Core.DataInterfaces.Key32> fieldContext)
+    {
+        Curve.AddPointers(context, fieldContext);
+    }
 
-        public void AddPointers(Vault vault)
+    public override object Clone()
+    {
+        return new CameraCurveReactionRecord
         {
-            Curve.AddPointers(vault);
-        }
-
-        public CameraCurveReactionRecord(VltClass @class, VltClassField field, VltCollection collection = null) : base(@class, field, collection)
-        {
-            Curve = new Curve(Class, Field, Collection);
-        }
+            Curve = (Curve)Curve.Clone(),
+        };
     }
 }

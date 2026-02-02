@@ -1,31 +1,35 @@
 ﻿using System.IO;
 using VaultLib.Core;
-using VaultLib.Core.Data;
 using VaultLib.Core.Types;
 
-namespace VaultLib.Support.Undercover.VLT
+namespace VaultLib.Support.Undercover.VLT;
+
+[VltTypeInfo(nameof(PresetRideRandomPaint))]
+public class PresetRideRandomPaint : VltBaseType<Core.DataInterfaces.Key32>
 {
-    [VLTTypeInfo(nameof(PresetRideRandomPaint))]
-    public class PresetRideRandomPaint : VLTBaseType
+    public PresetRidePaint Paint { get; set; } = new();
+    public float Chance { get; set; }
+
+    public override void Read(VaultReadContext<Core.DataInterfaces.Key32> context,
+        FieldReadWriteContext<Core.DataInterfaces.Key32> fieldContext, BinaryReader br)
     {
-        public PresetRideRandomPaint(VltClass @class, VltClassField field, VltCollection collection = null) : base(@class, field, collection)
-        {
-            Paint = new PresetRidePaint(Class, Field, Collection);
-        }
+        Paint.Read(context, fieldContext, br);
+        Chance = br.ReadSingle();
+    }
 
-        public PresetRidePaint Paint { get; set; }
-        public float Chance { get; set; }
+    public override void Write(VaultWriteContext<Core.DataInterfaces.Key32> context,
+        FieldReadWriteContext<Core.DataInterfaces.Key32> fieldContext, BinaryWriter bw)
+    {
+        Paint.Write(context, fieldContext, bw);
+        bw.Write(Chance);
+    }
 
-        public override void Read(Vault vault, BinaryReader br)
+    public override object Clone()
+    {
+        return new PresetRideRandomPaint
         {
-            Paint.Read(vault, br);
-            Chance = br.ReadSingle();
-        }
-
-        public override void Write(Vault vault, BinaryWriter bw)
-        {
-            Paint.Write(vault, bw);
-            bw.Write(Chance);
-        }
+            Chance = Chance,
+            Paint = (PresetRidePaint)Paint.Clone(),
+        };
     }
 }

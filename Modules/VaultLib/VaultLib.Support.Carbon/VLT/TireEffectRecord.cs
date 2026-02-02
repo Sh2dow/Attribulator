@@ -1,40 +1,41 @@
 ﻿using System.IO;
-using CoreLibraries.IO;
 using VaultLib.Core;
-using VaultLib.Core.Data;
+using VaultLib.Core.DataInterfaces;
 using VaultLib.Core.Types;
 using VaultLib.Core.Types.Attrib;
-using VaultLib.Frameworks.Speed;
 
-namespace VaultLib.Support.Carbon.VLT
+namespace VaultLib.Support.Carbon.VLT;
+
+[VltTypeInfo(nameof(TireEffectRecord))]
+public class TireEffectRecord : VltBaseType<Key32>
 {
-    [VLTTypeInfo(nameof(TireEffectRecord))]
-    public class TireEffectRecord : VLTBaseType
+    public RefSpec32 mEmitter { get; set; } = new();
+    public float mMinSpeed { get; set; }
+    public float mMaxSpeed { get; set; }
+
+    public override void Read(VaultReadContext<Key32> context, FieldReadWriteContext<Key32> fieldContext,
+        BinaryReader br)
     {
-        public TireEffectRecord(VltClass @class, VltClassField field, VltCollection collection = null) : base(@class, field, collection)
-        {
-            mEmitter = new RefSpecPacked(Class, Field, Collection);
-        }
+        mEmitter.Read(context, fieldContext, br);
+        mMinSpeed = br.ReadSingle();
+        mMaxSpeed = br.ReadSingle();
+    }
 
-        public TireCondition mTireCondition { get; set; }
-        public RefSpecPacked mEmitter { get; set; }
-        public float mMinSpeed { get; set; }
-        public float mMaxSpeed { get; set; }
+    public override void Write(VaultWriteContext<Key32> context, FieldReadWriteContext<Key32> fieldContext,
+        BinaryWriter bw)
+    {
+        mEmitter.Write(context, fieldContext, bw);
+        bw.Write(mMinSpeed);
+        bw.Write(mMaxSpeed);
+    }
 
-        public override void Read(Vault vault, BinaryReader br)
+    public override object Clone()
+    {
+        return new TireEffectRecord
         {
-            mTireCondition = br.ReadEnum<TireCondition>();
-            mEmitter.Read(vault, br);
-            mMinSpeed = br.ReadSingle();
-            mMaxSpeed = br.ReadSingle();
-        }
-
-        public override void Write(Vault vault, BinaryWriter bw)
-        {
-            bw.WriteEnum(mTireCondition);
-            mEmitter.Write(vault, bw);
-            bw.Write(mMinSpeed);
-            bw.Write(mMaxSpeed);
-        }
+            mEmitter = (RefSpec32)mEmitter.Clone(),
+            mMinSpeed = mMinSpeed,
+            mMaxSpeed = mMaxSpeed,
+        };
     }
 }

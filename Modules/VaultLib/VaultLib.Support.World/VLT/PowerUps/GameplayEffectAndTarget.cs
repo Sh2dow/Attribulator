@@ -5,55 +5,52 @@
 using System.Collections.Generic;
 using System.IO;
 using VaultLib.Core;
-using VaultLib.Core.Data;
+using VaultLib.Core.DataInterfaces;
 using VaultLib.Core.DB;
 using VaultLib.Core.Types;
 using VaultLib.Core.Types.Attrib;
 using VaultLib.Core.Utils;
 
-namespace VaultLib.Support.World.VLT.PowerUps
+namespace VaultLib.Support.World.VLT.PowerUps;
+
+[VltTypeInfo("PowerUps::GameplayEffectAndTarget")]
+public class GameplayEffectAndTarget: VltBaseType<Key32>, IReferencesCollections<Key32>
 {
-    [VLTTypeInfo("PowerUps::GameplayEffectAndTarget")]
-    public class GameplayEffectAndTarget : VLTBaseType, IReferencesCollections
+    public Key32 GroupKey { get; set; }
+    public uint Type { get; set; }
+
+    public override void Read(VaultReadContext<Key32> context, FieldReadWriteContext<Key32> fieldContext, BinaryReader br)
     {
-        public string GroupKey { get; set; }
-        public uint Type { get; set; }
+        var rs = new RefSpec32();
+        rs.Read(context, fieldContext, br);
+        uint type = br.ReadUInt32();
 
-        public override void Read(Vault vault, BinaryReader br)
-        {
-            RefSpec rs = new RefSpec(Class, Field, Collection);
-            rs.Read(vault, br);
-            uint type = br.ReadUInt32();
+        GroupKey = rs.CollectionKey;
+        Type = type;
+    }
 
-            GroupKey = rs.CollectionKey;
-            Type = type;
-        }
+    public override void Write(VaultWriteContext<Key32> context, FieldReadWriteContext<Key32> fieldContext, BinaryWriter bw)
+    {
+        var rs = new RefSpec32();
+        rs.ClassKey = Key32.FromString("powerup_gamegroup");
+        rs.CollectionKey = GroupKey;
+        rs.Write(context, fieldContext, bw);
+        bw.Write(Type);
+    }
 
-        public override void Write(Vault vault, BinaryWriter bw)
-        {
-            RefSpec rs = new RefSpec(Class, Field, Collection);
-            rs.ClassKey = "powerup_gamegroup";
-            rs.CollectionKey = GroupKey;
-            rs.Write(vault, bw);
-            bw.Write(Type);
-        }
+    public IEnumerable<CollectionReferenceInfo<Key32>> GetReferencedCollections(Database<Key32> database, Vault<Key32> vault)
+    {
+        yield return new CollectionReferenceInfo<Key32>(this,
+            database.RowManager.FindCollection(Key32.FromString("powerup_gamegroup"), GroupKey));
+    }
 
-        public IEnumerable<CollectionReferenceInfo> GetReferencedCollections(Database database, Vault vault)
-        {
-            yield return new CollectionReferenceInfo(this, database.RowManager.FindCollectionByName("powerup_gamegroup", GroupKey));
-        }
+    public bool ReferencesCollection(Key32 classKey, Key32 collectionKey)
+    {
+        return classKey == Key32.FromString("powerup_gamegroup") && collectionKey == GroupKey;
+    }
 
-        public bool ReferencesCollection(string classKey, string collectionKey)
-        {
-            return classKey == "powerup_gamegroup" && collectionKey == GroupKey;
-        }
-
-        public GameplayEffectAndTarget(VltClass @class, VltClassField field, VltCollection collection) : base(@class, field, collection)
-        {
-        }
-
-        public GameplayEffectAndTarget(VltClass @class, VltClassField field) : base(@class, field)
-        {
-        }
+    public override object Clone()
+    {
+        return MemberwiseClone();
     }
 }

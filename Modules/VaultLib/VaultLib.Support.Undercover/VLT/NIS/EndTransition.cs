@@ -1,35 +1,30 @@
 ﻿using System.IO;
 using CoreLibraries.IO;
 using VaultLib.Core;
-using VaultLib.Core.Data;
 using VaultLib.Core.Types;
 
-namespace VaultLib.Support.Undercover.VLT.NIS
+namespace VaultLib.Support.Undercover.VLT.NIS;
+
+[VltTypeInfo("NIS::EndTransition")]
+public class EndTransition: VltBaseType<Core.DataInterfaces.Key32>
 {
-    [VLTTypeInfo("NIS::EndTransition")]
-    public class EndTransition : VLTBaseType
+    public eEndTransitionType TransitionType { get; set; }
+    public float TransitionSec { get; set; }
+
+    public override void Read(VaultReadContext<Core.DataInterfaces.Key32> context, FieldReadWriteContext<Core.DataInterfaces.Key32> fieldContext, BinaryReader br)
     {
-        public EndTransition(VltClass @class, VltClassField field, VltCollection collection) : base(@class, field, collection)
-        {
-        }
+        TransitionType = br.ReadEnum<eEndTransitionType>();
+        TransitionSec = br.ReadSingle();
+    }
 
-        public EndTransition(VltClass @class, VltClassField field) : base(@class, field)
-        {
-        }
+    public override void Write(VaultWriteContext<Core.DataInterfaces.Key32> context, FieldReadWriteContext<Core.DataInterfaces.Key32> fieldContext, BinaryWriter bw)
+    {
+        bw.WriteEnum(TransitionType);
+        bw.Write(TransitionSec);
+    }
 
-        public eEndTransitionType TransitionType { get; set; }
-        public float TransitionSec { get; set; }
-
-        public override void Read(Vault vault, BinaryReader br)
-        {
-            TransitionType = br.ReadEnum<eEndTransitionType>();
-            TransitionSec = br.ReadSingle();
-        }
-
-        public override void Write(Vault vault, BinaryWriter bw)
-        {
-            bw.WriteEnum(TransitionType);
-            bw.Write(TransitionSec);
-        }
+    public override object Clone()
+    {
+        return MemberwiseClone();
     }
 }

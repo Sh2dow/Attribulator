@@ -1,19 +1,19 @@
 ﻿using VaultLib.Core;
+using VaultLib.Core.DataInterfaces;
 
-namespace VaultLib.Frameworks.Speed
+namespace VaultLib.Frameworks.Speed;
+
+/// <summary>
+/// Helper class for libraries that use VaultLib.Frameworks.Speed
+/// </summary>
+public static class SpeedFramework
 {
     /// <summary>
-    /// Helper class for libraries that use VaultLib.Frameworks.Speed
+    /// Registers the framework types.
     /// </summary>
-    public static class SpeedFramework
+    /// <param name="registry">The type registry to register the types with</param>
+    public static void Register<TKey>(TypeRegistryBuilder<TKey> registry) where TKey : struct, IKey<TKey>
     {
-        /// <summary>
-        /// Registers the framework types with the given game IDs
-        /// </summary>
-        /// <param name="games">The game IDs to register the framework types with</param>
-        public static void Register(params string[] games)
-        {
-            TypeRegistry.RegisterAssemblyTypes(typeof(SpeedFramework).Assembly, games);
-        }
+        registry.RegisterAssemblyTypes(typeof(SpeedFramework).Assembly);
     }
 }

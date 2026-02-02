@@ -2,43 +2,25 @@
 // 
 // Created: 09/29/2019 @ 9:26 AM.
 
-using System.IO;
-using VaultLib.Core;
-using VaultLib.Core.Data;
 using VaultLib.Core.Types;
 
-namespace VaultLib.Support.World.VLT.Commerce
+namespace VaultLib.Support.World.VLT.Commerce;
+
+[VltTypeInfo("Commerce::HatBonus")]
+public struct HatBonus : IComplexType
 {
-    [VLTTypeInfo("Commerce::HatBonus")]
-    public class HatBonus : VLTBaseType
+    public int Handling;
+    public int Acceleration;
+    public int TopSpeed;
+    public int RequiredPartCount;
+
+    public void EndianSwap()
     {
-        public int Handling { get; set; }
-        public int Acceleration { get; set; }
-        public int TopSpeed { get; set; }
-        public int RequiredPartCount { get; set; }
+        throw new System.NotImplementedException();
+    }
 
-        public override void Read(Vault vault, BinaryReader br)
-        {
-            Handling = br.ReadInt32();
-            Acceleration = br.ReadInt32();
-            TopSpeed = br.ReadInt32();
-            RequiredPartCount = br.ReadInt32();
-        }
-
-        public override void Write(Vault vault, BinaryWriter bw)
-        {
-            bw.Write(Handling);
-            bw.Write(Acceleration);
-            bw.Write(TopSpeed);
-            bw.Write(RequiredPartCount);
-        }
-
-        public HatBonus(VltClass @class, VltClassField field, VltCollection collection) : base(@class, field, collection)
-        {
-        }
-
-        public HatBonus(VltClass @class, VltClassField field) : base(@class, field)
-        {
-        }
+    public object Clone()
+    {
+        return MemberwiseClone();
     }
 }

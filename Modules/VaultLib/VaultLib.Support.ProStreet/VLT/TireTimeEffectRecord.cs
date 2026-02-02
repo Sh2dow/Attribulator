@@ -1,44 +1,50 @@
 ﻿using System.IO;
 using CoreLibraries.IO;
 using VaultLib.Core;
-using VaultLib.Core.Data;
 using VaultLib.Core.Types;
 using VaultLib.Core.Types.Attrib;
-using VaultLib.Frameworks.Speed;
+using VaultLib.Frameworks.Speed.VLT;
 
-namespace VaultLib.Support.ProStreet.VLT
+namespace VaultLib.Support.ProStreet.VLT;
+
+[VltTypeInfo(nameof(TireTimeEffectRecord))]
+public class TireTimeEffectRecord : VltBaseType<Core.DataInterfaces.Key32>
 {
-    [VLTTypeInfo(nameof(TireTimeEffectRecord))]
-    public class TireTimeEffectRecord : VLTBaseType
+    public TireCondition mTireCondition { get; set; }
+    public RefSpec32 mEmitter { get; set; } = new();
+    public RefSpec32 mEmitterLowLod { get; set; } = new();
+    public float mMinTime { get; set; }
+    public float mMaxTime { get; set; }
+
+    public override void Read(VaultReadContext<Core.DataInterfaces.Key32> context,
+        FieldReadWriteContext<Core.DataInterfaces.Key32> fieldContext, BinaryReader br)
     {
-        public TireTimeEffectRecord(VltClass @class, VltClassField field, VltCollection collection = null) : base(@class, field, collection)
-        {
-            mEmitter = new RefSpec(Class, Field, Collection);
-            mEmitterLowLod = new RefSpec(Class, Field, Collection);
-        }
+        mTireCondition = br.ReadEnum<TireCondition>();
+        mEmitter.Read(context, fieldContext, br);
+        mEmitterLowLod.Read(context, fieldContext, br);
+        mMinTime = br.ReadSingle();
+        mMaxTime = br.ReadSingle();
+    }
 
-        public TireCondition mTireCondition { get; set; }
-        public RefSpec mEmitter { get; set; }
-        public RefSpec mEmitterLowLod { get; set; }
-        public float mMinTime { get; set; }
-        public float mMaxTime { get; set; }
+    public override void Write(VaultWriteContext<Core.DataInterfaces.Key32> context,
+        FieldReadWriteContext<Core.DataInterfaces.Key32> fieldContext, BinaryWriter bw)
+    {
+        bw.WriteEnum(mTireCondition);
+        mEmitter.Write(context, fieldContext, bw);
+        mEmitterLowLod.Write(context, fieldContext, bw);
+        bw.Write(mMinTime);
+        bw.Write(mMaxTime);
+    }
 
-        public override void Read(Vault vault, BinaryReader br)
+    public override object Clone()
+    {
+        return new TireTimeEffectRecord
         {
-            mTireCondition = br.ReadEnum<TireCondition>();
-            mEmitter.Read(vault, br);
-            mEmitterLowLod.Read(vault, br);
-            mMinTime = br.ReadSingle();
-            mMaxTime = br.ReadSingle();
-        }
-
-        public override void Write(Vault vault, BinaryWriter bw)
-        {
-            bw.WriteEnum(mTireCondition);
-            mEmitter.Write(vault, bw);
-            mEmitterLowLod.Write(vault, bw);
-            bw.Write(mMinTime);
-            bw.Write(mMaxTime);
-        }
+            mTireCondition = mTireCondition,
+            mEmitter = (RefSpec32)mEmitter.Clone(),
+            mEmitterLowLod = (RefSpec32)mEmitterLowLod.Clone(),
+            mMinTime = mMinTime,
+            mMaxTime = mMaxTime
+        };
     }
 }

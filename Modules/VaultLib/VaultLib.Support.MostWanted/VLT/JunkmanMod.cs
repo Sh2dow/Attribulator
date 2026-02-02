@@ -4,38 +4,41 @@
 
 using System.IO;
 using VaultLib.Core;
-using VaultLib.Core.Data;
+using VaultLib.Core.DataInterfaces;
 using VaultLib.Core.Types;
 
-namespace VaultLib.Support.MostWanted.VLT
+namespace VaultLib.Support.MostWanted.VLT;
+
+[VltTypeInfo(nameof(JunkmanMod))]
+public class JunkmanMod : VltBaseType<Core.DataInterfaces.Key32>
 {
-    [VLTTypeInfo(nameof(JunkmanMod))]
-    public class JunkmanMod : VLTBaseType
+    public Key32 ClassKey { get; set; }
+    public Key32 DefinitionKey { get; set; }
+    public float ScaleF { get; set; }
+
+    public override void Read(VaultReadContext<Core.DataInterfaces.Key32> context,
+        FieldReadWriteContext<Core.DataInterfaces.Key32> fieldContext, BinaryReader br)
     {
-        public uint ClassKey { get; set; }
-        public uint DefinitionKey { get; set; }
-        public float ScaleF { get; set; }
+        ClassKey = Key32.Read(br);
+        DefinitionKey = Key32.Read(br);
+        ScaleF = br.ReadSingle();
+    }
 
-        public override void Read(Vault vault, BinaryReader br)
-        {
-            ClassKey = br.ReadUInt32();
-            DefinitionKey = br.ReadUInt32();
-            ScaleF = br.ReadSingle();
-        }
+    public override void Write(VaultWriteContext<Core.DataInterfaces.Key32> context,
+        FieldReadWriteContext<Core.DataInterfaces.Key32> fieldContext, BinaryWriter bw)
+    {
+        ClassKey.Write(bw);
+        DefinitionKey.Write(bw);
+        bw.Write(ScaleF);
+    }
 
-        public override void Write(Vault vault, BinaryWriter bw)
+    public override object Clone()
+    {
+        return new JunkmanMod
         {
-            bw.Write(ClassKey);
-            bw.Write(DefinitionKey);
-            bw.Write(ScaleF);
-        }
-
-        public JunkmanMod(VltClass @class, VltClassField field, VltCollection collection) : base(@class, field, collection)
-        {
-        }
-
-        public JunkmanMod(VltClass @class, VltClassField field) : base(@class, field)
-        {
-        }
+            ClassKey = ClassKey,
+            DefinitionKey = DefinitionKey,
+            ScaleF = ScaleF
+        };
     }
 }

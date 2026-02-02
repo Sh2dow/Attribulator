@@ -4,52 +4,58 @@
 
 using System.IO;
 using VaultLib.Core;
-using VaultLib.Core.Data;
 using VaultLib.Core.Types;
 using VaultLib.Core.Utils;
 
-namespace VaultLib.Support.Undercover.VLT
+namespace VaultLib.Support.Undercover.VLT;
+
+[VltTypeInfo(nameof(AxlePairCurve))]
+public class AxlePairCurve : VltBaseType<Core.DataInterfaces.Key32>, IVltPointerObject<Core.DataInterfaces.Key32>
 {
-    [VLTTypeInfo(nameof(AxlePairCurve))]
-    public class AxlePairCurve : VLTBaseType, IPointerObject
+    public Curve Front { get; set; } = new();
+    public Curve Rear { get; set; } = new();
+
+    public override void Read(VaultReadContext<Core.DataInterfaces.Key32> context,
+        FieldReadWriteContext<Core.DataInterfaces.Key32> fieldContext, BinaryReader br)
     {
-        public Curve Front { get; set; }
-        public Curve Rear { get; set; }
+        Front.Read(context, fieldContext, br);
+        Rear.Read(context, fieldContext, br);
+    }
 
-        public override void Read(Vault vault, BinaryReader br)
-        {
-            Front.Read(vault, br);
-            Rear.Read(vault, br);
-        }
+    public override void Write(VaultWriteContext<Core.DataInterfaces.Key32> context,
+        FieldReadWriteContext<Core.DataInterfaces.Key32> fieldContext, BinaryWriter bw)
+    {
+        Front.Write(context, fieldContext, bw);
+        Rear.Write(context, fieldContext, bw);
+    }
 
-        public override void Write(Vault vault, BinaryWriter bw)
-        {
-            Front.Write(vault, bw);
-            Rear.Write(vault, bw);
-        }
+    public void ReadPointerData(VaultReadContext<Core.DataInterfaces.Key32> context,
+        FieldReadWriteContext<Core.DataInterfaces.Key32> fieldContext, BinaryReader br)
+    {
+        Front.ReadPointerData(context, fieldContext, br);
+        Rear.ReadPointerData(context, fieldContext, br);
+    }
 
-        public void ReadPointerData(Vault vault, BinaryReader br)
-        {
-            Front.ReadPointerData(vault, br);
-            Rear.ReadPointerData(vault, br);
-        }
+    public void WritePointerData(VaultWriteContext<Core.DataInterfaces.Key32> context,
+        FieldReadWriteContext<Core.DataInterfaces.Key32> fieldContext, BinaryWriter bw)
+    {
+        Front.WritePointerData(context, fieldContext, bw);
+        Rear.WritePointerData(context, fieldContext, bw);
+    }
 
-        public void WritePointerData(Vault vault, BinaryWriter bw)
-        {
-            Front.WritePointerData(vault, bw);
-            Rear.WritePointerData(vault, bw);
-        }
+    public void AddPointers(VaultWriteContext<Core.DataInterfaces.Key32> context,
+        FieldReadWriteContext<Core.DataInterfaces.Key32> fieldContext)
+    {
+        Front.AddPointers(context, fieldContext);
+        Rear.AddPointers(context, fieldContext);
+    }
 
-        public void AddPointers(Vault vault)
+    public override object Clone()
+    {
+        return new AxlePairCurve
         {
-            Front.AddPointers(vault);
-            Rear.AddPointers(vault);
-        }
-
-        public AxlePairCurve(VltClass @class, VltClassField field, VltCollection collection = null) : base(@class, field, collection)
-        {
-            Front = new Curve(Class, Field, Collection);
-            Rear = new Curve(Class, Field, Collection);
-        }
+            Front = (Curve)Front.Clone(),
+            Rear = (Curve)Rear.Clone(),
+        };
     }
 }

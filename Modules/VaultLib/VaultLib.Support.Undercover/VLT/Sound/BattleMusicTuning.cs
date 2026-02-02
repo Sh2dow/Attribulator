@@ -4,41 +4,36 @@
 
 using System.IO;
 using VaultLib.Core;
-using VaultLib.Core.Data;
 using VaultLib.Core.Types;
 
-namespace VaultLib.Support.Undercover.VLT.Sound
+namespace VaultLib.Support.Undercover.VLT.Sound;
+
+[VltTypeInfo("Sound::BattleMusicTuning")]
+public class BattleMusicTuning: VltBaseType<Core.DataInterfaces.Key32>
 {
-    [VLTTypeInfo("Sound::BattleMusicTuning")]
-    public class BattleMusicTuning : VLTBaseType
+    public float TimeAhead_HiToMed { get; set; }
+    public float TimeAhead_MedToLo { get; set; }
+    public float TimeBehind_HiToFail { get; set; }
+    public float TimeAhead_FailToHi { get; set; }
+
+    public override void Read(VaultReadContext<Core.DataInterfaces.Key32> context, FieldReadWriteContext<Core.DataInterfaces.Key32> fieldContext, BinaryReader br)
     {
-        public float TimeAhead_HiToMed { get; set; }
-        public float TimeAhead_MedToLo { get; set; }
-        public float TimeBehind_HiToFail { get; set; }
-        public float TimeAhead_FailToHi { get; set; }
+        TimeAhead_HiToMed = br.ReadSingle();
+        TimeAhead_MedToLo = br.ReadSingle();
+        TimeBehind_HiToFail = br.ReadSingle();
+        TimeAhead_FailToHi = br.ReadSingle();
+    }
 
-        public override void Read(Vault vault, BinaryReader br)
-        {
-            TimeAhead_HiToMed = br.ReadSingle();
-            TimeAhead_MedToLo = br.ReadSingle();
-            TimeBehind_HiToFail = br.ReadSingle();
-            TimeAhead_FailToHi = br.ReadSingle();
-        }
+    public override void Write(VaultWriteContext<Core.DataInterfaces.Key32> context, FieldReadWriteContext<Core.DataInterfaces.Key32> fieldContext, BinaryWriter bw)
+    {
+        bw.Write(TimeAhead_HiToMed);
+        bw.Write(TimeAhead_MedToLo);
+        bw.Write(TimeBehind_HiToFail);
+        bw.Write(TimeAhead_FailToHi);
+    }
 
-        public override void Write(Vault vault, BinaryWriter bw)
-        {
-            bw.Write(TimeAhead_HiToMed);
-            bw.Write(TimeAhead_MedToLo);
-            bw.Write(TimeBehind_HiToFail);
-            bw.Write(TimeAhead_FailToHi);
-        }
-
-        public BattleMusicTuning(VltClass @class, VltClassField field, VltCollection collection) : base(@class, field, collection)
-        {
-        }
-
-        public BattleMusicTuning(VltClass @class, VltClassField field) : base(@class, field)
-        {
-        }
+    public override object Clone()
+    {
+        return MemberwiseClone();
     }
 }

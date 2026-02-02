@@ -5,65 +5,48 @@
 using System.Collections.Generic;
 using System.IO;
 using VaultLib.Core;
-using VaultLib.Core.Data;
+using VaultLib.Core.DataInterfaces;
 using VaultLib.Core.Types;
 using VaultLib.Core.Types.Attrib;
-using VaultLib.Core.Types.EA.Reflection;
 using VaultLib.Core.Utils;
 
-namespace VaultLib.Support.Undercover.VLT
+namespace VaultLib.Support.Undercover.VLT;
+
+[VltTypeInfo(nameof(FEPartCamera))]
+public class FEPartCamera : VltBaseType<Key32>, IReferencesStrings
 {
-    [VLTTypeInfo(nameof(FEPartCamera))]
-    public class FEPartCamera : VLTBaseType, IPointerObject, IReferencesStrings
+    public string SlotName { get; set; } = string.Empty;
+    public RefSpec32 Camera { get; set; } = new();
+    public RefSpec32 Camera_4_3 { get; set; } = new();
+
+    public override void Read(VaultReadContext<Key32> context, FieldReadWriteContext<Key32> fieldContext,
+        BinaryReader br)
     {
-        public string SlotName { get; set; }
-        public RefSpec Camera { get; set; }
-        public RefSpec Camera_4_3 { get; set; }
+        SlotName = context.ReadString(br);
+        Camera.Read(context, fieldContext, br);
+        Camera_4_3.Read(context, fieldContext, br);
+    }
 
-        private Text _slotNameText;
+    public override void Write(VaultWriteContext<Key32> context, FieldReadWriteContext<Key32> fieldContext,
+        BinaryWriter bw)
+    {
+        context.WriteString(SlotName, fieldContext, bw);
+        Camera.Write(context, fieldContext, bw);
+        Camera_4_3.Write(context, fieldContext, bw);
+    }
 
-        public override void Read(Vault vault, BinaryReader br)
+    public IEnumerable<string> GetStrings()
+    {
+        return new[] { SlotName };
+    }
+
+    public override object Clone()
+    {
+        return new FEPartCamera
         {
-            _slotNameText.Read(vault, br);
-            Camera.Read(vault, br);
-            Camera_4_3.Read(vault, br);
-        }
-
-        public override void Write(Vault vault, BinaryWriter bw)
-        {
-            _slotNameText.Value = SlotName;
-            _slotNameText.Write(vault, bw);
-            Camera.Write(vault, bw);
-            Camera_4_3.Write(vault, bw);
-        }
-
-        public void ReadPointerData(Vault vault, BinaryReader br)
-        {
-            _slotNameText.ReadPointerData(vault, br);
-            SlotName = _slotNameText.Value;
-        }
-
-        public void WritePointerData(Vault vault, BinaryWriter bw)
-        {
-            _slotNameText.WritePointerData(vault, bw);
-        }
-
-        public void AddPointers(Vault vault)
-        {
-            _slotNameText.AddPointers(vault);
-        }
-
-        public IEnumerable<string> GetStrings()
-        {
-            return _slotNameText.GetStrings();
-        }
-
-        public FEPartCamera(VltClass @class, VltClassField field, VltCollection collection = null) : base(@class, field, collection)
-        {
-            _slotNameText = new Text(Class, Field, Collection);
-            Camera = new RefSpec(Class, Field, Collection);
-            Camera_4_3 = new RefSpec(Class, Field, Collection);
-            SlotName = string.Empty;
-        }
+            SlotName = SlotName,
+            Camera = (RefSpec32)Camera.Clone(),
+            Camera_4_3 = (RefSpec32)Camera_4_3.Clone(),
+        };
     }
 }

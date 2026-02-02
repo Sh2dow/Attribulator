@@ -3,73 +3,70 @@
 // Created: 09/26/2019 @ 4:15 PM.
 
 using System.IO;
-using VaultLib.Core.Data;
-using VaultLib.Core.DB;
-using VaultLib.Core.Hashing;
-using VaultLib.Core.Types.Abstractions;
+using VaultLib.Core.DataInterfaces;
 
-namespace VaultLib.Core.Types.Attrib
+namespace VaultLib.Core.Types.Attrib;
+
+public abstract class RefSpecPacked<TKey> : BaseRefSpec<TKey> where TKey : struct, IKey<TKey>
 {
-    public class RefSpecPacked : BaseRefSpec
+    public TKey ClassKey { get; set; }
+
+    public TKey CollectionKey { get; set; }
+
+    public override void Read(VaultReadContext<TKey> context, FieldReadWriteContext<TKey> fieldContext, BinaryReader br)
     {
-        public RefSpecPacked(VltClass @class, VltClassField field, VltCollection collection) : base(@class, field, collection)
+        ClassKey = TKey.Read(br);
+        CollectionKey = TKey.Read(br);
+    }
+
+    public override void Write(VaultWriteContext<TKey> context, FieldReadWriteContext<TKey> fieldContext,
+        BinaryWriter bw)
+    {
+        ClassKey.Write(bw);
+        CollectionKey.Write(bw);
+    }
+
+    public override TKey GetClassKey()
+    {
+        return ClassKey;
+    }
+
+    public override TKey GetCollectionKey()
+    {
+        return CollectionKey;
+    }
+
+    public override void SetClassKey(TKey classKey)
+    {
+        ClassKey = classKey;
+    }
+
+    public override void SetCollectionKey(TKey collectionKey)
+    {
+        CollectionKey = collectionKey;
+    }
+}
+
+public class RefSpecPacked32 : RefSpecPacked<Key32>
+{
+    public override object Clone()
+    {
+        return new RefSpecPacked32
         {
-        }
+            ClassKey = this.ClassKey,
+            CollectionKey = this.CollectionKey,
+        };
+    }
+}
 
-        public RefSpecPacked(VltClass @class, VltClassField field) : base(@class, field)
+public class RefSpecPacked64 : RefSpecPacked<Key64>
+{
+    public override object Clone()
+    {
+        return new RefSpecPacked64
         {
-        }
-
-        public override string ClassKey { get; set; }
-
-        public override string CollectionKey
-        {
-            get
-            {
-                if (!string.IsNullOrEmpty(_collectionKey))
-                {
-                    return _collectionKey;
-                }
-
-                return _collectionHash32 != 0
-                    ? HashManager.ResolveVLT(_collectionHash32)
-                    : _collectionHash64 != 0 ? HashManager.ResolveVLT(_collectionHash64) : string.Empty;
-            }
-            set => _collectionKey = value;
-        }
-
-        public override void Read(Vault vault, BinaryReader br)
-        {
-            if (vault.Database.Options.Type == DatabaseType.X64Database)
-            {
-                // 64-bit RefSpec is 16 bytes instead of 8
-                ClassKey = HashManager.ResolveVLT(br.ReadUInt64());
-                _collectionHash64 = br.ReadUInt64();
-            }
-            else
-            {
-                ClassKey = HashManager.ResolveVLT(br.ReadUInt32());
-                _collectionHash32 = br.ReadUInt32();
-            }
-        }
-
-        public override void Write(Vault vault, BinaryWriter bw)
-        {
-            if (vault.Database.Options.Type == DatabaseType.X64Database)
-            {
-                bw.Write(VLT64Hasher.Hash(ClassKey));
-                bw.Write(VLT64Hasher.Hash(CollectionKey));
-            }
-            else
-            {
-                bw.Write(VLT32Hasher.Hash(ClassKey));
-                bw.Write(VLT32Hasher.Hash(CollectionKey));
-            }
-        }
-
-        // https://github.com/NFSTools/VaultLib/issues/13
-        private uint _collectionHash32;
-        private ulong _collectionHash64;
-        private string _collectionKey;
+            ClassKey = this.ClassKey,
+            CollectionKey = this.CollectionKey,
+        };
     }
 }

@@ -4,23 +4,20 @@ using VaultLib.Core.Data;
 namespace VaultLib.Core.Types.EA.Reflection
 {
     // TODO: What is this type?
-    [VLTTypeInfo("EA::Reflection::Reference")]
-    public class Reference : VLTBaseType
+    [VltTypeInfo("EA::Reflection::Reference")]
+    public class Reference: VltBaseType<VaultLib.Core.DataInterfaces.Key32>
     {
-        public Reference(VltClass @class, VltClassField field, VltCollection collection) : base(@class, field, collection)
-        {
-        }
-
-        public Reference(VltClass @class, VltClassField field) : base(@class, field)
-        {
-        }
-
-        public override void Read(Vault vault, BinaryReader br)
+        public override void Read(VaultReadContext<VaultLib.Core.DataInterfaces.Key32> context, FieldReadWriteContext<VaultLib.Core.DataInterfaces.Key32> fieldContext, BinaryReader br)
         {
             throw new System.NotImplementedException();
         }
 
-        public override void Write(Vault vault, BinaryWriter bw)
+        public override void Write(VaultWriteContext<VaultLib.Core.DataInterfaces.Key32> context, FieldReadWriteContext<VaultLib.Core.DataInterfaces.Key32> fieldContext, BinaryWriter bw)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public override object Clone()
         {
             throw new System.NotImplementedException();
         }

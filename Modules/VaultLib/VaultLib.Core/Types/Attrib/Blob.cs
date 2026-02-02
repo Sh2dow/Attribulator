@@ -1,33 +1,29 @@
 ﻿using System.IO;
-using VaultLib.Core.Data;
+using VaultLib.Core.DataInterfaces;
 
-namespace VaultLib.Core.Types.Attrib
+namespace VaultLib.Core.Types.Attrib;
+
+// For information about the blob system, go to: https://github.com/NFSTools/VaultLib/issues/1
+[VltTypeInfo("Attrib::Blob")]
+public class Blob<TKey> : BaseBlob<TKey> where TKey : struct, IKey<TKey>
 {
-    // For information about the blob system, go to: https://github.com/NFSTools/VaultLib/issues/1
-    [VLTTypeInfo("Attrib::Blob")]
-    public class Blob : BaseBlob
+    protected override void PrepareData()
     {
-        public Blob(VltClass @class, VltClassField field, VltCollection collection) : base(@class, field, collection)
-        {
-        }
+        //
+    }
 
-        public Blob(VltClass @class, VltClassField field) : base(@class, field)
-        {
-        }
+    protected override int GetDataLength()
+    {
+        return Data.Length;
+    }
 
-        protected override void PrepareData()
-        {
-            //
-        }
+    protected override void WriteData(BinaryWriter bw)
+    {
+        bw.Write(Data);
+    }
 
-        protected override int GetDataLength()
-        {
-            return Data.Length;
-        }
-
-        protected override void WriteData(Vault vault, BinaryWriter bw)
-        {
-            bw.Write(Data);
-        }
+    public override object Clone()
+    {
+        return new Blob<TKey> { Data = (byte[])Data.Clone() };
     }
 }

@@ -1,15 +1,13 @@
-namespace VaultLib.Core.Exports
-{
-    public abstract class BaseDatabaseLoad : BaseExport
-    {
-        public override ulong GetExportID()
-        {
-            return 0xF1DFAC8D; // constant, probably doesn't matter but I don't know the text it comes from
-        }
+using VaultLib.Core.DataInterfaces;
 
-        public override string GetTypeId()
-        {
-            return "Attrib::DatabaseLoadData";
-        }
+namespace VaultLib.Core.Exports;
+
+public abstract class BaseDatabaseLoad<TKey> : BaseExport<TKey> where TKey : struct, IKey<TKey>
+{
+    public abstract override TKey GetExportId();
+
+    public override string GetTypeId()
+    {
+        return "Attrib::DatabaseLoadData";
     }
 }

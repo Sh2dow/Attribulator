@@ -1,228 +1,216 @@
-using CoreLibraries.IO;
+using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using CoreLibraries.IO;
 using VaultLib.Core;
 using VaultLib.Core.Data;
+using VaultLib.Core.DataInterfaces;
 using VaultLib.Core.Exports;
-using VaultLib.Core.Hashing;
-using VaultLib.Core.Types;
 using VaultLib.Core.Utils;
 
-namespace VaultLib.ModernBase.Exports
+namespace VaultLib.ModernBase.Exports;
+
+public class ClassLoad64 : BaseClassLoad<Key64>
 {
-    public class ClassLoad64 : BaseClassLoad
+    private ulong ClassHash { get; set; }
+    private int NumDefinitions { get; set; }
+
+    private uint _definitionsPtr;
+    private uint _staticDataPtr;
+
+    private long _srcDefinitionsPtr;
+    private long _srcStaticPtr;
+    private long _dstDefinitionsPtr;
+    private long _dstStaticPtr;
+
+    public override Key64 GetExportId()
     {
-        private ulong ClassHash { get; set; }
-        private int NumDefinitions { get; set; }
+        return Class.Key;
+    }
 
-        private uint _definitionsPtr;
-        private uint _staticDataPtr;
+    public override void Read(VaultReadContext<Key64> context, BinaryReader br)
+    {
+        ClassHash = br.ReadUInt64();
+        br.ReadInt32();
+        NumDefinitions = br.ReadInt32();
+        _definitionsPtr = br.ReadPointer();
+        var staticSize = br.ReadUInt32(); // static size
+        _staticDataPtr = br.ReadPointer();
+        var layoutSize = br.ReadUInt32(); // Total size of required fields
+        br.ReadUInt16(); // can be 0
+        br.ReadUInt16(); // Number of required fields
+        br.ReadUInt32(); // align
 
-        private long _srcDefinitionsPtr;
-        private long _srcStaticPtr;
-        private long _dstDefinitionsPtr;
-        private long _dstStaticPtr;
-
-        public override ulong GetExportID()
+        if (_definitionsPtr == 0)
         {
-            return VLT64Hasher.Hash(Class.Name);
+            throw new InvalidDataException("Definitions pointer is NULL, this is not good!");
         }
 
-        public override void Read(Vault vault, BinaryReader br)
+        Class = new VltClass<Key64>(new Key64(ClassHash))
         {
-            ClassHash = br.ReadUInt64();
-            br.ReadInt32();
-            NumDefinitions = br.ReadInt32();
-            _definitionsPtr = br.ReadPointer();
-            br.ReadUInt32(); // static size
-            _staticDataPtr = br.ReadPointer();
-            uint layoutSize = br.ReadUInt32(); // Total size of required fields
-            br.ReadUInt16(); // can be 0
-            br.ReadUInt16(); // Number of required fields
-            br.ReadUInt32(); // align
+            LayoutSize = layoutSize,
+            StaticSize = staticSize,
+        };
+    }
 
-            if (_definitionsPtr == 0)
-            {
-                throw new InvalidDataException("Definitions pointer is NULL, this is not good!");
-            }
+    public override void Write(VaultWriteContext<Key64> context, BinaryWriter bw)
+    {
+        int collectionReserve = (from collection in context.Collections
+            where collection.Class.Key == Class.Key
+            select collection).Count();
 
-            Class = new VltClass(HashManager.ResolveVLT(ClassHash));
+        bw.Write(Class.Key.Hash);
+        bw.Write(collectionReserve);
+        bw.Write(Class.Fields.Count);
+        _srcDefinitionsPtr = bw.BaseStream.Position;
+        bw.Write(0);
+        bw.Write(Class.StaticSize);
+
+        if (Class.StaticSize > 0)
+        {
+            _srcStaticPtr = bw.BaseStream.Position;
         }
 
-        public override void Write(Vault vault, BinaryWriter bw)
+        bw.Write(0);
+
+        bw.Write(Class.LayoutSize);
+        bw.Write((ushort)0);
+        bw.Write((ushort)Class.BaseFields.Count());
+        bw.Write(0); // align
+    }
+
+    public override void ReadPointerData(VaultReadContext<Key64> context, BinaryReader br)
+    {
+        br.BaseStream.Position = _definitionsPtr;
+
+        for (int i = 0; i < NumDefinitions; i++)
         {
-            int collectionReserve = (from collection in vault.SaveContext.Collections
-                                     where collection.Class.Name == Class.Name
-                                     select collection).Count();
+            AttribDefinition64 definition = new AttribDefinition64();
+            definition.Read(context, br);
 
-            bw.Write(VLT64Hasher.Hash(Class.Name));
-            bw.Write(collectionReserve);
-            bw.Write(Class.Fields.Count);
-            _srcDefinitionsPtr = bw.BaseStream.Position;
-            bw.Write(0);
-            int staticSize = ComputeStaticSize();
-            bw.Write(staticSize);
+            var field = new VltClassField<Key64>(
+                Class,
+                definition.Key,
+                definition.Type,
+                definition.Flags,
+                definition.Alignment,
+                definition.Size,
+                definition.MaxCount,
+                definition.Offset);
 
-            if (staticSize > 0)
-            {
-                _srcStaticPtr = bw.BaseStream.Position;
-            }
-
-            bw.Write(0);
-
-            bw.Write(ComputeBaseSize());
-            bw.Write((ushort)0);
-            bw.Write((ushort)Class.BaseFields.Count());
-            bw.Write(0); // align
+            Class.Fields.Add(definition.Key, field);
         }
 
-        public override void ReadPointerData(Vault vault, BinaryReader br)
+        if (_staticDataPtr != 0)
         {
-            br.BaseStream.Position = _definitionsPtr;
+            br.BaseStream.Position = _staticDataPtr;
 
-            for (int i = 0; i < NumDefinitions; i++)
+            foreach (var staticField in Class.StaticFields)
             {
-                AttribDefinition64 definition = new AttribDefinition64();
-                definition.Read(vault, br);
+                br.SafeAlignReader(staticField.Alignment);
 
-                VltClassField field = new VltClassField(
-                    definition.Key,
-                    HashManager.ResolveVLT(definition.Key),
-                    HashManager.ResolveVLT(definition.Type),
-                    definition.Flags,
-                    definition.Alignment,
-                    definition.Size,
-                    definition.MaxCount,
-                    definition.Offset);
-
-                Class.Fields.Add(definition.Key, field);
-                //VltClassField field = new VltClassField();
-                //field.Key = definition.Key;
-                //field.Name = HashManager.ResolveVLT(definition.Key);
-                //field.TypeName = HashManager.ResolveVLT(definition.Type);
-                //field.Flags = definition.Flags;
-                //field.Size = definition.Size;
-                //field.MaxCount = definition.MaxCount;
-                //field.Offset = definition.Offset;
-                //field.Alignment = definition.Alignment;
-
-                //Class.Fields.Add(definition.Key, field);
+                var fieldContext = new FieldReadWriteContext<Key64>(Class, staticField, null);
+                var staticData =
+                    context.Database.TypeRegistry.ReadFieldValue(context, fieldContext,
+                        br);
+                staticField.StaticValue = staticData;
             }
 
-            if (_staticDataPtr != 0)
-            {
-                br.BaseStream.Position = _staticDataPtr;
+            var staticEndPos = br.BaseStream.Position;
 
-                foreach (VltClassField staticField in Class.StaticFields)
-                {
-                    br.AlignReader(staticField.Alignment);
-                    VLTBaseType staticData = TypeRegistry.CreateInstance(vault.Database.Options.GameId, Class, staticField, null);
-                    staticData.Read(vault, br);
-                    staticField.StaticValue = staticData;
-                }
+            if (staticEndPos - _staticDataPtr > Class.StaticSize)
+            {
+                throw new Exception("read too much static data, something went wrong!");
+            }
+        }
+
+        foreach (var staticField in Class.StaticFields)
+        {
+            var fieldContext = new FieldReadWriteContext<Key64>(Class, staticField, null);
+            if (staticField.StaticValue is IVltPointerObject<Key64> vltPointerObject)
+            {
+                vltPointerObject.ReadPointerData(context, fieldContext, br);
+            }
+        }
+
+        context.Database.AddClass(Class);
+    }
+
+    public override void WritePointerData(VaultWriteContext<Key64> context, BinaryWriter bw)
+    {
+        bw.AlignWriter(8);
+        _dstDefinitionsPtr = bw.BaseStream.Position;
+
+        foreach (var (_, field) in Class.Fields.OrderBy(f => f.Key))
+        {
+            var definition = new AttribDefinition64
+            {
+                Key = field.Key,
+                Alignment = field.Alignment,
+                Flags = field.Flags,
+                MaxCount = field.MaxCount,
+                Offset = field.Offset,
+                Size = field.Size,
+                Type = field.TypeKey
+            };
+            definition.Write(context, bw);
+        }
+
+        if (_srcStaticPtr != 0)
+        {
+            _dstStaticPtr = bw.BaseStream.Position;
+
+            foreach (var staticField in Class.StaticFields)
+            {
+                bw.AlignWriter(staticField.Alignment);
+                var fieldContext = new FieldReadWriteContext<Key64>(Class, staticField, null);
+                context.Database.TypeRegistry.WriteFieldValue(staticField.StaticValue, context,
+                    fieldContext, bw);
+            }
+
+            var staticEndPos = bw.BaseStream.Position;
+            var actualStaticSize = (int)(staticEndPos - _dstStaticPtr);
+            var configuredStaticSize = (int)Class.StaticSize;
+
+            if (actualStaticSize > configuredStaticSize)
+            {
+                throw new Exception("wrote too much static data");
+            }
+
+            if (actualStaticSize < configuredStaticSize)
+            {
+                var remaining = configuredStaticSize - actualStaticSize;
+                bw.Write(new byte[remaining]);
             }
 
             foreach (var staticField in Class.StaticFields)
             {
-                if (staticField.StaticValue is IPointerObject pointerObject)
-                    pointerObject.ReadPointerData(vault, br);
-            }
-
-            vault.Database.AddClass(Class);
-        }
-
-        public override void WritePointerData(Vault vault, BinaryWriter bw)
-        {
-            _dstDefinitionsPtr = bw.BaseStream.Position;
-
-            foreach (var field in Class.Fields.Values)
-            {
-                AttribDefinition64 definition = new AttribDefinition64();
-                definition.Key = VLT64Hasher.Hash(field.Name);
-                definition.Alignment = field.Alignment;
-                definition.Flags = field.Flags;
-                definition.MaxCount = field.MaxCount;
-                definition.Offset = field.Offset;
-                definition.Size = field.Size;
-                definition.Type = VLT64Hasher.Hash(field.TypeName);
-                definition.Write(vault, bw);
-            }
-
-            if (_srcStaticPtr != 0)
-            {
-                bw.AlignWriter(0x10);
-
-                _dstStaticPtr = bw.BaseStream.Position;
-
-                foreach (var staticField in Class.StaticFields)
+                var fieldContext = new FieldReadWriteContext<Key64>(Class, staticField, null);
+                if (staticField.StaticValue is IVltPointerObject<Key64> vltPointerObject)
                 {
-                    bw.AlignWriter(staticField.Alignment);
-                    staticField.StaticValue.Write(vault, bw);
-                }
-
-                foreach (var staticField in Class.StaticFields)
-                {
-                    if (staticField.StaticValue is IPointerObject pointerObject)
-                        pointerObject.WritePointerData(vault, bw);
+                    vltPointerObject.WritePointerData(context, fieldContext, bw);
                 }
             }
         }
+    }
 
-        public override void AddPointers(Vault vault)
+    public override void AddPointers(VaultWriteContext<Key64> context)
+    {
+        context.AddPointer(_srcDefinitionsPtr, _dstDefinitionsPtr, true);
+
+        if (_srcStaticPtr != 0 && _dstStaticPtr != 0)
         {
-            vault.SaveContext.AddPointer(_srcDefinitionsPtr, _dstDefinitionsPtr, true);
+            context.AddPointer(_srcStaticPtr, _dstStaticPtr, true);
 
-            if (_srcStaticPtr != 0 && _dstStaticPtr != 0)
+            foreach (var staticField in Class.StaticFields)
             {
-                vault.SaveContext.AddPointer(_srcStaticPtr, _dstStaticPtr, true);
-
-                foreach (var staticField in Class.StaticFields)
+                var fieldContext = new FieldReadWriteContext<Key64>(Class, staticField, null);
+                if (staticField.StaticValue is IVltPointerObject<Key64> vltPointerObject)
                 {
-                    if (staticField.StaticValue is IPointerObject pointerObject)
-                        pointerObject.AddPointers(vault);
+                    vltPointerObject.AddPointers(context, fieldContext);
                 }
             }
-        }
-
-        private int ComputeStaticSize()
-        {
-            int staticSize = 0;
-
-            foreach (var vltClassField in Class.StaticFields)
-            {
-                if (staticSize % vltClassField.Alignment != 0)
-                {
-                    staticSize += vltClassField.Alignment - staticSize % vltClassField.Alignment;
-                }
-
-                staticSize += vltClassField.Size;
-            }
-
-            return staticSize;
-        }
-
-        private int ComputeBaseSize()
-        {
-            int rfs = 0;
-            foreach (var baseField in Class.BaseFields)
-            {
-                if (rfs % baseField.Alignment != 0)
-                {
-                    rfs += baseField.Alignment - rfs % baseField.Alignment;
-                }
-
-                if ((baseField.Flags & DefinitionFlags.Array) != 0)
-                {
-                    rfs += 8;
-                    rfs += baseField.Size * baseField.MaxCount;
-                }
-                else
-                {
-                    rfs += baseField.Size;
-                }
-            }
-
-            return rfs;
         }
     }
 }

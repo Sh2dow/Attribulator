@@ -1,36 +1,31 @@
 ﻿using System.IO;
 using CoreLibraries.IO;
 using VaultLib.Core;
-using VaultLib.Core.Data;
 using VaultLib.Core.Types;
-using VaultLib.Frameworks.Speed;
+using VaultLib.Frameworks.Speed.VLT;
 
-namespace VaultLib.Support.ProStreet.VLT
+namespace VaultLib.Support.ProStreet.VLT;
+
+[VltTypeInfo(nameof(FECarPartInfo))]
+public class FECarPartInfo: VltBaseType<Core.DataInterfaces.Key32>
 {
-    [VLTTypeInfo(nameof(FECarPartInfo))]
-    public class FECarPartInfo : VLTBaseType
+    public eFEPartUpgradeLevels Level { get; set; }
+    public float Cost { get; set; }
+
+    public override void Read(VaultReadContext<Core.DataInterfaces.Key32> context, FieldReadWriteContext<Core.DataInterfaces.Key32> fieldContext, BinaryReader br)
     {
-        public FECarPartInfo(VltClass @class, VltClassField field, VltCollection collection) : base(@class, field, collection)
-        {
-        }
+        Level = br.ReadEnum<eFEPartUpgradeLevels>();
+        Cost = br.ReadSingle();
+    }
 
-        public FECarPartInfo(VltClass @class, VltClassField field) : base(@class, field)
-        {
-        }
+    public override void Write(VaultWriteContext<Core.DataInterfaces.Key32> context, FieldReadWriteContext<Core.DataInterfaces.Key32> fieldContext, BinaryWriter bw)
+    {
+        bw.WriteEnum(Level);
+        bw.Write(Cost);
+    }
 
-        public eFEPartUpgradeLevels Level { get; set; }
-        public float Cost { get; set; }
-
-        public override void Read(Vault vault, BinaryReader br)
-        {
-            Level = br.ReadEnum<eFEPartUpgradeLevels>();
-            Cost = br.ReadSingle();
-        }
-
-        public override void Write(Vault vault, BinaryWriter bw)
-        {
-            bw.WriteEnum(Level);
-            bw.Write(Cost);
-        }
+    public override object Clone()
+    {
+        return MemberwiseClone();
     }
 }

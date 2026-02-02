@@ -1,32 +1,36 @@
 ﻿using System.IO;
 using VaultLib.Core;
-using VaultLib.Core.Data;
 using VaultLib.Core.Types;
-using VaultLib.Frameworks.Speed;
+using VaultLib.Frameworks.Speed.VLT;
 
-namespace VaultLib.Support.Undercover.VLT
+namespace VaultLib.Support.Undercover.VLT;
+
+[VltTypeInfo(nameof(PhysicsUpgrade))]
+public class PhysicsUpgrade : VltBaseType<Core.DataInterfaces.Key32>
 {
-    [VLTTypeInfo(nameof(PhysicsUpgrade))]
-    public class PhysicsUpgrade : VLTBaseType
+    public AttributeRefSpec32 ReferencedAttribute { get; set; } = new();
+    public float BlendingPower { get; set; }
+
+    public override void Read(VaultReadContext<Core.DataInterfaces.Key32> context,
+        FieldReadWriteContext<Core.DataInterfaces.Key32> fieldContext, BinaryReader br)
     {
-        public PhysicsUpgrade(VltClass @class, VltClassField field, VltCollection collection = null) : base(@class, field, collection)
-        {
-            ReferencedAttribute = new AttributeRefSpec(Class, Field, Collection);
-        }
+        ReferencedAttribute.Read(context, fieldContext, br);
+        BlendingPower = br.ReadSingle();
+    }
 
-        public AttributeRefSpec ReferencedAttribute { get; set; }
-        public float BlendingPower { get; set; }
+    public override void Write(VaultWriteContext<Core.DataInterfaces.Key32> context,
+        FieldReadWriteContext<Core.DataInterfaces.Key32> fieldContext, BinaryWriter bw)
+    {
+        ReferencedAttribute.Write(context, fieldContext, bw);
+        bw.Write(BlendingPower);
+    }
 
-        public override void Read(Vault vault, BinaryReader br)
+    public override object Clone()
+    {
+        return new PhysicsUpgrade
         {
-            ReferencedAttribute.Read(vault, br);
-            BlendingPower = br.ReadSingle();
-        }
-
-        public override void Write(Vault vault, BinaryWriter bw)
-        {
-            ReferencedAttribute.Write(vault, bw);
-            bw.Write(BlendingPower);
-        }
+            ReferencedAttribute = (AttributeRefSpec32)ReferencedAttribute.Clone(),
+            BlendingPower = BlendingPower,
+        };
     }
 }
