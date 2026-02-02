@@ -1,4 +1,4 @@
-﻿using Attribulator.API;
+using Attribulator.API;
 using Attribulator.API.Data;
 using Attribulator.API.Serialization;
 using Attribulator.API.Services;
@@ -249,7 +249,7 @@ namespace AttribulatorUI
 			try
 			{
 				var profile = this.GetProfile();
-				this.database = new Database(new DatabaseOptions(profile.GetGameId(), profile.GetDatabaseType()));
+				this.database = DatabaseFactory.Create(new DatabaseOptions(profile.GetGameId(), profile.GetDatabaseType()));
 				this.files = profile.LoadFiles(database, this.gameGlobalFolder);
 				this.database.CompleteLoad();
 				this.modScriptDatabase = new DatabaseHelper(this.database, this.files);
@@ -345,7 +345,7 @@ namespace AttribulatorUI
 			{
 				Tag = new CollectionTag(collection, node),
 				ContextMenu = this.collectionContextMenu,
-				Header = collection.Name,
+				Header = VltUiUtils.GetName(collection),
 				BorderThickness = new Thickness(1, 1, 1, 1),
 				BorderBrush = Brushes.Transparent,
 				Padding = new Thickness(3, 0, 3, 0)
@@ -354,15 +354,13 @@ namespace AttribulatorUI
 
 		private void PopulateTreeNode(VltCollection collection, TreeViewItem node)
 		{
-			if (collection.Children.Count > 0)
+			var children = VltUiUtils.GetChildren(this.database, collection);
+			foreach (var childCollection in children.OrderBy(x => VltUiUtils.GetName(x)))
 			{
-				foreach (var childCollection in collection.Children.OrderBy(x => x.Name))
-				{
-					var childNode = this.CreateTreeViewItem(childCollection, node);
+				var childNode = this.CreateTreeViewItem(childCollection, node);
 
-					node.Items.Add(childNode);
-					PopulateTreeNode(childCollection, childNode);
-				}
+				node.Items.Add(childNode);
+				PopulateTreeNode(childCollection, childNode);
 			}
 		}
 
@@ -377,17 +375,18 @@ namespace AttribulatorUI
 
 			try
 			{
-				var classes = this.database.Classes.OrderBy(x => x.Name);
+				var classes = this.database.Classes.OrderBy(x => VltUiUtils.GetName(x));
 				foreach (var cls in classes)
 				{
 					var classNode = new TreeViewItem
 					{
 						Tag = new ClassTag(cls, this.TreeView),
 						ContextMenu = this.classContextMenu,
-						Header = cls.Name
+						Header = VltUiUtils.GetName(cls)
 					};
 
-					var collections = this.database.RowManager.EnumerateCollections(cls.Name).OrderBy(x => x.Name);
+					var collections = this.database.RowManager.EnumerateCollections(cls.Key)
+						.OrderBy(x => VltUiUtils.GetName(x));
 					foreach (var collection in collections)
 					{
 						var childNode = this.CreateTreeViewItem(collection, classNode);
@@ -443,10 +442,11 @@ namespace AttribulatorUI
 			{
 				var collection = this.currentCollection.Collection();
 
-				if (!this.Tabs.Items.Cast<TabItem>().Any(x => (x.Header as TabHeader).Text == collection.ShortPath))
+				var shortPath = VltUiUtils.GetShortPath(collection);
+				if (!this.Tabs.Items.Cast<TabItem>().Any(x => (x.Header as TabHeader).Text == shortPath))
 				{
 					var ti = new TabItem();
-					ti.Header = new TabHeader(ti, collection.ShortPath);
+					ti.Header = new TabHeader(ti, shortPath);
 					ti.Content = new MainGrid(collection);
 					this.Tabs.Items.Add(ti);
 					this.Tabs.SelectedIndex = this.Tabs.Items.Count - 1;
@@ -456,7 +456,7 @@ namespace AttribulatorUI
 					for (int i = 0; i < this.Tabs.Items.Count; i++)
 					{
 						var tabItem = this.Tabs.Items[i] as TabItem;
-						if ((tabItem.Header as TabHeader).Text == collection.ShortPath)
+						if ((tabItem.Header as TabHeader).Text == shortPath)
 						{
 							this.Tabs.SelectedIndex = i;
 							break;
@@ -551,8 +551,6 @@ namespace AttribulatorUI
 
 		private void Window_Closed(object sender, EventArgs e)
 		{
-			HashManager.Save();
-
 			this.settings.Root.Srcipt = this.ScriptEditor.Text;
 
 			var windowSettings = this.settings.Root.Window;
@@ -823,14 +821,14 @@ namespace AttribulatorUI
 			string className;
 			if (parent.Class() != null)
 			{
-				className = parent.Class().Name;
+				className = VltUiUtils.GetName(parent.Class());
 			}
 			else
 			{
-				className = parent.Collection().Class.Name;
+				className = VltUiUtils.GetName(parent.Collection().Class);
 			}
 
-			var newCollection = this.database.RowManager.FindCollectionByName(className, nodeName);
+			var newCollection = this.database.RowManager.FindCollection(className, nodeName);
 			var newNode = new TreeViewItem
 			{
 				Tag = new CollectionTag(newCollection, parent),
@@ -850,7 +848,7 @@ namespace AttribulatorUI
 
 			if (this.currentClass != null)
 			{
-				var className = this.currentClass.Class().Name;
+				var className = VltUiUtils.GetName(this.currentClass.Class());
 				parent = className;
 				title = className;
 			}
@@ -858,9 +856,9 @@ namespace AttribulatorUI
 			if (this.currentCollection != null)
 			{
 				var collection = this.currentCollection.Collection();
-				var className = collection.Class.Name;
-				parent = $"{className} {collection.Name}";
-				title = collection.Name;
+				var className = VltUiUtils.GetName(collection.Class);
+				parent = $"{className} {VltUiUtils.GetName(collection)}";
+				title = VltUiUtils.GetName(collection);
 			}
 
 			if (parent != null)
@@ -869,7 +867,7 @@ namespace AttribulatorUI
 				if (newNodeWindow.ShowDialog().Value)
 				{
 					var newCollection = this.HandleAddCommand(this.currentCollection, newNodeWindow.ResultName);
-					this.StatusLabel.Content = $"Added node: {newCollection.ShortPath}";
+					this.StatusLabel.Content = $"Added node: {VltUiUtils.GetShortPath(newCollection)}";
 				}
 			}
 		}
@@ -917,7 +915,8 @@ namespace AttribulatorUI
 				bool fieldFound = false;
 				foreach (var property in properties)
 				{
-					if (property.Key.Contains(search.FieldText, StringComparison.InvariantCultureIgnoreCase))
+					var fieldName = VltUiUtils.ResolveName(property.Key);
+					if (fieldName.Contains(search.FieldText, StringComparison.InvariantCultureIgnoreCase))
 					{
 						fieldFound = true;
 						break;
@@ -1057,7 +1056,8 @@ namespace AttribulatorUI
 
 		private void Command_ChangeVault(object sender, ExecutedRoutedEventArgs e)
 		{
-			if (this.currentCollection != null && this.currentCollection.Collection().Class.Name == "gameplay")
+			if (this.currentCollection != null &&
+			    VltUiUtils.GetName(this.currentCollection.Collection().Class) == "gameplay")
 			{
 				if (new ChangeVaultWindow(this.currentCollection.Collection(), this.CreateImageSource("Settings.png")).ShowDialog().Value)
 				{
@@ -1072,11 +1072,12 @@ namespace AttribulatorUI
 			if (this.currentCollection != null)
 			{
 				var collection = this.currentCollection.Collection();
-				string command = $"delete_node {collection.Class.Name} {collection.Name}";
+				string command =
+					$"delete_node {VltUiUtils.GetName(collection.Class)} {VltUiUtils.GetName(collection)}";
 				if (this.ExecuteScriptInternal(command))
 				{
 					this.AddScriptLine(command);
-					this.StatusLabel.Content = $"Deleted node: {collection.Name}";
+					this.StatusLabel.Content = $"Deleted node: {VltUiUtils.GetName(collection)}";
 					var parentNode = this.currentCollection.GetParent();
 					parentNode.Items.Remove(this.currentCollection);
 				}
@@ -1117,13 +1118,13 @@ namespace AttribulatorUI
 				var collection = this.currentCollection.Collection();
 				if (new CollectionRenameWindow(collection, this.CreateImageSource("Rename.png")).ShowDialog().Value)
 				{
-					this.currentCollection.Header = collection.Name;
+					this.currentCollection.Header = VltUiUtils.GetName(collection);
 					this.StatusLabel.Content = "Renamed node";
 					var tab = this.GetTab(collection);
 					if (tab != null)
 					{
 						(tab.Content as MainGrid).Draw();
-						(tab.Header as TabHeader).SetText(collection.ShortPath);
+						(tab.Header as TabHeader).SetText(VltUiUtils.GetShortPath(collection));
 					}
 				}
 			}
@@ -1153,7 +1154,8 @@ namespace AttribulatorUI
 				TreeViewItem newParentItem = null;
 				if (this.currentClass != null)
 				{
-					command = $"{this.currentClass.Class().Name} {this.collectionToCopy.Collection().Name}";
+					command =
+						$"{VltUiUtils.GetName(this.currentClass.Class())} {VltUiUtils.GetName(this.collectionToCopy.Collection())}";
 					newParentItem = this.currentClass;
 				}
 
@@ -1166,7 +1168,8 @@ namespace AttribulatorUI
 					}
 
 					var collection = this.collectionToCopy.Collection();
-					command = $"{collection.Class.Name} {this.collectionToCopy.Collection().Name} {this.currentCollection.Collection().Name}";
+					command =
+						$"{VltUiUtils.GetName(collection.Class)} {VltUiUtils.GetName(this.collectionToCopy.Collection())} {VltUiUtils.GetName(this.currentCollection.Collection())}";
 					newParentItem = this.currentCollection;
 				}
 
@@ -1184,17 +1187,19 @@ namespace AttribulatorUI
 							this.collectionToCopy.Select();
 
 							this.AddScriptLine(command);
-							this.StatusLabel.Content = $"Moved node: {this.collectionToCopy.Collection().ShortPath}";
+							this.StatusLabel.Content =
+								$"Moved node: {VltUiUtils.GetShortPath(this.collectionToCopy.Collection())}";
 							this.collectionToCopy = null;
 						}
 					}
 					else
 					{
-						var copyWindow = new CopyNodeWindow(this.CreateImageSource("Paste.png"), this.collectionToCopy.Collection().Name, command);
+						var copyWindow = new CopyNodeWindow(this.CreateImageSource("Paste.png"),
+							VltUiUtils.GetName(this.collectionToCopy.Collection()), command);
 						if (copyWindow.ShowDialog().Value)
 						{
 							var newCollection = this.HandleAddCommand(newParentItem, copyWindow.Result);
-							this.StatusLabel.Content = $"Copied node: {newCollection.ShortPath}";
+							this.StatusLabel.Content = $"Copied node: {VltUiUtils.GetShortPath(newCollection)}";
 						}
 					}
 				}
@@ -1292,7 +1297,7 @@ namespace AttribulatorUI
 			menuItem.InputGestureText = "Ctrl+R";
 			contextMenu.Items.Add(menuItem);
 
-			if (this.currentCollection.Collection().Class.Name == "gameplay")
+			if (VltUiUtils.GetName(this.currentCollection.Collection().Class) == "gameplay")
 			{
 				contextMenu.Items.Add(new Separator());
 

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -10,7 +10,8 @@ using CommandLine;
 using JetBrains.Annotations;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using VaultLib.Core.DB;
+using Attribulator.API;
+using VaultLib.Core.Hashing;
 
 namespace Attribulator.CLI.Commands
 {
@@ -52,7 +53,7 @@ namespace Attribulator.CLI.Commands
                 throw new CommandException(
                     $"Cannot find storage format that is compatible with directory [{InputDirectory}].");
 
-            var database = new Database(new DatabaseOptions(profile.GetGameId(), profile.GetDatabaseType()));
+            var database = DatabaseFactory.Create(new DatabaseOptions(profile.GetGameId(), profile.GetDatabaseType()));
             _logger.LogInformation("Loading database from disk...");
             await storageFormat.DeserializeAsync(InputDirectory, database);
             _logger.LogInformation("Loaded database");
@@ -61,16 +62,24 @@ namespace Attribulator.CLI.Commands
 
             foreach (var vltClass in database.Classes)
             {
-                if (!vltClass.Name.StartsWith("0x")) strList.Add(vltClass.Name);
+                var className = HashManager.ResolveVlt(vltClass.Key.Hash) ?? vltClass.Key.ToString();
+                if (!className.StartsWith("0x")) strList.Add(className);
 
-                foreach (var vltClassField in vltClass.Fields.Values.Where(vltClassField =>
-                    !vltClassField.Name.StartsWith("0x")))
-                    strList.Add(vltClassField.Name);
+                foreach (var vltClassField in vltClass.Fields.Values)
+                {
+                    var fieldName = HashManager.ResolveVlt(vltClassField.Key.Hash) ?? vltClassField.Key.ToString();
+                    if (!fieldName.StartsWith("0x"))
+                        strList.Add(fieldName);
+                }
             }
 
-            foreach (var vltCollection in database.RowManager.EnumerateFlattenedCollections())
-                if (!vltCollection.Name.StartsWith("0x"))
-                    strList.Add(vltCollection.Name);
+            foreach (var vltCollection in database.RowManager.GetCollections())
+            {
+                var collectionName =
+                    HashManager.ResolveVlt(vltCollection.Key.Hash) ?? vltCollection.Key.ToString();
+                if (!collectionName.StartsWith("0x"))
+                    strList.Add(collectionName);
+            }
 
             await File.WriteAllLinesAsync(OutputPath, strList);
             _logger.LogInformation("Exported {NumEntries} entries to {OutPath}", strList.Count, OutputPath);

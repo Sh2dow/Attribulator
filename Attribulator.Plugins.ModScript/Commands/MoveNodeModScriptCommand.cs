@@ -45,24 +45,28 @@ namespace Attribulator.Plugins.ModScript.Commands
             // Disassociated from parent? Add to DB
             if (newParentCollection == null)
             {
-                collectionToMove.Parent.RemoveChild(collectionToMove);
-                databaseHelper.AddCollection(collectionToMove);
+                collectionToMove.SetParent(null);
+                if (!databaseHelper.Database.RowManager.GetCollections().Contains(collectionToMove))
+                    databaseHelper.Database.RowManager.AddCollection(collectionToMove);
             }
             else
             {
-                // Handle new parent
                 if (collectionToMove.Parent == null)
                     databaseHelper.Database.RowManager.RemoveCollection(collectionToMove);
-                newParentCollection.AddChild(collectionToMove);
+                collectionToMove.SetParent(newParentCollection);
             }
         }
 
         private bool IsChild(DatabaseHelper databaseHelper, VltCollection root, VltCollection test)
         {
-            var flattenedChildren =
-                databaseHelper.Database.RowManager.EnumerateFlattenedCollections(root.Children);
+            var current = test;
+            while (current != null)
+            {
+                if (ReferenceEquals(current, root)) return true;
+                current = current.Parent;
+            }
 
-            return flattenedChildren.Any(child => ReferenceEquals(child, test));
+            return false;
         }
     }
 }

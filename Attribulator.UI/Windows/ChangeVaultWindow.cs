@@ -10,7 +10,7 @@ namespace Attribulator.UI.Windows
     {
         public ChangeVaultWindow(VltCollection collection, ImageSource icon) : base(icon)
         {
-            this.Title = $"[{collection.Name}] Change vault";
+            this.Title = $"[{VltUiUtils.GetName(collection)}] Change vault";
 
             this.HeaderLabel.Content = "New vault name:";
 
@@ -25,7 +25,8 @@ namespace Attribulator.UI.Windows
                 }
                 else
                 {
-                    string command = $"change_vault {collection.Class.Name} {collection.Name} {this.InputTextBox.Text}";
+                    string command =
+                        $"change_vault {VltUiUtils.GetName(collection.Class)} {VltUiUtils.GetName(collection)} {this.InputTextBox.Text}";
 
                     if (MainWindow.Instance.ExecuteScriptInternal(command))
                     {

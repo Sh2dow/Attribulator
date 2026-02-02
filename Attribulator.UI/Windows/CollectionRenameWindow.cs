@@ -12,18 +12,19 @@ namespace Attribulator.UI.Windows
         {
             this.Title = "New collection name";
             this.HeaderLabel.Content = "New name:";
-            this.InputTextBox.Text = collection.Name;
+            this.InputTextBox.Text = VltUiUtils.GetName(collection);
 
             this.OkButton.Click += (s, e) =>
             {
-                if (this.InputTextBox.Text == collection.Name)
+                if (this.InputTextBox.Text == VltUiUtils.GetName(collection))
                 {
                     this.DialogResult = false;
                     this.Close();
                 }
                 else
                 {
-                    string command = $"rename_node {collection.Class.Name} {collection.Name} {this.InputTextBox.Text}";
+                    string command =
+                        $"rename_node {VltUiUtils.GetName(collection.Class)} {VltUiUtils.GetName(collection)} {this.InputTextBox.Text}";
 
                     if (MainWindow.Instance.ExecuteScriptInternal(command))
                     {

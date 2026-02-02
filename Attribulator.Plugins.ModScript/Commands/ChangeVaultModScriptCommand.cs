@@ -31,11 +31,9 @@ namespace Attribulator.Plugins.ModScript.Commands
 
             if (vault == null)
             {
-                if (collection.Class.Name == "gameplay")
+                if (ResolveName(collection.Class.Key) == "gameplay")
                 {
-                    vault = new VaultLib.Core.Vault(VaultName);
-                    vault.Database = databaseHelper.Database;
-
+                    vault = new Vault(databaseHelper.Database, VaultName);
                     gameplayFile.Vaults.Add(vault);
                     databaseHelper.Database.Vaults.Add(vault);
                 }
@@ -54,7 +52,7 @@ namespace Attribulator.Plugins.ModScript.Commands
                 databaseHelper.Database.Vaults.Remove(oldVault);
             }
 
-            HashManager.AddUserHash(VaultName);
+            HashManager.AddVlt(VaultName);
         }
     }
 }

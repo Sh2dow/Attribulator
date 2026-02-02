@@ -5,7 +5,6 @@ using System.Linq;
 using System.Reflection;
 using JetBrains.Annotations;
 using VaultLib.Core.Types;
-using VaultLib.Core.Types.Abstractions;
 
 namespace Attribulator.ModScript.API.Utils
 {
@@ -92,7 +91,7 @@ namespace Attribulator.ModScript.API.Utils
                 if (parsedProperty.Name != null)
                 {
                     var propName = parsedProperty.Name;
-                    if (itemToExamine is BaseRefSpec)
+                    if (itemToExamine is BaseRefSpec<Key32>)
                         propName = propName switch
                         {
                             "Collection" => "CollectionKey",

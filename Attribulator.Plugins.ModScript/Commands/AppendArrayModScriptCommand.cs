@@ -1,11 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Attribulator.API.Utils;
 using Attribulator.ModScript.API;
 using VaultLib.Core;
 using VaultLib.Core.Types;
-using VaultLib.Core.Types.Abstractions;
-using VaultLib.Core.Types.EA.Reflection;
 using VaultLib.Core.Utils;
+using VaultLib.Core.Hashing;
 
 namespace Attribulator.Plugins.ModScript.Commands
 {
@@ -43,7 +43,7 @@ namespace Attribulator.Plugins.ModScript.Commands
 
             if (!collection.HasEntry(FieldName))
                 throw new CommandExecutionException(
-                    $"Collection {collection.ShortPath} does not have an entry for {FieldName}.");
+                    $"Collection {ResolveName(collection.Class.Key)}/{ResolveName(collection.Key)} does not have an entry for {FieldName}.");
 
             var array = collection.GetRawValue<VLTArrayType>(FieldName);
 
@@ -54,29 +54,45 @@ namespace Attribulator.Plugins.ModScript.Commands
                 throw new CommandExecutionException(
                     "Appending to this array would cause it to exceed the maximum number of allowed elements.");
 
-            var itemToEdit = TypeRegistry.ConstructInstance(array.ItemType, collection.Class, field, collection);
+            var itemToEdit = databaseHelper.Database.TypeRegistry.ConstructTypeInstance(array.ItemType);
 
             if (_hasValue)
                 switch (itemToEdit)
                 {
-                    case PrimitiveTypeBase primitiveTypeBase:
-                        ValueConversionUtils.DoPrimitiveConversion(primitiveTypeBase, Value);
-                        break;
                     case IStringValue stringValue:
                         stringValue.SetString(Value);
                         break;
-                    case BaseRefSpec refSpec:
+                    case BaseRefSpec<Key32> refSpec:
                         // NOTE: This is a compatibility feature for certain types, such as GCollectionKey, which are technically a RefSpec.
-                        refSpec.CollectionKey = Value;
+                        refSpec.SetCollectionKey(ParseKey(Value));
                         break;
                     default:
+                        if (itemToEdit is IConvertible)
+                        {
+                            itemToEdit = ValueConversionUtils.DoPrimitiveConversion(itemToEdit.GetType(), Value);
+                            break;
+                        }
+
                         throw new CommandExecutionException(
-                            $"Object stored in {collection.Class.Name}[{field.Name}] is not a simple type and cannot be used in a value-append command");
+                            $"Object stored in {ResolveName(collection.Class.Key)}[{ResolveName(field.Key)}] is not a simple type and cannot be used in a value-append command");
                 }
 
             array.Items.Add(itemToEdit);
 
             if (!field.IsInLayout) array.Capacity++;
         }
+
+        private static Key32 ParseKey(string name)
+        {
+            if (name.StartsWith("0x") && uint.TryParse(name.Substring(2),
+                    System.Globalization.NumberStyles.AllowHexSpecifier,
+                    System.Globalization.CultureInfo.InvariantCulture, out var hexVal))
+            {
+                return new Key32(hexVal);
+            }
+
+            return Key32.FromString(name);
+        }
+
     }
 }

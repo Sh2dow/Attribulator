@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
@@ -10,6 +10,7 @@ using JetBrains.Annotations;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using VaultLib.Core.DB;
+using Attribulator.API;
 
 namespace Attribulator.Plugins.ModScript
 {
@@ -57,7 +58,7 @@ namespace Attribulator.Plugins.ModScript
 
             var profile = ServiceProvider.GetRequiredService<IProfileService>().GetProfile(ProfileName);
             _logger.LogInformation("Loading database from disk...");
-            var database = new Database(new DatabaseOptions(profile.GetGameId(), profile.GetDatabaseType()));
+            var database = DatabaseFactory.Create(new DatabaseOptions(profile.GetGameId(), profile.GetDatabaseType()));
             var files = profile.LoadFiles(database, InputDirectory);
             database.CompleteLoad();
             _logger.LogInformation("Loaded database");

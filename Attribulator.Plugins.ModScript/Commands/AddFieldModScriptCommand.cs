@@ -31,32 +31,30 @@ namespace Attribulator.Plugins.ModScript.Commands
             var field = collection.Class[FieldName];
 
             if (field.IsInLayout)
-                throw new CommandExecutionException($"add_field failed because field '{field.Name}' is a base field");
+                throw new CommandExecutionException(
+                    $"add_field failed because field '{ResolveName(field.Key)}' is a base field");
 
-            if (collection.HasEntry(field.Name))
+            if (collection.HasEntry(field.Key))
                 return;
 
-            var vltBaseType =
-                TypeRegistry.CreateInstance(databaseHelper.Database.Options.GameId, collection.Class, field,
-                    collection);
+            var registry = databaseHelper.Database.TypeRegistry;
+            var fieldType = registry.ResolveFieldType(field);
+            object vltBaseType = registry.ConstructTypeInstance(fieldType);
 
-            if (vltBaseType is VLTArrayType array)
+            if (field.IsArray && vltBaseType is VLTArrayType array)
             {
                 if (ArrayCapacity > field.MaxCount)
                     throw new CommandExecutionException(
                         $"Cannot add field {ClassName}[{FieldName}] with capacity beyond maximum (requested {ArrayCapacity} but limit is {field.MaxCount})");
 
                 array.Capacity = ArrayCapacity;
-                array.ItemAlignment = field.Alignment;
-                array.FieldSize = field.Size;
-                array.Items = new List<VLTBaseType>();
+                array.Items = new List<object>();
 
                 for (var i = 0; i < ArrayCapacity; i++)
-                    array.Items.Add(TypeRegistry.ConstructInstance(array.ItemType, collection.Class, field,
-                        collection));
+                    array.Items.Add(registry.ConstructTypeInstance(array.ItemType));
             }
 
-            collection.SetRawValue(field.Name, vltBaseType);
+            collection.SetRawValue(field.Key, vltBaseType);
         }
     }
 }

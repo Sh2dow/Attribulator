@@ -8,11 +8,14 @@ namespace Attribulator.UI.PropertyGrid
 {
     public class PrimitiveItem : BaseEditItem, ICommandName
     {
-        private VaultLib.Core.Types.EA.Reflection.PrimitiveTypeBase prop;
+        private readonly Func<IConvertible> getValue;
+        private readonly Action<IConvertible> setValue;
 
-        public PrimitiveItem(IParent parent, string name, VaultLib.Core.Types.EA.Reflection.PrimitiveTypeBase prop, int padding) : base(parent, name, padding)
+        public PrimitiveItem(IParent parent, string name, Func<IConvertible> getValue, Action<IConvertible> setValue,
+            int padding) : base(parent, name, padding)
         {
-            this.prop = prop;
+            this.getValue = getValue;
+            this.setValue = setValue;
         }
 
         public string GetName()
@@ -20,24 +23,21 @@ namespace Attribulator.UI.PropertyGrid
             return this.name;
         }
 
-        public override IConvertible GetValue()
-        {
-            return this.prop.GetValue();
-        }
+        public override IConvertible GetValue() => this.getValue();
 
-        public override void SetValue(IConvertible value)
-        {
-            this.prop.SetValue(value);
-        }
+        public override void SetValue(IConvertible value) => this.setValue(value);
     }
 
     public class PrimitiveBoolItem : BaseBoolItem, ICommandName
     {
-        private VaultLib.Core.Types.EA.Reflection.Bool prop;
+        private readonly Func<bool> getValue;
+        private readonly Action<bool> setValue;
 
-        public PrimitiveBoolItem(IParent parent, string name, VaultLib.Core.Types.EA.Reflection.Bool prop, int padding) : base(parent, name, padding)
+        public PrimitiveBoolItem(IParent parent, string name, Func<bool> getValue, Action<bool> setValue, int padding)
+            : base(parent, name, padding)
         {
-            this.prop = prop;
+            this.getValue = getValue;
+            this.setValue = setValue;
             this.name = name;
         }
 
@@ -46,25 +46,22 @@ namespace Attribulator.UI.PropertyGrid
             return this.name;
         }
 
-        public override bool GetValue()
-        {
-            return this.prop.Value;
-        }
+        public override bool GetValue() => this.getValue();
 
-        public override void SetValue(bool val)
-        {
-            this.prop.Value = val;
-        }
+        public override void SetValue(bool val) => this.setValue(val);
     }
 
     public class PrimitiveEnumItem : BaseEnumItem, ICommandName
     {
-        private VaultLib.Core.Types.EA.Reflection.PrimitiveTypeBase prop;
+        private readonly Func<Enum> getValue;
+        private readonly Action<IConvertible> setValue;
         private string name;
 
-        public PrimitiveEnumItem(IParent parent, string name, VaultLib.Core.Types.EA.Reflection.PrimitiveTypeBase prop, int padding) : base(parent, name, padding)
+        public PrimitiveEnumItem(IParent parent, string name, Func<Enum> getValue, Action<IConvertible> setValue,
+            int padding) : base(parent, name, padding)
         {
-            this.prop = prop;
+            this.getValue = getValue;
+            this.setValue = setValue;
             this.name = name;
         }
 
@@ -73,24 +70,18 @@ namespace Attribulator.UI.PropertyGrid
             return this.name;
         }
 
-        public override Enum GetValue()
-        {
-            return this.prop.GetValue() as Enum;
-        }
+        public override Enum GetValue() => this.getValue();
 
-        public override void SetValue(IConvertible val)
-        {
-            this.prop.SetValue(val);
-        }
+        public override void SetValue(IConvertible val) => this.setValue(val);
     }
 
     public class BlobItem : Control
     {
         private string name;
         private int padding;
-        private VaultLib.Core.Types.Attrib.BaseBlob prop;
+        private BaseBlob prop;
 
-        public BlobItem(string name, VaultLib.Core.Types.Attrib.BaseBlob prop, int padding)
+        public BlobItem(string name, BaseBlob prop, int padding)
         {
             this.name = name;
             this.padding = padding;

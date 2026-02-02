@@ -24,7 +24,7 @@ namespace Attribulator.UI
 
             if (uint.TryParse(input, numberStyles, null, out uint value))
             {
-                this.ResultTextBox.Text = HashManager.ResolveVLT(value);
+                this.ResultTextBox.Text = HashManager.ResolveVlt(value);
             }
         }
     }

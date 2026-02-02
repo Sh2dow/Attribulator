@@ -15,8 +15,13 @@
         <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.0-rc.1.24431.7" />
     </ItemGroup>
 
-    <ItemGroup>
-      <ProjectReference Include="..\Modules\VaultLib\VaultLib.Core\VaultLib.Core.csproj" />
-    </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Modules\VaultLib\VaultLib.Core\VaultLib.Core.csproj" />
+    <ProjectReference Include="..\Modules\VaultLib\VaultLib.Support.Carbon\VaultLib.Support.Carbon.csproj" />
+    <ProjectReference Include="..\Modules\VaultLib\VaultLib.Support.MostWanted\VaultLib.Support.MostWanted.csproj" />
+    <ProjectReference Include="..\Modules\VaultLib\VaultLib.Support.ProStreet\VaultLib.Support.ProStreet.csproj" />
+    <ProjectReference Include="..\Modules\VaultLib\VaultLib.Support.Undercover\VaultLib.Support.Undercover.csproj" />
+    <ProjectReference Include="..\Modules\VaultLib\VaultLib.Support.World\VaultLib.Support.World.csproj" />
+  </ItemGroup>
 
 </Project>

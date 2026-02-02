@@ -24,17 +24,45 @@ namespace Attribulator.ModScript.API
         public List<Vault> Vaults => Database.Vaults;
         public IEnumerable<LoadedFile> Files;
 
+        private static string ResolveName(Key32 key)
+        {
+            return HashManager.ResolveVlt(key.Hash) ?? key.ToString();
+        }
+
+        private static Key32 ParseKey(string name)
+        {
+            if (name.StartsWith("0x") && uint.TryParse(name.Substring(2),
+                    System.Globalization.NumberStyles.AllowHexSpecifier,
+                    System.Globalization.CultureInfo.InvariantCulture, out var hexVal))
+            {
+                return new Key32(hexVal);
+            }
+
+            return Key32.FromString(name);
+        }
+
+        private static string GetShortPath(Key32 classKey, Key32 collectionKey)
+        {
+            return $"{ResolveName(classKey)}/{ResolveName(collectionKey)}";
+        }
+
+        private static string GetShortPath(VltCollection collection)
+        {
+            return GetShortPath(collection.Class.Key, collection.Key);
+        }
+
         private static Dictionary<string, VltCollection> BuildCollectionIndex(Database database)
         {
-            var collections = database.RowManager.GetFlattenedCollections()
+            var collections = database.RowManager.GetCollections()
                 .OrderByDescending(c => c.Vault != null && c.Vault.IsPrimaryVault);
             var lookup = new Dictionary<string, VltCollection>();
 
             foreach (var collection in collections)
             {
-                if (!lookup.ContainsKey(collection.ShortPath))
+                var shortPath = GetShortPath(collection);
+                if (!lookup.ContainsKey(shortPath))
                 {
-                    lookup.Add(collection.ShortPath, collection);
+                    lookup.Add(shortPath, collection);
                 }
             }
 
@@ -43,18 +71,10 @@ namespace Attribulator.ModScript.API
 
         public VltCollection FindCollectionByName(string className, string collectionName)
         {
-            var key = $"{className}/{collectionName}";
+            var key = GetShortPath(ParseKey(className), ParseKey(collectionName));
             if (Collections.TryGetValue(key, out var collection))
             {
                 return collection;
-            }
-            else
-            {
-                key = $"{className}/0x{VLT32Hasher.Hash(collectionName).ToString("X8")}";
-                if (Collections.TryGetValue(key, out collection))
-                {
-                    return collection;
-                }
             }
 
             return null;
@@ -72,28 +92,28 @@ namespace Attribulator.ModScript.API
                 throw new DuplicateNameException(
                     $"A collection in the class '{className}' with the name '{collectionName}' already exists.");
 
-            var collection = new VltCollection(addToVault, Database.FindClass(className), collectionName);
+            var collection = new VltCollection(addToVault, Database.FindClass(className), ParseKey(collectionName));
             return AddCollection(collection, parentCollection);
         }
 
         public VltCollection AddCollection(VltCollection collection, VltCollection parentCollection = null)
         {
             if (parentCollection != null)
-                parentCollection.AddChild(collection);
+                collection.SetParent(parentCollection);
             else
-                Database.RowManager.Rows.Add(collection);
+                Database.RowManager.AddCollection(collection);
 
-            Collections[collection.ShortPath] = collection;
+            Collections[GetShortPath(collection)] = collection;
 
             return collection;
         }
 
         public void RenameCollection(VltCollection collection, string newName)
         {
-            Collections.Remove(collection.ShortPath);
-            collection.SetName(newName);
-            if (collection.Class.HasField("CollectionName")) collection.SetDataValue("CollectionName", newName);
-            Collections.Add(collection.ShortPath, collection);
+            Collections.Remove(GetShortPath(collection));
+            collection.SetKey(ParseKey(newName));
+            if (collection.Class.HasField("CollectionName")) collection.SetRawValue("CollectionName", newName);
+            Collections.Add(GetShortPath(collection), collection);
         }
 
         public List<VltCollection> RemoveCollection(VltCollection collection)
@@ -102,11 +122,14 @@ namespace Attribulator.ModScript.API
 
             // Disassociate children
             var hasParent = collection.Parent != null;
-            collection.Parent?.RemoveChild(collection);
-            Collections.Remove(collection.ShortPath);
+            collection.SetParent(null);
+            Collections.Remove(GetShortPath(collection));
 
-            foreach (var collectionChild in collection.Children.ToList())
+            foreach (var collectionChild in Database.RowManager.GetCollections()
+                .Where(c => ReferenceEquals(c.Parent, collection)).ToList())
+            {
                 removed.AddRange(RemoveCollection(collectionChild));
+            }
 
             if (!hasParent) Database.RowManager.RemoveCollection(collection);
 

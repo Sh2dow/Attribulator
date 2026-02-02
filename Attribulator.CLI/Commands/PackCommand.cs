@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
@@ -17,6 +17,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using VaultLib.Core.DB;
+using Attribulator.API;
 
 namespace Attribulator.CLI.Commands
 {
@@ -134,7 +135,7 @@ namespace Attribulator.CLI.Commands
 
             if (fileNamesToCompile.Count > 0)
             {
-                var database = new Database(new DatabaseOptions(profile.GetGameId(), profile.GetDatabaseType()));
+                var database = DatabaseFactory.Create(new DatabaseOptions(profile.GetGameId(), profile.GetDatabaseType()));
                 _logger.LogInformation("Loading database from disk...");
                 var files =
                     (await storageFormat.DeserializeAsync(InputDirectory, database, fileNamesToCompile)).ToList();

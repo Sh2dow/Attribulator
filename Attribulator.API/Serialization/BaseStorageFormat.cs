@@ -7,9 +7,9 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using Attribulator.API.Data;
+using CoreLibraries.GameUtilities;
 using VaultLib.Core;
 using VaultLib.Core.Data;
-using VaultLib.Core.DB;
 using VaultLib.Core.Hashing;
 using VaultLib.Core.Types;
 
@@ -37,18 +37,23 @@ namespace Attribulator.API.Serialization
             if (string.IsNullOrEmpty(loadedDatabase.PrimaryVaultName))
                 throw new Exception("No primary vault name has been specified.");
 
+            var classByName = new Dictionary<string, VltClass>();
+
             foreach (var loadedDatabaseClass in loadedDatabase.Classes)
             {
-                var vltClass = new VltClass(loadedDatabaseClass.Name);
+                var className = loadedDatabaseClass.Name;
+                var classKey = Key32.FromString(className);
+                var vltClass = new VltClass(classKey);
 
                 foreach (var loadedDatabaseClassField in loadedDatabaseClass.Fields)
                 {
+                    var fieldName = loadedDatabaseClassField.Name;
+                    var fieldKey = Key32.FromString(fieldName);
+                    var typeKey = Key32.FromString(loadedDatabaseClassField.TypeName);
                     var field = new VltClassField(
-                        destinationDatabase.Options.Type == DatabaseType.X86Database
-                            ? VLT32Hasher.Hash(loadedDatabaseClassField.Name)
-                            : VLT64Hasher.Hash(loadedDatabaseClassField.Name),
-                        loadedDatabaseClassField.Name,
-                        loadedDatabaseClassField.TypeName,
+                        vltClass,
+                        fieldKey,
+                        typeKey,
                         loadedDatabaseClassField.Flags,
                         loadedDatabaseClassField.Alignment,
                         loadedDatabaseClassField.Size,
@@ -57,20 +62,21 @@ namespace Attribulator.API.Serialization
                     // Handle static value
                     if (loadedDatabaseClassField.StaticValue != null)
                         field.StaticValue = ConvertSerializedValueToDataValue(destinationDatabase,
-                            destinationDatabase.Options.GameId, sourceDirectory,
+                            string.Empty, sourceDirectory,
                             vltClass, field, null,
                             loadedDatabaseClassField.StaticValue);
 
                     vltClass.Fields.Add(field.Key, field);
 
-                    FieldCache[(vltClass.Name, field.Name)] = field;
+                    FieldCache[(className, fieldName)] = field;
                 }
 
                 destinationDatabase.AddClass(vltClass);
+                classByName[className] = vltClass;
             }
 
             foreach (var loadedDatabaseType in loadedDatabase.Types)
-                destinationDatabase.Types.Add(new DatabaseTypeInfo
+                destinationDatabase.Types.Add(new VaultLib.Core.DB.DatabaseTypeInfo
                     {Name = loadedDatabaseType.Name, Size = loadedDatabaseType.Size});
 
 
@@ -80,7 +86,7 @@ namespace Attribulator.API.Serialization
             var tempCollectionListsDictionary = new Dictionary<string, List<VltCollection>>();
             var seenCollections = new Dictionary<string, bool>();
 
-            void AddCollectionsToList(Vault newVault, VltClass vltClass, string vaultDirectory,
+            void AddCollectionsToList(Vault newVault, string className, VltClass vltClass, string vaultDirectory,
                 ICollection<VltCollection> collectionList,
                 IEnumerable<SerializedCollection> collectionsToAdd)
             {
@@ -90,28 +96,30 @@ namespace Attribulator.API.Serialization
 
                 foreach (var loadedCollection in collectionsToAdd)
                 {
-                    var newVltCollection = new VltCollection(newVault, vltClass, loadedCollection.Name);
+                    var collectionKey = Key32.FromString(loadedCollection.Name);
+                    var newVltCollection = new VltCollection(newVault, vltClass, collectionKey);
+                    var collectionId = $"{vltClass.Key}/{collectionKey}";
 
-                    if (!seenCollections.TryAdd(newVltCollection.ShortPath, true))
+                    if (!seenCollections.TryAdd(collectionId, true))
                         continue;
 
                     foreach (var (key, value) in loadedCollection.Data)
                     {
-                        if (!FieldCache.TryGetValue((vltClass.Name, key), out var field))
+                        if (!FieldCache.TryGetValue((className, key), out var field))
                             throw new Exception(
-                                $"Cannot find field: {vltClass.Name}/{key}");
+                                $"Cannot find field: {className}/{key}");
 
                         newVltCollection.SetRawValue(key,
                             ConvertSerializedValueToDataValue(destinationDatabase,
-                                destinationDatabase.Options.GameId, vaultDirectory,
+                                string.Empty, vaultDirectory,
                                 vltClass, field,
                                 newVltCollection, value));
                     }
 
-                    collectionParentDictionary[newVltCollection.ShortPath] =
+                    collectionParentDictionary[collectionId] =
                         loadedCollection.ParentName;
                     collectionList.Add(newVltCollection);
-                    collectionDictionary[newVltCollection.ShortPath] = newVltCollection;
+                    collectionDictionary[collectionId] = newVltCollection;
                 }
             }
 
@@ -123,8 +131,8 @@ namespace Attribulator.API.Serialization
                 foreach (var vaultName in file.Vaults)
                 {
                     var vaultDirectory = Path.Combine(baseDirectory, vaultName).Trim();
-                    var newVault = new Vault(vaultName)
-                        {Database = destinationDatabase, IsPrimaryVault = vaultName == loadedDatabase.PrimaryVaultName};
+                    var newVault = new Vault(destinationDatabase, vaultName)
+                        {IsPrimaryVault = vaultName == loadedDatabase.PrimaryVaultName};
                     if (Directory.Exists(vaultDirectory))
                     {
                         var collectionsToBeAdded = new List<VltCollection>();
@@ -132,16 +140,14 @@ namespace Attribulator.API.Serialization
                         foreach (var dataFilePath in GetDataFilePaths(vaultDirectory))
                         {
                             var className = Path.GetFileNameWithoutExtension(dataFilePath);
-                            var vltClass = destinationDatabase.FindClass(className);
-
-                            if (vltClass == null)
+                            if (!classByName.TryGetValue(className, out var vltClass))
                                 throw new InvalidDataException($"Unknown class: {className} ({dataFilePath})");
 
                             try
                             {
                                 var collections = (await LoadDataFileAsync(dataFilePath)).ToList();
                                 var newCollections = new List<VltCollection>();
-                                AddCollectionsToList(newVault, vltClass, vaultDirectory, newCollections, collections);
+                                AddCollectionsToList(newVault, className, vltClass, vaultDirectory, newCollections, collections);
 
                                 collectionsToBeAdded.AddRange(newCollections);
                             }
@@ -176,9 +182,9 @@ namespace Attribulator.API.Serialization
                 var node = new VaultDependencyNode(vault);
 
                 foreach (var parentCollection in from vaultCollection in vaultCollections
-                    let parentKey = collectionParentDictionary[vaultCollection.ShortPath]
+                    let parentKey = collectionParentDictionary[$"{vaultCollection.Class.Key}/{vaultCollection.Key}"]
                     where !string.IsNullOrEmpty(parentKey)
-                    select collectionDictionary[$"{vaultCollection.Class.Name}/{parentKey}"]
+                    select collectionDictionary[$"{vaultCollection.Class.Key}/{Key32.FromString(parentKey)}"]
                     into parentCollection
                     where parentCollection.Vault.Name != vault.Name
                     select parentCollection)
@@ -203,7 +209,7 @@ namespace Attribulator.API.Serialization
 
                 foreach (var collection in vaultCollections)
                 {
-                    var parentKey = collectionParentDictionary[collection.ShortPath];
+                    var parentKey = collectionParentDictionary[$"{collection.Class.Key}/{collection.Key}"];
 
                     if (string.IsNullOrEmpty(parentKey))
                     {
@@ -212,8 +218,8 @@ namespace Attribulator.API.Serialization
                     }
                     else
                     {
-                        var parentCollection = collectionDictionary[$"{collection.Class.Name}/{parentKey}"];
-                        parentCollection.AddChild(collection);
+                        var parentCollection = collectionDictionary[$"{collection.Class.Key}/{Key32.FromString(parentKey)}"];
+                        collection.SetParent(parentCollection);
                     }
                 }
             }
@@ -272,7 +278,7 @@ namespace Attribulator.API.Serialization
         protected abstract Task<IEnumerable<SerializedCollection>> LoadDataFileAsync(string path);
 
         // TODO: rework value deserialization
-        protected abstract VLTBaseType ConvertSerializedValueToDataValue(Database database, string gameId, string dir,
+        protected abstract object ConvertSerializedValueToDataValue(Database database, string gameId, string dir,
             VltClass vltClass,
             VltClassField field,
             VltCollection vltCollection, object serializedValue, bool createInstance = true);

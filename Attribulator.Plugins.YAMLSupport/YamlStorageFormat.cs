@@ -13,6 +13,7 @@ using Attribulator.API.Utils;
 using VaultLib.Core;
 using VaultLib.Core.Data;
 using VaultLib.Core.DB;
+using VaultLib.Core.Hashing;
 using VaultLib.Core.Types;
 using VaultLib.Core.Types.Attrib;
 using VaultLib.Core.Types.EA.Reflection;
@@ -28,6 +29,31 @@ namespace Attribulator.Plugins.YAMLSupport
     {
         private static readonly IDeserializer Deserializer = new DeserializerBuilder().Build();
         private readonly SerializationOptions _serializationOptions;
+
+        private static string ResolveName(Key32 key)
+        {
+            return HashManager.ResolveVlt(key.Hash) ?? key.ToString();
+        }
+
+        private static string ResolveName(VltClass vltClass)
+        {
+            return ResolveName(vltClass.Key);
+        }
+
+        private static string ResolveName(VltClassField field)
+        {
+            return ResolveName(field.Key);
+        }
+
+        private static string ResolveTypeName(VltClassField field)
+        {
+            return HashManager.ResolveVlt(field.TypeKey.Hash) ?? field.TypeKey.ToString();
+        }
+
+        private static string GetShortPath(VltCollection collection)
+        {
+            return $"{ResolveName(collection.Class)}/{ResolveName(collection.Key)}";
+        }
 
         public YamlStorageFormat(SerializationOptions serializationOptions)
         {
@@ -68,15 +94,15 @@ namespace Attribulator.Plugins.YAMLSupport
             {
                 var loadedDatabaseClass = new SerializedDatabaseClass
                 {
-                    Name = databaseClass.Name,
+                    Name = ResolveName(databaseClass),
                     Fields = new List<SerializedDatabaseClassField>()
                 };
 
                 loadedDatabaseClass.Fields.AddRange(databaseClass.Fields.Values.Select(field =>
                     new SerializedDatabaseClassField
                     {
-                        Name = field.Name,
-                        TypeName = field.TypeName,
+                        Name = ResolveName(field),
+                        TypeName = ResolveTypeName(field),
                         Alignment = field.Alignment,
                         Flags = field.Flags,
                         MaxCount = field.MaxCount,
@@ -110,7 +136,7 @@ namespace Attribulator.Plugins.YAMLSupport
                     // Solution: Store the name of the parent node instead of having an array of children.
 
                     foreach (var collectionGroup in sourceDatabase.RowManager.GetCollectionsInVault(vault)
-                        .GroupBy(v => v.Class.Name))
+                        .GroupBy(v => ResolveName(v.Class)))
                     {
                         var loadedCollections = new List<SerializedCollection>();
                         AddLoadedCollections(vaultDirectory, loadedCollections, collectionGroup);
@@ -168,28 +194,29 @@ namespace Attribulator.Plugins.YAMLSupport
             {
                 var loadedCollection = new SerializedCollection
                 {
-                    Name = vltCollection.Name,
-                    ParentName = vltCollection.Parent?.Name,
+                    Name = ResolveName(vltCollection.Key),
+                    ParentName = vltCollection.Parent != null ? ResolveName(vltCollection.Parent.Key) : null,
                     Data = new Dictionary<string, object>()
                 };
 
                 foreach (var (key, value) in vltCollection.GetData())
-                    loadedCollection.Data[key] =
+                {
+                    var keyName = ResolveName(key);
+                    loadedCollection.Data[keyName] =
                         ConvertDataValueToSerializedValue(directory, vltCollection, vltCollection.Class[key], value);
+                }
 
                 loadedVaultCollections.Add(loadedCollection);
             }
         }
 
         private object ConvertDataValueToSerializedValue(string directory, VltCollection collection,
-            VltClassField field, VLTBaseType dataPairValue)
+            VltClassField field, object dataPairValue)
         {
             switch (dataPairValue)
             {
                 case IStringValue stringValue:
                     return stringValue.GetString();
-                case PrimitiveTypeBase ptb:
-                    return ptb.GetValue();
                 case BaseBlob blob:
                     return ProcessBlob(directory, collection, field, blob);
                 case VLTArrayType array:
@@ -225,7 +252,7 @@ namespace Attribulator.Plugins.YAMLSupport
                 var blobDir = Path.Combine(directory, "_blobs");
                 Directory.CreateDirectory(blobDir);
                 var blobPath = Path.Combine(blobDir,
-                    $"{collection.ShortPath.TrimEnd('/', '\\').Replace('/', '_').Replace('\\', '_')}_{field.Name}.bin");
+                    $"{GetShortPath(collection).TrimEnd('/', '\\').Replace('/', '_').Replace('\\', '_')}_{ResolveName(field)}.bin");
 
                 File.WriteAllBytes(blobPath, blob.Data);
 
@@ -237,21 +264,10 @@ namespace Attribulator.Plugins.YAMLSupport
 
         private static Type ResolveType(Type type)
         {
-            if (type.IsGenericType)
-            {
-                if (type.GetGenericTypeDefinition() == typeof(VLTEnumType<>)) return type.GetGenericArguments()[0];
-            }
-            else if (type.BaseType == typeof(PrimitiveTypeBase))
-            {
-                var info = type.GetCustomAttributes<PrimitiveInfoAttribute>().First();
-
-                return info.PrimitiveType;
-            }
-
             return type;
         }
 
-        protected override VLTBaseType ConvertSerializedValueToDataValue(Database database, string gameId, string dir,
+        protected override object ConvertSerializedValueToDataValue(Database database, string gameId, string dir,
             VltClass vltClass,
             VltClassField field,
             VltCollection vltCollection, object serializedValue, bool createInstance = true)
@@ -266,14 +282,25 @@ namespace Attribulator.Plugins.YAMLSupport
 
             // Create a new data instance
             var instance = createInstance
-                ? TypeRegistry.CreateInstance(database.Options.GameId, vltClass, field, vltCollection)
-                : TypeRegistry.ConstructInstance(TypeRegistry.ResolveType(gameId, field.TypeName), vltClass, field,
-                    vltCollection);
+                ? CreateInstance(database, vltClass, field, vltCollection)
+                : CreateInstance(database, vltClass, field, vltCollection);
 
             return DoValueConversion(database, gameId, dir, vltClass, field, vltCollection, serializedValue, instance);
         }
 
-        private VLTBaseType DoValueConversion(Database database, string gameId, string dir, VltClass vltClass,
+        private static object CreateInstance(Database database, VltClass vltClass, VltClassField field,
+            VltCollection vltCollection)
+        {
+            var itemType = database.TypeRegistry.ResolveFieldType(field);
+            if (field.IsArray)
+            {
+                return new VLTArrayType(field, itemType);
+            }
+
+            return database.TypeRegistry.ConstructTypeInstance(itemType);
+        }
+
+        private object DoValueConversion(Database database, string gameId, string dir, VltClass vltClass,
             VltClassField field,
             VltCollection vltCollection,
             object serializedValue, object instance)
@@ -285,9 +312,9 @@ namespace Attribulator.Plugins.YAMLSupport
                     {
                         case IStringValue stringValue:
                             stringValue.SetString(str);
-                            return (VLTBaseType) instance;
-                        case PrimitiveTypeBase primitiveTypeBase:
-                            return ValueConversionUtils.DoPrimitiveConversion(primitiveTypeBase, str);
+                            return instance;
+                        case IConvertible:
+                            return ValueConversionUtils.DoPrimitiveConversion(instance, str);
                         case BaseBlob blob:
                         {
                             if (string.IsNullOrWhiteSpace(str)) return blob;
@@ -295,7 +322,7 @@ namespace Attribulator.Plugins.YAMLSupport
                             str = Path.Combine(dir, str);
                             if (!File.Exists(str))
                                 throw new InvalidDataException(
-                                    $"Could not locate blob data file for {vltCollection.ShortPath}[{field.Name}]");
+                                $"Could not locate blob data file for {GetShortPath(vltCollection)}[{ResolveName(field)}]");
 
                             blob.Data = File.ReadAllBytes(str);
 
@@ -305,9 +332,9 @@ namespace Attribulator.Plugins.YAMLSupport
 
                     break;
                 case Dictionary<object, object> dictionary:
-                    return (VLTBaseType) (instance is VLTArrayType array
+                    return instance is VLTArrayType array
                         ? DoArrayConversion(database, gameId, dir, vltClass, field, vltCollection, array, dictionary)
-                        : DoDictionaryConversion(vltClass, field, vltCollection, instance, dictionary));
+                        : DoDictionaryConversion(database, vltClass, field, vltCollection, instance, dictionary);
             }
 
             throw new InvalidDataException("Could not convert serialized value of type: " + serializedValue.GetType());
@@ -325,20 +352,17 @@ namespace Attribulator.Plugins.YAMLSupport
             {
                 if (!allowOverride)
                     throw new InvalidDataException(
-                        $"In collection {vltCollection.ShortPath}, the capacity of array field [{field.Name}] ({capacity}) is less than the number of elements in the array ({rawItemList.Count}).");
+                        $"In collection {GetShortPath(vltCollection)}, the capacity of array field [{ResolveName(field)}] ({capacity}) is less than the number of elements in the array ({rawItemList.Count}).");
                 capacity = (ushort) rawItemList.Count;
             }
             if (field.MaxCount > 0 && (capacity > field.MaxCount || rawItemList.Count > field.MaxCount))
             {
                 if (!allowOverride)
                     throw new InvalidDataException(
-                        $"In collection {vltCollection.ShortPath}, the size or capacity of array field [{field.Name}] is greater than the allowed size ({field.MaxCount}).");
+                        $"In collection {GetShortPath(vltCollection)}, the size or capacity of array field [{ResolveName(field)}] is greater than the allowed size ({field.MaxCount}).");
             }
             array.Capacity = capacity;
-            array.Items = new List<VLTBaseType>();
-            array.ItemAlignment = field.Alignment;
-            array.FieldSize = field.Size;
-
+            array.Items = new List<object>();
             foreach (var o in rawItemList)
             {
                 var newArrayItem =
@@ -350,7 +374,7 @@ namespace Attribulator.Plugins.YAMLSupport
             return array;
         }
 
-        private static object DoDictionaryConversion(VltClass vltClass, VltClassField field,
+        private static object DoDictionaryConversion(Database database, VltClass vltClass, VltClassField field,
             VltCollection vltCollection, object instance, Dictionary<object, object> dictionary)
         {
             foreach (var (key, value) in dictionary)
@@ -413,11 +437,11 @@ namespace Attribulator.Plugins.YAMLSupport
                         case Dictionary<object, object> objectDictionary:
                         {
                             var propInstance = propType.IsSubclassOf(typeof(VLTBaseType))
-                                ? TypeRegistry.ConstructInstance(propType, vltClass, field, vltCollection)
+                                ? database.TypeRegistry.ConstructTypeInstance(propType)
                                 : Activator.CreateInstance(propType);
 
                             propertyInfo.SetValue(instance,
-                                DoDictionaryConversion(vltClass, field, vltCollection, propInstance,
+                                DoDictionaryConversion(database, vltClass, field, vltCollection, propInstance,
                                     objectDictionary));
                             break;
                         }

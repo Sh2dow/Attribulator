@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using Attribulator.API.Data;
-using VaultLib.Core.DB;
 
 namespace Attribulator.API
 {

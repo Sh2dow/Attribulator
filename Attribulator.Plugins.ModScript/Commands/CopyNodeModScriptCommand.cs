@@ -47,14 +47,26 @@ namespace Attribulator.Plugins.ModScript.Commands
                         $"copy_node failed because the parent collection called '{ParentCollectionName}' does not exist");
             }
 
-            var newCollection = new VltCollection(collection.Vault, collection.Class, DestinationCollectionName);
+            var newCollection = new VltCollection(collection.Vault, collection.Class, ParseKey(DestinationCollectionName));
             databaseHelper.CopyCollection(databaseHelper.Database, collection, newCollection);
 
             if (newCollection.Class.HasField("CollectionName"))
-                newCollection.SetDataValue("CollectionName", DestinationCollectionName);
+                newCollection.SetRawValue("CollectionName", DestinationCollectionName);
 
             databaseHelper.AddCollection(newCollection, parentCollection);
-            HashManager.AddUserHash(DestinationCollectionName);
+            HashManager.AddVlt(DestinationCollectionName);
+        }
+
+        private static Key32 ParseKey(string name)
+        {
+            if (name.StartsWith("0x") && uint.TryParse(name.Substring(2),
+                    System.Globalization.NumberStyles.AllowHexSpecifier,
+                    System.Globalization.CultureInfo.InvariantCulture, out var hexVal))
+            {
+                return new Key32(hexVal);
+            }
+
+            return Key32.FromString(name);
         }
     }
 }

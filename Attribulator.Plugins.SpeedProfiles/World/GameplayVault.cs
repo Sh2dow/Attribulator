@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using CoreLibraries.IO;
 using VaultLib.Core;
-using VaultLib.Core.DB;
 using VaultLib.Core.Pack;
+using VaultLib.Core.DataInterfaces;
 
 namespace Attribulator.Plugins.SpeedProfiles.World
 {
@@ -17,14 +18,25 @@ namespace Attribulator.Plugins.SpeedProfiles.World
             _name = name;
         }
 
-        public void Save(BinaryWriter bw, IList<Vault> vaults, PackSavingOptions savingOptions = null)
+        public void Save<TKey>(BinaryWriter bw, IList<Vault<TKey>> vaults,
+            PackSavingOptions? savingOptions = null) where TKey : struct, IKey<TKey>
+        {
+            if (typeof(TKey) != typeof(Key32))
+                throw new NotSupportedException("GameplayVault only supports Key32 databases.");
+
+            var typedVaults = vaults.Cast<Vault>().ToList();
+            SaveKey32(bw, typedVaults, savingOptions);
+        }
+
+        private void SaveKey32(BinaryWriter bw, IList<Vault> vaults, PackSavingOptions? savingOptions)
         {
             if (vaults.Count != 1) throw new InvalidDataException("Can only save exactly 1 vault");
 
             var nameChars = new char[0x2C];
             _name.CopyTo(0, nameChars, 0, _name.Length);
 
-            var vaultWriter = new VaultWriter(vaults[0], new VaultSaveOptions());
+            var writeOptions = savingOptions?.VaultWriteOptions ?? new VaultWriteOptions();
+            var vaultWriter = new VaultWriter<Key32>(vaults[0], writeOptions);
             vaultWriter.ExportManager.AddExport(new VaultSlotExport());
             var vaultStreamInfo = vaultWriter.BuildVault();
 
@@ -60,7 +72,18 @@ namespace Attribulator.Plugins.SpeedProfiles.World
             bw.BaseStream.Position = bw.BaseStream.Length;
         }
 
-        public IList<Vault> Load(BinaryReader br, Database database, PackLoadingOptions loadingOptions)
+        public IList<Vault<TKey>> Load<TKey>(BinaryReader br, VaultLib.Core.DB.Database<TKey> database,
+            PackLoadingOptions? loadingOptions = null) where TKey : struct, IKey<TKey>
+        {
+            if (typeof(TKey) != typeof(Key32))
+                throw new NotSupportedException("GameplayVault only supports Key32 databases.");
+
+            var typedDatabase = (Database)(object)database;
+            var loaded = LoadKey32(br, typedDatabase, loadingOptions);
+            return loaded.Cast<Vault<TKey>>().ToList();
+        }
+
+        private IList<Vault> LoadKey32(BinaryReader br, Database database, PackLoadingOptions? loadingOptions)
         {
             var name = new string(br.ReadChars(0x2C)).Trim('\0');
 
@@ -72,7 +95,6 @@ namespace Attribulator.Plugins.SpeedProfiles.World
 
             if (fileSize != br.BaseStream.Length) throw new InvalidDataException("Corrupted file");
 
-            var vault = new Vault(name);
             var byteOrder = loadingOptions?.ByteOrder ?? ByteOrder.Little;
             br.BaseStream.Seek(binOffset, SeekOrigin.Begin);
             var binBuffer = new byte[binSize];
@@ -82,14 +104,13 @@ namespace Attribulator.Plugins.SpeedProfiles.World
             var vltBuffer = new byte[vltSize];
             if (br.Read(vltBuffer, 0, vltBuffer.Length) != vltBuffer.Length)
                 throw new Exception($"Failed to read {vltBuffer.Length} bytes of VLT data");
-            vault.BinStream = new MemoryStream(binBuffer);
-            vault.VltStream = new MemoryStream(vltBuffer);
-            using (var loadingWrapper = new VaultLoadingWrapper(vault, byteOrder))
-            {
-                database.LoadVault(vault, loadingWrapper);
-            }
-
-            return new List<Vault>(new[] {vault});
+            using var readWrapper = new VaultReadWrapper(
+                name,
+                new MemoryStream(binBuffer),
+                new MemoryStream(vltBuffer),
+                byteOrder);
+            var vault = database.LoadVault(readWrapper);
+            return new List<Vault>(new[] { vault });
         }
     }
 }

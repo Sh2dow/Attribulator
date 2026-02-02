@@ -14,7 +14,7 @@ namespace Attribulator.UI.Windows
         private void InputTextBox_TextChanged(object sender, TextChangedEventArgs e)
         {
             var input = this.InputTextBox.Text;
-            var result = VLT32Hasher.Hash(input);
+            var result = Vlt32Hasher.Hash(input);
             this.ResultTextBox.Text = "0x" + result.ToString("x8");    
         }
     }

@@ -17,6 +17,11 @@ namespace Attribulator.ModScript.API
         private static readonly Dictionary<(string, string), VltCollection> CollectionCache =
             new Dictionary<(string, string), VltCollection>();
 
+        protected static string ResolveName(Key32 key)
+        {
+            return HashManager.ResolveVlt(key.Hash) ?? key.ToString();
+        }
+
         public string Line { get; set; }
         public long LineNumber { get; set; }
 
@@ -60,9 +65,10 @@ namespace Attribulator.ModScript.API
         {
             if (vltClass == null) throw new CommandExecutionException("GetField() was given a null VltClass!");
 
-            if (FieldCache.TryGetValue((vltClass.Name, fieldName), out var field)) return field;
+            var className = ResolveName(vltClass.Key);
+            if (FieldCache.TryGetValue((className, fieldName), out var field)) return field;
 
-            return FieldCache[(vltClass.Name, fieldName)] = vltClass.FindField(fieldName);
+            return FieldCache[(className, fieldName)] = vltClass.FindField(fieldName);
         }
 
         /// <summary>
@@ -74,14 +80,16 @@ namespace Attribulator.ModScript.API
         {
             if (hashString.ToLowerInvariant().StartsWith("0x", StringComparison.Ordinal))
                 hashString =
-                    HashManager.ResolveVLT(uint.Parse(hashString.Substring(2), NumberStyles.AllowHexSpecifier));
+                    HashManager.ResolveVlt(uint.Parse(hashString.Substring(2), NumberStyles.AllowHexSpecifier));
 
             return hashString;
         }
 
         protected static void RemoveCollectionFromCache(VltCollection vltCollection)
         {
-            CollectionCache.Remove((vltCollection.Class.Name, vltCollection.Name));
+            var className = ResolveName(vltCollection.Class.Key);
+            var collectionName = ResolveName(vltCollection.Key);
+            CollectionCache.Remove((className, collectionName));
         }
 
         /// <summary>

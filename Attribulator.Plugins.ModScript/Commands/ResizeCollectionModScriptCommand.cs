@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Attribulator.ModScript.API;
 using Attribulator.ModScript.API.Utils;
-using VaultLib.Core;
 using VaultLib.Core.Types;
 
 namespace Attribulator.Plugins.ModScript.Commands
@@ -54,7 +53,7 @@ namespace Attribulator.Plugins.ModScript.Commands
         {
             var collection = GetCollection(databaseHelper, ClassName, CollectionName);
             var field = GetField(collection.Class, FieldName);
-            var data = collection.GetRawValue(field.Name);
+            var data = collection.GetRawValue(field.Key);
             var itemToEdit = data;
 
             if (data is VLTArrayType array)
@@ -70,7 +69,7 @@ namespace Attribulator.Plugins.ModScript.Commands
 
             var parsedProperties = PropertyUtils.ParsePath(PropertyPath).ToList();
             var retrievedProperty =
-                (PropertyUtils.ReflectedProperty) PropertyUtils.GetProperty(itemToEdit, parsedProperties);
+                (PropertyUtils.ReflectedProperty) PropertyUtils.GetProperty((VLTBaseType)itemToEdit, parsedProperties);
             var retrievedValue = retrievedProperty.GetValue();
 
             if (!(retrievedValue is Array retrievedArray))
@@ -91,7 +90,7 @@ namespace Attribulator.Plugins.ModScript.Commands
                 {
                     if (elementType.IsSubclassOf(typeof(VLTBaseType)))
                     {
-                        newArray.SetValue(TypeRegistry.ConstructInstance(elementType, collection.Class, field, collection), i);
+                        newArray.SetValue(databaseHelper.Database.TypeRegistry.ConstructTypeInstance(elementType), i);
                     }
                 }
             }

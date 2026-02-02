@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Threading.Tasks;
 using Attribulator.API.Plugin;
@@ -8,6 +8,7 @@ using JetBrains.Annotations;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using VaultLib.Core.DB;
+using Attribulator.API;
 
 namespace Attribulator.CLI.Commands
 {
@@ -50,7 +51,7 @@ namespace Attribulator.CLI.Commands
             var profile = ServiceProvider.GetRequiredService<IProfileService>().GetProfile(ProfileName);
             var storageFormat = ServiceProvider.GetRequiredService<IStorageFormatService>()
                 .GetStorageFormat(StorageFormatName);
-            var database = new Database(new DatabaseOptions(profile.GetGameId(), profile.GetDatabaseType()));
+            var database = DatabaseFactory.Create(new DatabaseOptions(profile.GetGameId(), profile.GetDatabaseType()));
             _logger.LogInformation("Loading database from disk...");
             var files = profile.LoadFiles(database, InputDirectory);
             database.CompleteLoad();

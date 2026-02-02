@@ -5,8 +5,6 @@ using System.IO;
 using System.Reflection;
 using Attribulator.API.Exceptions;
 using VaultLib.Core.Hashing;
-using VaultLib.Core.Types;
-using VaultLib.Core.Types.EA.Reflection;
 
 namespace Attribulator.API.Utils
 {
@@ -14,63 +12,31 @@ namespace Attribulator.API.Utils
     {
         private static readonly Dictionary<Type, Type> TypeCache = new Dictionary<Type, Type>();
 
-        public static VLTBaseType DoPrimitiveConversion(PrimitiveTypeBase primitiveTypeBase, string str)
-        {
-            var type = primitiveTypeBase.GetType();
-            if (TypeCache.TryGetValue(type, out var conversionType))
-                return DoPrimitiveConversion(primitiveTypeBase, str, conversionType);
-
-            // Do primitive conversion
-            var primitiveInfoAttribute =
-                type.GetCustomAttribute<PrimitiveInfoAttribute>();
-
-            if (primitiveInfoAttribute == null)
-            {
-                // Try to determine enum type
-                if (type.IsGenericType &&
-                    type.GetGenericTypeDefinition() == typeof(VLTEnumType<>))
-                    primitiveInfoAttribute = new PrimitiveInfoAttribute(type.GetGenericArguments()[0]);
-                else
-                    throw new InvalidDataException("Cannot determine primitive type");
-            }
-
-            var primitiveType = primitiveInfoAttribute.PrimitiveType;
-            TypeCache[type] = primitiveType;
-            return DoPrimitiveConversion(primitiveTypeBase, str, primitiveType);
-        }
-
-        private static VLTBaseType DoPrimitiveConversion(PrimitiveTypeBase primitiveTypeBase, string str,
-            Type conversionType)
+        public static object DoPrimitiveConversion(Type conversionType, string str)
         {
             if (conversionType.IsEnum)
             {
                 if (str.StartsWith("0x", StringComparison.Ordinal) &&
                     uint.TryParse(str.Substring(2), NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture,
                         out var val))
-                    primitiveTypeBase.SetValue((IConvertible) Enum.Parse(conversionType, val.ToString()));
-                else
-                    primitiveTypeBase.SetValue((IConvertible) Enum.Parse(conversionType, str));
-            }
-            else
-            {
-                if (str.StartsWith("0x", StringComparison.Ordinal) && uint.TryParse(str.Substring(2),
-                    NumberStyles.AllowHexSpecifier,
-                    CultureInfo.InvariantCulture, out var val))
-                    primitiveTypeBase.SetValue((IConvertible) Convert.ChangeType(val, conversionType));
-                else
-                    try
-                    {
-                        primitiveTypeBase.SetValue(
-                            (IConvertible) Convert.ChangeType(str, conversionType, CultureInfo.InvariantCulture));
-                    }
-                    catch (Exception e)
-                    {
-                        throw new ValueConversionException($"Failed to parse value [{str}] as type {conversionType}",
-                            e);
-                    }
+                    return Enum.Parse(conversionType, val.ToString());
+
+                return Enum.Parse(conversionType, str);
             }
 
-            return primitiveTypeBase;
+            if (str.StartsWith("0x", StringComparison.Ordinal) && uint.TryParse(str.Substring(2),
+                NumberStyles.AllowHexSpecifier,
+                CultureInfo.InvariantCulture, out var hexVal))
+                return Convert.ChangeType(hexVal, conversionType, CultureInfo.InvariantCulture);
+
+            try
+            {
+                return Convert.ChangeType(str, conversionType, CultureInfo.InvariantCulture);
+            }
+            catch (Exception e)
+            {
+                throw new ValueConversionException($"Failed to parse value [{str}] as type {conversionType}", e);
+            }
         }
 
         public static object DoPrimitiveConversion(object value, string str)
@@ -86,17 +52,17 @@ namespace Attribulator.API.Utils
                 if (str.StartsWith("0x", StringComparison.Ordinal))
                     return uint.Parse(str.Substring(2), NumberStyles.AllowHexSpecifier);
                 if (!uint.TryParse(str, out _))
-                    return VLT32Hasher.Hash(str);
+                    return Vlt32Hasher.Hash(str);
             }
             else if (type == typeof(int))
             {
                 if (str.StartsWith("0x", StringComparison.Ordinal))
                     return int.Parse(str.Substring(2), NumberStyles.AllowHexSpecifier);
                 if (!uint.TryParse(str, out _))
-                    return unchecked((int) VLT32Hasher.Hash(str));
+                    return unchecked((int) Vlt32Hasher.Hash(str));
             }
 
-            return type.IsEnum ? Enum.Parse(type, str) : Convert.ChangeType(str, type, CultureInfo.InvariantCulture);
+            return DoPrimitiveConversion(type, str);
         }
     }
 }

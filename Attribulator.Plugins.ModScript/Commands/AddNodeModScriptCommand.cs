@@ -44,7 +44,7 @@ namespace Attribulator.Plugins.ModScript.Commands
             else
                 addToVault = databaseHelper.Vaults.FirstOrDefault(vault =>
                     databaseHelper.GetCollectionsInVault(vault)
-                        .Any(collection => collection.Class.Name == ClassName));
+                        .Any(collection => ResolveName(collection.Class.Key) == ClassName));
 
             if (addToVault == null)
                 throw new CommandExecutionException("failed to determine vault to insert new collection into");
@@ -57,27 +57,23 @@ namespace Attribulator.Plugins.ModScript.Commands
             //else
                 foreach (var baseField in vltClass.BaseFields)
                 {
-                    var vltBaseType = TypeRegistry.CreateInstance(databaseHelper.Database.Options.GameId, vltClass,
-                        baseField,
-                        newNode);
+                    var registry = databaseHelper.Database.TypeRegistry;
+                    var fieldType = registry.ResolveFieldType(baseField);
+                    object vltBaseType = registry.ConstructTypeInstance(fieldType);
 
-                    if (vltBaseType is VLTArrayType array)
+                    if (baseField.IsArray && vltBaseType is VLTArrayType array)
                     {
                         array.Capacity = baseField.MaxCount;
-                        array.ItemAlignment = baseField.Alignment;
-                        array.FieldSize = baseField.Size;
                         var itemType = array.ItemType;
-
                         for (var i = 0; i < array.Capacity; i++)
-                            array.Items.Add(TypeRegistry.ConstructInstance(itemType, vltClass, baseField, newNode));
+                            array.Items.Add(registry.ConstructTypeInstance(itemType));
                     }
 
-                    newNode.SetRawValue(baseField.Name,
-                        vltBaseType);
+                    newNode.SetRawValue(baseField.Key, vltBaseType);
                 }
 
-            if (vltClass.HasField("CollectionName")) newNode.SetDataValue("CollectionName", CollectionName);
-            HashManager.AddUserHash(CollectionName);
+            if (vltClass.HasField("CollectionName")) newNode.SetRawValue("CollectionName", CollectionName);
+            HashManager.AddVlt(CollectionName);
         }
     }
 }

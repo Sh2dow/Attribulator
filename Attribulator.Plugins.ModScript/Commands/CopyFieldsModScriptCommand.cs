@@ -45,12 +45,12 @@ namespace Attribulator.Plugins.ModScript.Commands
         {
             var srcCollection = GetCollection(databaseHelper, ClassName, SourceCollectionName);
             var dstCollection = GetCollection(databaseHelper, ClassName, DestinationCollectionName);
-            var values = new Dictionary<VltClassField, VLTBaseType>();
+            var values = new Dictionary<VltClassField, object>();
 
             if ((Options & CopyOptions.Base) != 0)
                 foreach (var baseField in srcCollection.Class.BaseFields)
                     values.Add(baseField,
-                        ValueCloningUtils.CloneValue(databaseHelper.Database, srcCollection.GetRawValue(baseField.Name),
+                        ValueCloningUtils.CloneValue(databaseHelper.Database, srcCollection.GetRawValue(baseField.Key),
                             srcCollection.Class,
                             baseField, dstCollection));
 
@@ -71,13 +71,13 @@ namespace Attribulator.Plugins.ModScript.Commands
             if ((Options & CopyOptions.Base) != 0)
                 foreach (var (key, value) in values)
                     if (key.IsInLayout)
-                        dstCollection.SetRawValue(key.Name, value);
+                        dstCollection.SetRawValue(key.Key, value);
 
             if ((Options & CopyOptions.Optional) != 0)
                 foreach (var (field, value) in values)
-                    if (!field.IsInLayout && (!dstCollection.HasEntry(field.Name) ||
+                    if (!field.IsInLayout && (!dstCollection.HasEntry(field.Key) ||
                                               (Options & CopyOptions.OverwriteOptional) != 0))
-                        dstCollection.SetRawValue(field.Name, value);
+                        dstCollection.SetRawValue(field.Key, value);
         }
     }
 }

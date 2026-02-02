@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using Attribulator.API.Data;
-using VaultLib.Core.DB;
 
 namespace Attribulator.API.Serialization
 {

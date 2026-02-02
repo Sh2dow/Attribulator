@@ -6,10 +6,9 @@ using Attribulator.API.Utils;
 using Attribulator.ModScript.API;
 using Attribulator.ModScript.API.Utils;
 using VaultLib.Core.Types;
-using VaultLib.Core.Types.Abstractions;
 using VaultLib.Core.Types.Attrib.Types;
-using VaultLib.Core.Types.EA.Reflection;
 using VaultLib.Core.Utils;
+using VaultLib.Core.Hashing;
 
 namespace Attribulator.Plugins.ModScript.Commands
 {
@@ -67,7 +66,7 @@ namespace Attribulator.Plugins.ModScript.Commands
         {
             var collection = GetCollection(databaseHelper, ClassName, CollectionName);
             var field = GetField(collection.Class, FieldName);
-            var data = collection.GetRawValue(field.Name);
+            var data = collection.GetRawValue(field.Key);
             var itemToEdit = data;
 
             if (data is VLTArrayType array)
@@ -85,19 +84,31 @@ namespace Attribulator.Plugins.ModScript.Commands
             {
                 switch (itemToEdit)
                 {
-                    case PrimitiveTypeBase primitiveTypeBase:
-                        ValueConversionUtils.DoPrimitiveConversion(primitiveTypeBase, Value);
-                        break;
                     case IStringValue stringValue:
                         stringValue.SetString(Value);
                         break;
-                    case BaseRefSpec refSpec:
+                    case BaseRefSpec<Key32> refSpec:
                         // NOTE: This is a compatibility feature for certain types, such as GCollectionKey, which are technically a RefSpec.
-                        refSpec.CollectionKey = Value;
+                        refSpec.SetCollectionKey(ParseKey(Value));
                         break;
                     default:
+                        if (itemToEdit is IConvertible)
+                        {
+                            var converted = ValueConversionUtils.DoPrimitiveConversion(itemToEdit.GetType(), Value);
+                            if (data is VLTArrayType arrayValue)
+                            {
+                                arrayValue.SetValue(ArrayIndex, converted);
+                            }
+                            else
+                            {
+                                collection.SetRawValue(field.Key, converted);
+                            }
+
+                            break;
+                        }
+
                         throw new CommandExecutionException(
-                            $"cannot handle update for {collection.Class.Name}[{field.Name}]");
+                            $"cannot handle update for {ResolveName(collection.Class.Key)}[{ResolveName(field.Key)}]");
                 }
             }
             else
@@ -112,14 +123,19 @@ namespace Attribulator.Plugins.ModScript.Commands
                         .ToArray();
                     if (indices.Length != 2) throw new CommandExecutionException("invalid matrix access");
 
-                    matrix.Data ??= new float[16];
-                    matrix.Data[4 * (indices[0] - 1) + (indices[1] - 1)] =
-                        float.Parse(Value, CultureInfo.InvariantCulture);
+                    var index = 4 * (indices[0] - 1) + (indices[1] - 1);
+                    var parsedValue = float.Parse(Value, CultureInfo.InvariantCulture);
+                    SetMatrixValue(ref matrix, index, parsedValue);
+
+                    if (data is VLTArrayType arrayValue)
+                        arrayValue.SetValue(ArrayIndex, matrix);
+                    else
+                        collection.SetRawValue(field.Key, matrix);
                 }
                 else
                 {
                     var parsedProperties = PropertyUtils.ParsePath(PropertyPath).ToList();
-                    var retrievedProperty = PropertyUtils.GetProperty(itemToEdit, parsedProperties);
+                    var retrievedProperty = PropertyUtils.GetProperty((VLTBaseType)itemToEdit, parsedProperties);
                     var retrievedValue = retrievedProperty.GetValue();
 
                     var value = ValueConversionUtils.DoPrimitiveConversion(retrievedValue, Value);
@@ -129,5 +145,42 @@ namespace Attribulator.Plugins.ModScript.Commands
                 }
             }
         }
+
+        private static void SetMatrixValue(ref Matrix matrix, int index, float value)
+        {
+            switch (index)
+            {
+                case 0: matrix.M11 = value; break;
+                case 1: matrix.M12 = value; break;
+                case 2: matrix.M13 = value; break;
+                case 3: matrix.M14 = value; break;
+                case 4: matrix.M21 = value; break;
+                case 5: matrix.M22 = value; break;
+                case 6: matrix.M23 = value; break;
+                case 7: matrix.M24 = value; break;
+                case 8: matrix.M31 = value; break;
+                case 9: matrix.M32 = value; break;
+                case 10: matrix.M33 = value; break;
+                case 11: matrix.M34 = value; break;
+                case 12: matrix.M41 = value; break;
+                case 13: matrix.M42 = value; break;
+                case 14: matrix.M43 = value; break;
+                case 15: matrix.M44 = value; break;
+                default: throw new CommandExecutionException("invalid matrix index");
+            }
+        }
+
+        private static Key32 ParseKey(string name)
+        {
+            if (name.StartsWith("0x") && uint.TryParse(name.Substring(2),
+                    NumberStyles.AllowHexSpecifier,
+                    CultureInfo.InvariantCulture, out var hexVal))
+            {
+                return new Key32(hexVal);
+            }
+
+            return Key32.FromString(name);
+        }
+
     }
 }

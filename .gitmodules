@@ -1,3 +1,6 @@
 [submodule "Modules/VaultLib"]
     path = Modules/VaultLib
     url = https://github.com/Sh2dow/VaultLib.git
+[submodule "Modules/CompLib"]
+	path = Modules/CompLib
+	url = https://github.com/Sh2dow/CompLib.git

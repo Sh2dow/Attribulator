@@ -17,12 +17,17 @@ namespace Attribulator.UI
             InitializeComponent();
 
             this.collection = collection;
-            this.Title += collection.Name;
+            this.Title += VltUiUtils.GetName(collection);
 
             var data = this.collection.GetData().Select(x => x.Key).ToList();
-            foreach (var field in collection.Class.OptionalFields.OrderBy(x => x.Name))
+            var optionalFields = collection.Class.Fields.Values.Where(x => !x.IsInLayout);
+            foreach (var field in optionalFields.OrderBy(x => x.Key))
             {
-                this.FieldStack.Items.Add(new ListBoxItem { Content = new EditFieldItem(field.Name, data.Contains(field.Name)) });
+                var fieldName = VltUiUtils.ResolveName(field.Key);
+                this.FieldStack.Items.Add(new ListBoxItem
+                {
+                    Content = new EditFieldItem(fieldName, data.Contains(field.Key))
+                });
             }
         }
 
@@ -36,11 +41,13 @@ namespace Attribulator.UI
                 {
                     if (field.IsChecked)
                     {
-                        commands.Add($"add_field {this.collection.Class.Name} {this.collection.Name} {field.FieldName}");
+                        commands.Add(
+                            $"add_field {VltUiUtils.GetName(this.collection.Class)} {VltUiUtils.GetName(this.collection)} {field.FieldName}");
                     }
                     else
                     {
-                        commands.Add($"delete_field {this.collection.Class.Name} {this.collection.Name} {field.FieldName}");
+                        commands.Add(
+                            $"delete_field {VltUiUtils.GetName(this.collection.Class)} {VltUiUtils.GetName(this.collection)} {field.FieldName}");
                     }
                 }
             }
