@@ -23,6 +23,19 @@ namespace Attribulator.API.Serialization
         private static readonly Dictionary<(string, string), VltClassField> FieldCache =
             new Dictionary<(string, string), VltClassField>();
 
+        private static Key32 ParseKey32(string value)
+        {
+            if (!string.IsNullOrWhiteSpace(value) &&
+                value.StartsWith("0x", System.StringComparison.OrdinalIgnoreCase) &&
+                uint.TryParse(value.AsSpan(2), System.Globalization.NumberStyles.HexNumber,
+                    System.Globalization.CultureInfo.InvariantCulture, out var hex))
+            {
+                return new Key32(hex);
+            }
+
+            return Key32.FromString(value);
+        }
+
         /// <inheritdoc />
         public abstract SerializedDatabaseInfo LoadInfo(string sourceDirectory);
 
@@ -30,6 +43,10 @@ namespace Attribulator.API.Serialization
         public async Task<IEnumerable<LoadedFile>> DeserializeAsync(string sourceDirectory,
             Database destinationDatabase, IEnumerable<string> fileNames = null)
         {
+            var hashListPath = Path.Combine(sourceDirectory, "hashes.txt");
+            if (File.Exists(hashListPath))
+                HashManager.LoadDictionary(hashListPath);
+
             var loadedFiles = new List<LoadedFile>();
             var loadedDatabase = LoadInfo(sourceDirectory);
             var fileNameList = fileNames?.ToList() ?? new List<string>();
@@ -42,14 +59,14 @@ namespace Attribulator.API.Serialization
             foreach (var loadedDatabaseClass in loadedDatabase.Classes)
             {
                 var className = loadedDatabaseClass.Name;
-                var classKey = Key32.FromString(className);
+                var classKey = ParseKey32(className);
                 var vltClass = new VltClass(classKey);
 
                 foreach (var loadedDatabaseClassField in loadedDatabaseClass.Fields)
                 {
                     var fieldName = loadedDatabaseClassField.Name;
-                    var fieldKey = Key32.FromString(fieldName);
-                    var typeKey = Key32.FromString(loadedDatabaseClassField.TypeName);
+                    var fieldKey = ParseKey32(fieldName);
+                    var typeKey = ParseKey32(loadedDatabaseClassField.TypeName);
                     var field = new VltClassField(
                         vltClass,
                         fieldKey,
@@ -96,7 +113,7 @@ namespace Attribulator.API.Serialization
 
                 foreach (var loadedCollection in collectionsToAdd)
                 {
-                    var collectionKey = Key32.FromString(loadedCollection.Name);
+                    var collectionKey = ParseKey32(loadedCollection.Name);
                     var newVltCollection = new VltCollection(newVault, vltClass, collectionKey);
                     var collectionId = $"{vltClass.Key}/{collectionKey}";
 
@@ -184,7 +201,7 @@ namespace Attribulator.API.Serialization
                 foreach (var parentCollection in from vaultCollection in vaultCollections
                     let parentKey = collectionParentDictionary[$"{vaultCollection.Class.Key}/{vaultCollection.Key}"]
                     where !string.IsNullOrEmpty(parentKey)
-                    select collectionDictionary[$"{vaultCollection.Class.Key}/{Key32.FromString(parentKey)}"]
+                    select collectionDictionary[$"{vaultCollection.Class.Key}/{ParseKey32(parentKey)}"]
                     into parentCollection
                     where parentCollection.Vault.Name != vault.Name
                     select parentCollection)
@@ -218,8 +235,9 @@ namespace Attribulator.API.Serialization
                     }
                     else
                     {
-                        var parentCollection = collectionDictionary[$"{collection.Class.Key}/{Key32.FromString(parentKey)}"];
+                        var parentCollection = collectionDictionary[$"{collection.Class.Key}/{ParseKey32(parentKey)}"];
                         collection.SetParent(parentCollection);
+                        destinationDatabase.RowManager.AddCollection(collection);
                     }
                 }
             }

@@ -85,7 +85,15 @@ namespace Attribulator.Plugins.YAMLSupport
 
         private static string ResolveName(Key32 key)
         {
-            return HashManager.ResolveVlt(key.Hash) ?? key.ToString();
+            var name = HashManager.ResolveVlt(key.Hash);
+            if (string.IsNullOrWhiteSpace(name))
+                return key.ToString();
+
+            // Guard against incorrect hash list entries: only trust names that hash back to the same key.
+            if (Key32.FromString(name).Hash != key.Hash)
+                return key.ToString();
+
+            return name;
         }
 
         private static string ResolveName(VltClass vltClass)
@@ -100,7 +108,14 @@ namespace Attribulator.Plugins.YAMLSupport
 
         private static string ResolveTypeName(VltClassField field)
         {
-            return HashManager.ResolveVlt(field.TypeKey.Hash) ?? field.TypeKey.ToString();
+            var name = HashManager.ResolveVlt(field.TypeKey.Hash);
+            if (string.IsNullOrWhiteSpace(name))
+                return field.TypeKey.ToString();
+
+            if (Key32.FromString(name).Hash != field.TypeKey.Hash)
+                return field.TypeKey.ToString();
+
+            return name;
         }
 
         private static string GetShortPath(VltCollection collection)
@@ -174,6 +189,13 @@ namespace Attribulator.Plugins.YAMLSupport
             using var sw = new StreamWriter(Path.Combine(destinationDirectory, "info.yml"));
             serializer.Serialize(sw, loadedDatabase);
 
+            var hashListPath = Path.Combine(destinationDirectory, "hashes.txt");
+            var hashStrings = HashManager.GetVltStrings()
+                .Where(s => !string.IsNullOrWhiteSpace(s))
+                .Distinct(StringComparer.Ordinal)
+                .OrderBy(s => s, StringComparer.Ordinal);
+            File.WriteAllLines(hashListPath, hashStrings);
+
             foreach (var loadedDatabaseFile in loadedFileList)
             {
                 var baseDirectory =
@@ -218,7 +240,8 @@ namespace Attribulator.Plugins.YAMLSupport
 
         protected override IEnumerable<string> GetDataFilePaths(string directory)
         {
-            return Directory.GetFiles(directory, "*.yml");
+            return Directory.GetFiles(directory, "*.yml")
+                .OrderBy(path => path, StringComparer.OrdinalIgnoreCase);
         }
 
         protected override async Task<IEnumerable<SerializedCollection>> LoadDataFileAsync(string path)
@@ -360,9 +383,33 @@ namespace Attribulator.Plugins.YAMLSupport
         {
             if (instance is VLTArrayType array)
             {
+                if (serializedValue is Dictionary<object, object> dictionary)
+                {
+                    return DoArrayConversion(database, gameId, dir, vltClass, field, vltCollection, array, dictionary);
+                }
+
                 if (serializedValue is IList list)
                 {
-                    array.Capacity = (ushort)list.Count;
+                    var allowOverride = _serializationOptions.AllowArraySizeOverride;
+                    var capacity = (ushort)list.Count;
+                    if (field.MaxCount > 0)
+                    {
+                        if (list.Count > field.MaxCount)
+                        {
+                            if (!allowOverride)
+                                throw new InvalidDataException(
+                                    $"In collection {GetShortPath(vltCollection)}, the size of array field [{ResolveName(field)}] " +
+                                    $"({list.Count}) is greater than the allowed size ({field.MaxCount}).");
+                            capacity = (ushort)list.Count;
+                        }
+                        else if (field.IsInLayout)
+                        {
+                            // Preserve fixed layout size for in-layout arrays.
+                            capacity = field.MaxCount;
+                        }
+                    }
+
+                    array.Capacity = capacity;
                     array.Items = new List<object>();
                     foreach (var item in list)
                         array.Items.Add(ConvertArrayItem(database, gameId, dir, vltClass, field, vltCollection, array, item));
@@ -370,7 +417,7 @@ namespace Attribulator.Plugins.YAMLSupport
                 }
 
                 // allow scalar shorthand for single-item arrays
-                array.Capacity = 1;
+                array.Capacity = field.IsInLayout && field.MaxCount > 0 ? field.MaxCount : (ushort)1;
                 array.Items = new List<object>
                 {
                     ConvertArrayItem(database, gameId, dir, vltClass, field, vltCollection, array, serializedValue)
@@ -648,9 +695,22 @@ namespace Attribulator.Plugins.YAMLSupport
                         }
                         case Dictionary<object, object> objectDictionary:
                         {
-                            var propInstance = propType.IsSubclassOf(typeof(VLTBaseType))
-                                ? database.TypeRegistry.ConstructTypeInstance(propType)
-                                : Activator.CreateInstance(propType);
+                            object propInstance;
+                            if (propType.IsSubclassOf(typeof(VLTBaseType)))
+                            {
+                                try
+                                {
+                                    propInstance = database.TypeRegistry.ConstructTypeInstance(propType);
+                                }
+                                catch
+                                {
+                                    propInstance = Activator.CreateInstance(propType);
+                                }
+                            }
+                            else
+                            {
+                                propInstance = Activator.CreateInstance(propType);
+                            }
 
                             propertyInfo.SetValue(instance,
                                 DoDictionaryConversion(database, vltClass, field, vltCollection, propInstance,
