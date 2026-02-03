@@ -1,10 +1,12 @@
 ﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System;
 using System.IO;
+using System.Linq;
 using CoreLibraries.IO;
 using VaultLib.Core;
-using VaultLib.Core.DB;
 using VaultLib.Core.Pack;
+using VaultLib.Core.DataInterfaces;
 
 namespace Attribulator.Plugins.BPSupport
 {
@@ -17,7 +19,18 @@ namespace Attribulator.Plugins.BPSupport
             _vaultName = vaultName;
         }
 
-        public IList<Vault> Load(BinaryReader br, Database database, PackLoadingOptions loadingOptions = null)
+        public IList<Vault<TKey>> Load<TKey>(BinaryReader br, VaultLib.Core.DB.Database<TKey> database,
+            PackLoadingOptions? loadingOptions = null) where TKey : struct, IKey<TKey>
+        {
+            if (typeof(TKey) != typeof(Key32))
+                throw new NotSupportedException("BurnoutVaultPack only supports Key32 databases.");
+
+            var typedDatabase = (Database)(object)database;
+            var loaded = LoadKey32(br, typedDatabase, loadingOptions);
+            return loaded.Cast<Vault<TKey>>().ToList();
+        }
+
+        private IList<Vault> LoadKey32(BinaryReader br, Database database, PackLoadingOptions? loadingOptions)
         {
             var vltOffset = br.ReadUInt32();
             var vltSize = br.ReadUInt32();
@@ -40,25 +53,32 @@ namespace Attribulator.Plugins.BPSupport
 
             if (br.Read(binData) != binData.Length) throw new InvalidDataException();
 
-            var vault = new Vault(_vaultName)
-            {
-                BinStream = new MemoryStream(binData),
-                VltStream = new MemoryStream(vltData)
-            };
-
-            using (var loadingWrapper = new VaultLoadingWrapper(vault, loadingOptions?.ByteOrder ?? ByteOrder.Little))
-            {
-                database.LoadVault(vault, loadingWrapper);
-            }
+            using var readWrapper = new VaultReadWrapper(
+                _vaultName,
+                new MemoryStream(binData),
+                new MemoryStream(vltData),
+                loadingOptions?.ByteOrder ?? ByteOrder.Little);
+            var vault = database.LoadVault(readWrapper);
 
             return new ReadOnlyCollection<Vault>(new List<Vault>(new[] {vault}));
         }
 
-        public void Save(BinaryWriter bw, IList<Vault> vaults, PackSavingOptions savingOptions)
+        public void Save<TKey>(BinaryWriter bw, IList<Vault<TKey>> vaults, PackSavingOptions? savingOptions = null)
+            where TKey : struct, IKey<TKey>
+        {
+            if (typeof(TKey) != typeof(Key32))
+                throw new NotSupportedException("BurnoutVaultPack only supports Key32 databases.");
+
+            var typedVaults = vaults.Cast<Vault>().ToList();
+            SaveKey32(bw, typedVaults, savingOptions);
+        }
+
+        private void SaveKey32(BinaryWriter bw, IList<Vault> vaults, PackSavingOptions? savingOptions)
         {
             bw.Write(0x10);
             var vault = vaults[0];
-            var vw = new VaultWriter(vault, new VaultSaveOptions {HashMode = VaultHashMode.Hash64});
+            var writeOptions = savingOptions?.VaultWriteOptions ?? new VaultWriteOptions();
+            var vw = new VaultWriter<Key32>(vault, writeOptions);
             var streamInfo = vw.BuildVault();
             bw.Write((uint) streamInfo.VltStream.Length);
             bw.Write(0);

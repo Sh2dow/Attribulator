@@ -54,7 +54,7 @@ namespace Attribulator.Plugins.BPSupport
 
         public DatabaseType GetDatabaseType()
         {
-            return DatabaseType.X64Database;
+            return DatabaseType.X86Database;
         }
     }
 }

@@ -12,6 +12,7 @@ using Attribulator.API.Serialization;
 using Attribulator.API.Utils;
 using VaultLib.Core;
 using VaultLib.Core.Data;
+using VaultLib.Core.DataInterfaces;
 using VaultLib.Core.DB;
 using VaultLib.Core.Hashing;
 using VaultLib.Core.Types;
@@ -29,6 +30,58 @@ namespace Attribulator.Plugins.YAMLSupport
     {
         private static readonly IDeserializer Deserializer = new DeserializerBuilder().Build();
         private readonly SerializationOptions _serializationOptions;
+
+        private static object UnwrapScalar(object value)
+        {
+            if (value is Dictionary<object, object> map)
+            {
+                if (map.TryGetValue("Hash", out var hashValue) || map.TryGetValue("hash", out hashValue))
+                    return UnwrapScalar(hashValue);
+                if (map.TryGetValue("Value", out var valueValue) || map.TryGetValue("value", out valueValue))
+                    return UnwrapScalar(valueValue);
+                if (map.TryGetValue("Key", out var keyValue) || map.TryGetValue("key", out keyValue))
+                    return UnwrapScalar(keyValue);
+                if (map.Count == 1)
+                    return UnwrapScalar(map.Values.First());
+                foreach (var v in map.Values)
+                {
+                    var unwrapped = UnwrapScalar(v);
+                    if (unwrapped is IConvertible || unwrapped is string)
+                        return unwrapped;
+                }
+            }
+
+            if (value is List<object> list && list.Count == 1)
+                return UnwrapScalar(list[0]);
+
+            return value;
+        }
+
+        private static BinKey32 ConvertBinKey32(object value)
+        {
+            var unwrapped = UnwrapScalar(value);
+            if (unwrapped is BinKey32 binKey)
+                return binKey;
+            if (unwrapped is Key32 key32)
+                return new BinKey32(key32.Hash);
+            if (unwrapped is IConvertible convertible)
+                return new BinKey32(Convert.ToUInt32(convertible, CultureInfo.InvariantCulture));
+
+            var text = unwrapped?.ToString();
+            if (string.IsNullOrWhiteSpace(text))
+                return BinKey32.Zero;
+            if (text.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
+            {
+                if (uint.TryParse(text.AsSpan(2), NumberStyles.HexNumber, CultureInfo.InvariantCulture,
+                        out var hexValue))
+                    return new BinKey32(hexValue);
+            }
+
+            if (uint.TryParse(text, NumberStyles.Integer, CultureInfo.InvariantCulture, out var intValue))
+                return new BinKey32(intValue);
+
+            return BinKey32.FromString(text);
+        }
 
         private static string ResolveName(Key32 key)
         {
@@ -305,9 +358,38 @@ namespace Attribulator.Plugins.YAMLSupport
             VltCollection vltCollection,
             object serializedValue, object instance)
         {
+            if (instance is VLTArrayType array)
+            {
+                if (serializedValue is IList list)
+                {
+                    array.Capacity = (ushort)list.Count;
+                    array.Items = new List<object>();
+                    foreach (var item in list)
+                        array.Items.Add(ConvertArrayItem(database, gameId, dir, vltClass, field, vltCollection, array, item));
+                    return array;
+                }
+
+                // allow scalar shorthand for single-item arrays
+                array.Capacity = 1;
+                array.Items = new List<object>
+                {
+                    ConvertArrayItem(database, gameId, dir, vltClass, field, vltCollection, array, serializedValue)
+                };
+                return array;
+            }
+
             switch (serializedValue)
             {
                 case string str:
+                    if (string.Equals(str, "null", StringComparison.OrdinalIgnoreCase))
+                    {
+                        return instance;
+                    }
+                    if (string.IsNullOrWhiteSpace(str))
+                    {
+                        return instance;
+                    }
+
                     switch (instance)
                     {
                         case IStringValue stringValue:
@@ -332,12 +414,15 @@ namespace Attribulator.Plugins.YAMLSupport
 
                     break;
                 case Dictionary<object, object> dictionary:
-                    return instance is VLTArrayType array
-                        ? DoArrayConversion(database, gameId, dir, vltClass, field, vltCollection, array, dictionary)
+                    return instance is VLTArrayType arrayValue
+                        ? DoArrayConversion(database, gameId, dir, vltClass, field, vltCollection, arrayValue, dictionary)
                         : DoDictionaryConversion(database, vltClass, field, vltCollection, instance, dictionary);
             }
 
-            throw new InvalidDataException("Could not convert serialized value of type: " + serializedValue.GetType());
+            throw new InvalidDataException(
+                $"Could not convert serialized value of type {serializedValue.GetType()} " +
+                $"for {ResolveName(vltClass)}[{ResolveName(field)}] in {GetShortPath(vltCollection)} " +
+                $"(value: {serializedValue}, instance: {instance?.GetType()})");
         }
 
         private VLTArrayType DoArrayConversion(Database database, string gameId, string dir, VltClass vltClass,
@@ -365,13 +450,110 @@ namespace Attribulator.Plugins.YAMLSupport
             array.Items = new List<object>();
             foreach (var o in rawItemList)
             {
-                var newArrayItem =
-                    ConvertSerializedValueToDataValue(database, gameId, dir, vltClass, field, vltCollection, o, false);
-
-                array.Items.Add(newArrayItem);
+                array.Items.Add(ConvertArrayItem(database, gameId, dir, vltClass, field, vltCollection, array, o));
             }
 
             return array;
+        }
+
+        private object ConvertArrayItem(Database database, string gameId, string dir, VltClass vltClass,
+            VltClassField field, VltCollection vltCollection, VLTArrayType array, object serializedValue)
+        {
+            var itemType = ResolveType(array.ItemType);
+
+            if (serializedValue == null)
+                return database.TypeRegistry.ConstructTypeInstance(itemType);
+
+            if (serializedValue is string str)
+            {
+                if (string.Equals(str, "null", StringComparison.OrdinalIgnoreCase) ||
+                    string.IsNullOrWhiteSpace(str))
+                    return database.TypeRegistry.ConstructTypeInstance(itemType);
+
+                if (itemType == typeof(string))
+                    return str;
+
+                if (itemType.IsEnum)
+                    return Enum.Parse(itemType, str);
+
+                if (itemType.IsPrimitive)
+                {
+                    var fixedValue = FixUpValueForComplexObject(str, itemType);
+                    return Convert.ChangeType(fixedValue, itemType, CultureInfo.InvariantCulture);
+                }
+            }
+
+            if (itemType.IsEnum)
+            {
+                var enumValue = UnwrapScalar(serializedValue);
+                return Enum.Parse(itemType, enumValue?.ToString());
+            }
+
+            if (itemType.IsPrimitive || itemType == typeof(string))
+            {
+                object fixedValue = UnwrapScalar(serializedValue);
+
+                if (itemType == typeof(bool))
+                {
+                    if (fixedValue is bool boolValue)
+                        return boolValue;
+                    if (fixedValue is IConvertible)
+                    {
+                        try
+                        {
+                            return Convert.ToBoolean(fixedValue, CultureInfo.InvariantCulture);
+                        }
+                        catch
+                        {
+                            // fall through to string handling
+                        }
+                    }
+
+                    var text = fixedValue?.ToString();
+                    if (int.TryParse(text, NumberStyles.Integer, CultureInfo.InvariantCulture, out var intBool))
+                        return intBool != 0;
+                    if (float.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out var floatBool))
+                        return Math.Abs(floatBool) > float.Epsilon;
+                    if (string.Equals(text, "1", StringComparison.OrdinalIgnoreCase))
+                        return true;
+                    if (string.Equals(text, "0", StringComparison.OrdinalIgnoreCase))
+                        return false;
+                    if (string.Equals(text, "true", StringComparison.OrdinalIgnoreCase))
+                        return true;
+                    if (string.Equals(text, "false", StringComparison.OrdinalIgnoreCase))
+                        return false;
+                }
+
+                fixedValue = FixUpValueForComplexObject(fixedValue, itemType);
+                if (fixedValue is IConvertible)
+                    return Convert.ChangeType(fixedValue, itemType, CultureInfo.InvariantCulture);
+
+                try
+                {
+                    return Convert.ChangeType(fixedValue?.ToString(), itemType, CultureInfo.InvariantCulture);
+                }
+                catch
+                {
+                    throw new InvalidDataException(
+                        $"Could not convert array item for {ResolveName(vltClass)}[{ResolveName(field)}] in {GetShortPath(vltCollection)} " +
+                        $"(value: {serializedValue}, itemType: {itemType})");
+                }
+            }
+
+            if (serializedValue is Dictionary<object, object> dictionary)
+            {
+                var instance = itemType.IsSubclassOf(typeof(VLTBaseType))
+                    ? database.TypeRegistry.ConstructTypeInstance(itemType)
+                    : Activator.CreateInstance(itemType);
+                return DoDictionaryConversion(database, vltClass, field, vltCollection, instance, dictionary);
+            }
+
+            if (itemType.IsInstanceOfType(serializedValue))
+                return serializedValue;
+
+            throw new InvalidDataException(
+                $"Could not convert array item for {ResolveName(vltClass)}[{ResolveName(field)}] in {GetShortPath(vltCollection)} " +
+                $"(value: {serializedValue}, itemType: {itemType})");
         }
 
         private static object DoDictionaryConversion(Database database, VltClass vltClass, VltClassField field,
@@ -384,8 +566,34 @@ namespace Attribulator.Plugins.YAMLSupport
                     instance.GetType().GetProperty(propName, BindingFlags.Public | BindingFlags.Instance);
 
                 if (propertyInfo == null)
-                    throw new InvalidDataException(
-                        $"Cannot set unknown property of '{instance.GetType()}': '{propName}'");
+                {
+                    var fieldInfo = instance.GetType().GetField(propName,
+                        BindingFlags.Public | BindingFlags.Instance);
+                    if (fieldInfo == null)
+                        continue;
+
+                    var fieldType = fieldInfo.FieldType;
+                    if (fieldType.IsEnum)
+                    {
+                        fieldInfo.SetValue(instance, Enum.Parse(fieldType, value.ToString()));
+                    }
+                    else if (fieldType == typeof(BinKey32))
+                    {
+                        fieldInfo.SetValue(instance, ConvertBinKey32(value));
+                    }
+                    else if (fieldType.IsPrimitive || fieldType == typeof(string))
+                    {
+                        var newValue = FixUpValueForComplexObject(value, fieldType);
+                        fieldInfo.SetValue(instance,
+                            Convert.ChangeType(newValue, fieldType, CultureInfo.InvariantCulture));
+                    }
+                    else
+                    {
+                        fieldInfo.SetValue(instance, value);
+                    }
+
+                    continue;
+                }
 
                 if (propertyInfo.SetMethod == null || !propertyInfo.SetMethod.IsPublic) continue;
 
@@ -394,6 +602,10 @@ namespace Attribulator.Plugins.YAMLSupport
                 if (propType.IsEnum)
                 {
                     propertyInfo.SetValue(instance, Enum.Parse(propType, value.ToString()));
+                }
+                else if (propType == typeof(BinKey32))
+                {
+                    propertyInfo.SetValue(instance, ConvertBinKey32(value));
                 }
                 else if (propType.IsPrimitive || propType == typeof(string))
                 {

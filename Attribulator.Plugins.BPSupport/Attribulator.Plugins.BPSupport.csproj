@@ -13,10 +13,6 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="VaultLib.ModernBase" Version="1.2.0"/>
-    </ItemGroup>
-
-    <ItemGroup>
         <EmbeddedResource Include="Resources\hashes.txt">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </EmbeddedResource>
@@ -25,9 +21,10 @@
     <ItemGroup>
         <ProjectReference Include="..\Attribulator.API\Attribulator.API.csproj"/>
         <ProjectReference Include="..\Modules\VaultLib\VaultLib.Core\VaultLib.Core.csproj"/>
+        <ProjectReference Include="..\Modules\VaultLib\VaultLib.ModernBase\VaultLib.ModernBase.csproj"/>
     </ItemGroup>
 
-    <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="'$(SolutionDir)' != '' And '$(SolutionDir)' != '*Undefined*'">
         <Exec Command="if not exist $(SolutionDir)Attribulator.UI\bin\$(Configuration)\net9.0-windows\plugins\Attribulator.Plugins.BPSupport mkdir $(SolutionDir)Attribulator.UI\bin\$(Configuration)\net9.0-windows\plugins\Attribulator.Plugins.BPSupport"/>
         <Exec Command="xcopy /Y $(OutDir) $(SolutionDir)Attribulator.UI\bin\$(Configuration)\net9.0-windows\plugins\Attribulator.Plugins.BPSupport"/>
         <Exec Command="if not exist $(SolutionDir)Attribulator.UI\bin\$(Configuration)\net9.0-windows\plugins\Attribulator.Plugins.BPSupport\Resources mkdir $(SolutionDir)Attribulator.UI\bin\$(Configuration)\net9.0-windows\plugins\Attribulator.Plugins.BPSupport\Resources"/>

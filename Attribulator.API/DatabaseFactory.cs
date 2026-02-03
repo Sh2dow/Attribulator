@@ -21,15 +21,19 @@ namespace Attribulator.API
                 throw new NotSupportedException("Only X86Database (Key32) is supported in this build.");
             }
 
-            BaseGameModule<Key32> module = options.GameId switch
+            BaseGameModule<Key32> module;
+            if (!DatabaseModuleRegistry.TryGet(options.GameId, out module))
             {
-                "MOST_WANTED" => new VaultLib.Support.MostWanted.ModuleDef32(),
-                "CARBON" => new VaultLib.Support.Carbon.ModuleDef32(),
-                "PROSTREET" => new VaultLib.Support.ProStreet.ModuleDef(),
-                "UNDERCOVER" => new VaultLib.Support.Undercover.ModuleDef(),
-                "WORLD" => new VaultLib.Support.World.ModuleDef(),
-                _ => throw new NotSupportedException($"Unknown game id '{options.GameId}'.")
-            };
+                module = options.GameId switch
+                {
+                    "MOST_WANTED" => new VaultLib.Support.MostWanted.ModuleDef32(),
+                    "CARBON" => new VaultLib.Support.Carbon.ModuleDef32(),
+                    "PROSTREET" => new VaultLib.Support.ProStreet.ModuleDef(),
+                    "UNDERCOVER" => new VaultLib.Support.Undercover.ModuleDef(),
+                    "WORLD" => new VaultLib.Support.World.ModuleDef(),
+                    _ => throw new NotSupportedException($"Unknown game id '{options.GameId}'.")
+                };
+            }
 
             var typeRegistryBuilder = new TypeRegistryBuilder<Key32>(ByteOrder.Little);
             module.RegisterTypes(typeRegistryBuilder);
