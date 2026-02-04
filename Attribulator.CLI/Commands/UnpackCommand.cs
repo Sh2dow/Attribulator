@@ -49,8 +49,14 @@ namespace Attribulator.CLI.Commands
             if (!Directory.Exists(OutputDirectory)) Directory.CreateDirectory(OutputDirectory);
 
             var profile = ServiceProvider.GetRequiredService<IProfileService>().GetProfile(ProfileName);
-            var storageFormat = ServiceProvider.GetRequiredService<IStorageFormatService>()
-                .GetStorageFormat(StorageFormatName);
+            var storageFormatService = ServiceProvider.GetRequiredService<IStorageFormatService>();
+            var storageFormat = storageFormatService.GetStorageFormat(StorageFormatName);
+            
+            foreach (var format in storageFormatService.GetStorageFormats())
+            {
+                _logger.LogInformation($"{format.GetFormatId()} - {format.GetFormatName()}");
+            }
+            
             var database = DatabaseFactory.Create(new DatabaseOptions(profile.GetGameId(), profile.GetDatabaseType()));
             _logger.LogInformation("Loading database from disk...");
             var files = profile.LoadFiles(database, InputDirectory);

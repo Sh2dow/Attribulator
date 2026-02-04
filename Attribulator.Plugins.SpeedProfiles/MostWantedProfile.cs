@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using Attribulator.API;
 using Attribulator.API.Data;
+using VaultLib.Core;
 using VaultLib.Core.DB;
 using VaultLib.Core.Pack;
 
@@ -37,7 +38,12 @@ namespace Attribulator.Plugins.SpeedProfiles
                 Directory.CreateDirectory(Path.Combine(directory, file.Group));
                 var outPath = Path.Combine(directory, file.Group, file.Name + ".bin");
                 using var bw = new BinaryWriter(File.Open(outPath, FileMode.Create, FileAccess.ReadWrite));
-                vaultPack.Save(bw, file.Vaults.OrderBy(x => x.Name, StringComparer.Ordinal).ToList(), new PackSavingOptions());
+                var writeOptions = new VaultWriteOptions();
+                writeOptions.Quirks.StartChunkBeforeDepChunk = true;
+                writeOptions.Quirks.EnableBinEndChunk = true;
+                var savingOptions = new PackSavingOptions(vaultWriteOptions: writeOptions);
+
+                vaultPack.Save(bw, file.Vaults.OrderBy(x => x.Name, StringComparer.Ordinal).ToList(), savingOptions);
                 bw.Close();
 
                 if (file.Name == "gameplay")

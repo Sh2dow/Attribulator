@@ -65,7 +65,16 @@ namespace Attribulator.Plugins.YAMLSupport
             if (unwrapped is Key32 key32)
                 return new BinKey32(key32.Hash);
             if (unwrapped is IConvertible convertible)
-                return new BinKey32(Convert.ToUInt32(convertible, CultureInfo.InvariantCulture));
+            {
+                try
+                {
+                    return new BinKey32(Convert.ToUInt32(convertible, CultureInfo.InvariantCulture));
+                }
+                catch
+                {
+                    return BinKey32.Zero;
+                }
+            }
 
             var text = unwrapped?.ToString();
             if (string.IsNullOrWhiteSpace(text))
@@ -81,6 +90,98 @@ namespace Attribulator.Plugins.YAMLSupport
                 return new BinKey32(intValue);
 
             return BinKey32.FromString(text);
+        }
+
+        private static BinKey64 ConvertBinKey64(object value)
+        {
+            var unwrapped = UnwrapScalar(value);
+            if (unwrapped is BinKey64 binKey)
+                return binKey;
+            if (unwrapped is Key64 key64)
+                return new BinKey64(key64.Hash);
+            if (unwrapped is IConvertible convertible)
+                return new BinKey64(Convert.ToUInt64(convertible, CultureInfo.InvariantCulture));
+
+            var text = unwrapped?.ToString();
+            if (string.IsNullOrWhiteSpace(text))
+                return BinKey64.Zero;
+            if (text.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
+            {
+                if (ulong.TryParse(text.AsSpan(2), NumberStyles.HexNumber, CultureInfo.InvariantCulture,
+                        out var hexValue))
+                    return new BinKey64(hexValue);
+            }
+
+            if (ulong.TryParse(text, NumberStyles.Integer, CultureInfo.InvariantCulture, out var intValue))
+                return new BinKey64(intValue);
+
+            return BinKey64.FromString(text);
+        }
+
+        private static Key32 ConvertKey32(object value)
+        {
+            var unwrapped = UnwrapScalar(value);
+            if (unwrapped is Key32 key32)
+                return key32;
+            if (unwrapped is IConvertible convertible)
+            {
+                try
+                {
+                    return new Key32(Convert.ToUInt32(convertible, CultureInfo.InvariantCulture));
+                }
+                catch
+                {
+                    return Key32.Zero;
+                }
+            }
+
+            var text = unwrapped?.ToString();
+            if (string.IsNullOrWhiteSpace(text))
+                return Key32.Zero;
+            if (text.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
+            {
+                if (uint.TryParse(text.AsSpan(2), NumberStyles.HexNumber, CultureInfo.InvariantCulture,
+                        out var hexValue))
+                    return new Key32(hexValue);
+            }
+
+            if (uint.TryParse(text, NumberStyles.Integer, CultureInfo.InvariantCulture, out var intValue))
+                return new Key32(intValue);
+
+            return Key32.FromString(text);
+        }
+
+        private static Key64 ConvertKey64(object value)
+        {
+            var unwrapped = UnwrapScalar(value);
+            if (unwrapped is Key64 key64)
+                return key64;
+            if (unwrapped is IConvertible convertible)
+            {
+                try
+                {
+                    return new Key64(Convert.ToUInt64(convertible, CultureInfo.InvariantCulture));
+                }
+                catch
+                {
+                    return Key64.Zero;
+                }
+            }
+
+            var text = unwrapped?.ToString();
+            if (string.IsNullOrWhiteSpace(text))
+                return Key64.Zero;
+            if (text.StartsWith("0x", StringComparison.OrdinalIgnoreCase))
+            {
+                if (ulong.TryParse(text.AsSpan(2), NumberStyles.HexNumber, CultureInfo.InvariantCulture,
+                        out var hexValue))
+                    return new Key64(hexValue);
+            }
+
+            if (ulong.TryParse(text, NumberStyles.Integer, CultureInfo.InvariantCulture, out var intValue))
+                return new Key64(intValue);
+
+            return Key64.FromString(text);
         }
 
         private static string ResolveName(Key32 key)
@@ -189,12 +290,12 @@ namespace Attribulator.Plugins.YAMLSupport
             using var sw = new StreamWriter(Path.Combine(destinationDirectory, "info.yml"));
             serializer.Serialize(sw, loadedDatabase);
 
-            var hashListPath = Path.Combine(destinationDirectory, "hashes.txt");
-            var hashStrings = HashManager.GetVltStrings()
-                .Where(s => !string.IsNullOrWhiteSpace(s))
-                .Distinct(StringComparer.Ordinal)
-                .OrderBy(s => s, StringComparer.Ordinal);
-            File.WriteAllLines(hashListPath, hashStrings);
+            // var hashListPath = Path.Combine(destinationDirectory, "hashes.txt");
+            // var hashStrings = HashManager.GetVltStrings()
+            //     .Where(s => !string.IsNullOrWhiteSpace(s))
+            //     .Distinct(StringComparer.Ordinal)
+            //     .OrderBy(s => s, StringComparer.Ordinal);
+            // File.WriteAllLines(hashListPath, hashStrings);
 
             foreach (var loadedDatabaseFile in loadedFileList)
             {
@@ -528,6 +629,15 @@ namespace Attribulator.Plugins.YAMLSupport
                     var fixedValue = FixUpValueForComplexObject(str, itemType);
                     return Convert.ChangeType(fixedValue, itemType, CultureInfo.InvariantCulture);
                 }
+
+                if (itemType == typeof(Key32))
+                    return ConvertKey32(str);
+                if (itemType == typeof(Key64))
+                    return ConvertKey64(str);
+                if (itemType == typeof(BinKey32))
+                    return ConvertBinKey32(str);
+                if (itemType == typeof(BinKey64))
+                    return ConvertBinKey64(str);
             }
 
             if (itemType.IsEnum)
@@ -587,6 +697,15 @@ namespace Attribulator.Plugins.YAMLSupport
                 }
             }
 
+            if (itemType == typeof(Key32))
+                return ConvertKey32(serializedValue);
+            if (itemType == typeof(Key64))
+                return ConvertKey64(serializedValue);
+            if (itemType == typeof(BinKey32))
+                return ConvertBinKey32(serializedValue);
+            if (itemType == typeof(BinKey64))
+                return ConvertBinKey64(serializedValue);
+
             if (serializedValue is Dictionary<object, object> dictionary)
             {
                 var instance = itemType.IsSubclassOf(typeof(VLTBaseType))
@@ -624,9 +743,21 @@ namespace Attribulator.Plugins.YAMLSupport
                     {
                         fieldInfo.SetValue(instance, Enum.Parse(fieldType, value.ToString()));
                     }
+                    else if (fieldType == typeof(Key32))
+                    {
+                        fieldInfo.SetValue(instance, ConvertKey32(value));
+                    }
+                    else if (fieldType == typeof(Key64))
+                    {
+                        fieldInfo.SetValue(instance, ConvertKey64(value));
+                    }
                     else if (fieldType == typeof(BinKey32))
                     {
                         fieldInfo.SetValue(instance, ConvertBinKey32(value));
+                    }
+                    else if (fieldType == typeof(BinKey64))
+                    {
+                        fieldInfo.SetValue(instance, ConvertBinKey64(value));
                     }
                     else if (fieldType.IsPrimitive || fieldType == typeof(string))
                     {
@@ -650,9 +781,21 @@ namespace Attribulator.Plugins.YAMLSupport
                 {
                     propertyInfo.SetValue(instance, Enum.Parse(propType, value.ToString()));
                 }
+                else if (propType == typeof(Key32))
+                {
+                    propertyInfo.SetValue(instance, ConvertKey32(value));
+                }
+                else if (propType == typeof(Key64))
+                {
+                    propertyInfo.SetValue(instance, ConvertKey64(value));
+                }
                 else if (propType == typeof(BinKey32))
                 {
                     propertyInfo.SetValue(instance, ConvertBinKey32(value));
+                }
+                else if (propType == typeof(BinKey64))
+                {
+                    propertyInfo.SetValue(instance, ConvertBinKey64(value));
                 }
                 else if (propType.IsPrimitive || propType == typeof(string))
                 {

@@ -212,8 +212,8 @@ namespace Attribulator.API.Serialization
                 Debug.WriteLine("Vault {0}: {1} collections", vault.Name, vaultCollections.Count);
             }
 
-            resolved = resolved.Distinct(VaultDependencyNode.VaultComparer).ToList();
-            unresolved = unresolved.Distinct(VaultDependencyNode.VaultComparer).ToList();
+            resolved = DistinctPreserveOrder(resolved, VaultDependencyNode.VaultComparer);
+            unresolved = DistinctPreserveOrder(unresolved, VaultDependencyNode.VaultComparer);
 
             if (unresolved.Count != 0) throw new Exception("Cannot continue loading - unresolved vault dependencies");
 
@@ -312,6 +312,22 @@ namespace Attribulator.API.Serialization
 
             resolved.Add(node);
             unresolved.Remove(node);
+        }
+
+        private static List<VaultDependencyNode> DistinctPreserveOrder(
+            IEnumerable<VaultDependencyNode> source,
+            IEqualityComparer<VaultDependencyNode> comparer)
+        {
+            var seen = new HashSet<VaultDependencyNode>(comparer);
+            var result = new List<VaultDependencyNode>();
+
+            foreach (var item in source)
+            {
+                if (seen.Add(item))
+                    result.Add(item);
+            }
+
+            return result;
         }
 
         private class VaultDependencyNode
