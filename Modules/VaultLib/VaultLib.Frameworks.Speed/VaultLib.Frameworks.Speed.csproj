@@ -16,11 +16,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="NFSTools.Core.ModuleSystem" Version="2.0.0" />
-    <PackageReference Include="NFSTools.CompLib" Version="1.0.0"/>
-  </ItemGroup>
-
-  <ItemGroup>
+    <ProjectReference Include="..\..\CoreLibraries\CoreLibraries.ModuleSystem\CoreLibraries.ModuleSystem.csproj" />
+    <ProjectReference Include="..\..\CompLib\CompLib.csproj" />
     <ProjectReference Include="..\VaultLib.Core\VaultLib.Core.csproj" />
   </ItemGroup>
 

@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "mGyLZgvXnfA=",
+  "success": true,
+  "projectFilePath": "D:\\Repos\\Games\\OGVI\\Modules\\VaultLib\\VaultLib.Support.Carbon\\VaultLib.Support.Carbon.csproj",
+  "expectedPackageFiles": [
+    "D:\\Users\\sh2dow\\.nuget\\packages\\system.componentmodel.composition\\10.0.2\\system.componentmodel.composition.10.0.2.nupkg.sha512"
+  ],
+  "logs": []
+}

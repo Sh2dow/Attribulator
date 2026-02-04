@@ -1,4 +1,4 @@
-using Attribulator.API;
+﻿using Attribulator.API;
 using Attribulator.API.Data;
 using Attribulator.API.Serialization;
 using Attribulator.API.Services;
@@ -252,7 +252,7 @@ namespace AttribulatorUI
 				this.database = DatabaseFactory.Create(new DatabaseOptions(profile.GetGameId(), profile.GetDatabaseType()));
 				this.files = profile.LoadFiles(database, this.gameGlobalFolder);
 				this.database.CompleteLoad();
-				this.modScriptDatabase = new DatabaseHelper(this.database, this.files);
+				this.modScriptDatabase = new DatabaseHelper(this.database);
 
 				this.PopulateTreeView();
 				if (!this.folderMode)
@@ -262,7 +262,7 @@ namespace AttribulatorUI
 			}
 			catch (Exception ex)
 			{
-				MessageBox.Show(ex.Message, "Error loading game profile", MessageBoxButton.OK, MessageBoxImage.Warning);
+				MessageBox.Show(ex.ToString(), "Error loading game profile", MessageBoxButton.OK, MessageBoxImage.Warning);
 			}
 		}
 
@@ -283,12 +283,8 @@ namespace AttribulatorUI
 					this.Backup("SaveBackup");
 
 					var profile = this.GetProfile();
-					foreach (var file in this.files)
-					{
-						file.Group = "";
-					}
-
-					profile.SaveFiles(this.database, this.gameGlobalFolder, this.files);
+					var filesToSave = this.files.Select(file => new LoadedFile(file.Name, "", file.Vaults)).ToList();
+					profile.SaveFiles(this.database, this.gameGlobalFolder, filesToSave);
 					this.StatusLabel.Content = "Saved";
 					MainWindow.UnsavedChanges = false;
 				}
@@ -300,10 +296,16 @@ namespace AttribulatorUI
 			}
 		}
 
-		private IProfile GetProfile()
+		private IProfile<Key32> GetProfile()
 		{
 			var ProfileName = this.DetectGame();
-			return serviceProvider.GetRequiredService<IProfileService>().GetProfile(ProfileName);
+			var profile = serviceProvider.GetRequiredService<IProfileService>().GetProfile(ProfileName);
+			if (profile is IProfile<Key32> key32Profile)
+			{
+				return key32Profile;
+			}
+
+			throw new InvalidOperationException("Selected profile does not support Key32 databases.");
 		}
 
 		private string DetectGame()
@@ -516,7 +518,7 @@ namespace AttribulatorUI
 			MainWindow.UnsavedChanges = false;
 			this.TreeView.Items.Clear();
 			this.Tabs.Items.Clear();
-			BaseModScriptCommand.ClearCache();
+			// No mod script cache to clear in current API.
 		}
 
 		private void Command_RunGame(object sender, ExecutedRoutedEventArgs e)
@@ -698,7 +700,9 @@ namespace AttribulatorUI
 			{
 				try
 				{
-					var command = this.modScriptService.ParseCommand(commandModel.Line, commandModel.LineNumber);
+					var command = this.modScriptService.ParseCommands(new[] { commandModel.Line }).First();
+					command.Line = commandModel.Line;
+					command.LineNumber = commandModel.LineNumber;
 					command.Execute(this.modScriptDatabase);
 				}
 				catch (Exception e)

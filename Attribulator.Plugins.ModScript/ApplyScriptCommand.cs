@@ -1,19 +1,22 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Attribulator.API;
 using Attribulator.API.Exceptions;
 using Attribulator.API.Plugin;
+using Attribulator.API.Serialization;
 using Attribulator.API.Services;
 using Attribulator.ModScript.API;
+using Attribulator.Plugins.ModScript.Commands;
 using CommandLine;
 using JetBrains.Annotations;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using VaultLib.Core.DB;
-using Attribulator.API;
+using VaultLib.Core;
+using VaultLib.Core.DataInterfaces;
 
 namespace Attribulator.Plugins.ModScript
 {
@@ -48,6 +51,16 @@ namespace Attribulator.Plugins.ModScript
         [UsedImplicitly]
         public bool DisableBinGeneration { get; set; }
 
+        [Option("save-all", HelpText = "Save all vaults, even those that haven't changed")]
+        [UsedImplicitly]
+        public bool SaveAllVaults { get; set; }
+
+        [Option("dry-run",
+            HelpText =
+                "Perform a \"dry run\", which will attempt to execute every script command, record errors, and not save new files.")]
+        [UsedImplicitly]
+        public bool DryRun { get; set; }
+
         public override void SetServiceProvider(IServiceProvider serviceProvider)
         {
             base.SetServiceProvider(serviceProvider);
@@ -61,11 +74,22 @@ namespace Attribulator.Plugins.ModScript
             if (!Directory.Exists(InputDirectory))
                 throw new DirectoryNotFoundException($"Cannot find input directory: {InputDirectory}");
 
-            var scriptFiles = ModScriptPaths.ToList();
+            var scriptFiles = new List<string>();
 
-            foreach (var scriptFile in scriptFiles)
+            foreach (var scriptFile in ModScriptPaths)
+            {
                 if (!File.Exists(scriptFile))
-                    throw new FileNotFoundException($"Cannot find ModScript file: {scriptFile}");
+                {
+                    if (!Directory.Exists(scriptFile))
+                        throw new FileNotFoundException($"Cannot find ModScript file or folder: {scriptFile}");
+
+                    scriptFiles.AddRange(Directory.GetFiles(scriptFile, "*.nfsms", SearchOption.AllDirectories));
+                }
+                else
+                {
+                    scriptFiles.Add(scriptFile);
+                }
+            }
 
             if (!Directory.Exists(OutputDirectory)) Directory.CreateDirectory(OutputDirectory);
 
@@ -78,83 +102,184 @@ namespace Attribulator.Plugins.ModScript
                 throw new CommandException(
                     $"Cannot find storage format that is compatible with directory [{InputDirectory}].");
 
-            var database = DatabaseFactory.Create(new DatabaseOptions(profile.GetGameId(), profile.GetDatabaseType()));
+            return profile switch
+            {
+                IProfile<Key32> profile32 => await ExecuteInternal(profile32, storageFormat, scriptFiles),
+                IProfile<Key64> profile64 => await ExecuteInternal(profile64, storageFormat, scriptFiles),
+                _ => throw new CommandException("Profile is not supported")
+            };
+        }
+
+        private async Task<int> ExecuteInternal<TKey>(IProfile<TKey> profile, IDatabaseStorageFormat storageFormat,
+            List<string> scriptFiles) where TKey : struct, IKey<TKey>
+        {
+            var database = profile.CreateDatabase();
             _logger.LogInformation("Loading database from disk...");
             var files = (await storageFormat.DeserializeAsync(InputDirectory, database)).ToList();
             _logger.LogInformation("Loaded database");
 
-            var overallStopwatch = Stopwatch.StartNew();
-            var modScriptDatabase = new DatabaseHelper(database);
+            var stopwatch = Stopwatch.StartNew();
+            var modScriptDatabase = new DatabaseHelper<TKey>(database);
             var totalCommands = 0L;
-            var totalMilliseconds = 0.0d;
+            var errorsDict = new Dictionary<string, List<(long, string, Exception)>>();
 
             foreach (var scriptFile in scriptFiles)
             {
                 _logger.LogInformation("Processing script: {FileName}", scriptFile);
-                var fileStopwatch = Stopwatch.StartNew();
-                var numCommands = 0L;
-
-                foreach (var command in _modScriptService.ParseCommands(File.ReadLines(scriptFile)))
-                    try
-                    {
-                        command.Execute(modScriptDatabase);
-                        numCommands++;
-                    }
-                    catch (Exception e)
-                    {
-                        _logger.LogError(e, "Failed to execute script command at line {LineNumber}: {Line}",
-                            command.LineNumber, command.Line);
-                        return 1;
-                    }
-
-                fileStopwatch.Stop();
-
-                var commandsPerSecond = (ulong) (numCommands / (fileStopwatch.Elapsed.TotalMilliseconds / 1000.0));
-                _logger.LogInformation(
-                    "Applied {NumCommands} command(s) from script [{FileName}] in {ElapsedMilliseconds}ms ({Duration}; ~ {NumPerSec}/sec)",
-                    numCommands, scriptFile, fileStopwatch.ElapsedMilliseconds, fileStopwatch.Elapsed,
-                    commandsPerSecond);
-
-                totalCommands += numCommands;
-                totalMilliseconds += fileStopwatch.Elapsed.TotalMilliseconds;
+                if (!ExecuteScript(modScriptDatabase, scriptFile, errorsDict, ref totalCommands)) return 1;
             }
 
-            overallStopwatch.Stop();
+            stopwatch.Stop();
+
+            var totalMilliseconds = stopwatch.Elapsed.TotalMilliseconds;
             var totalCommandsPerSecond =
-                (ulong) (totalCommands / (totalMilliseconds / 1000.0));
+                (ulong)(totalCommands / (totalMilliseconds / 1000.0));
 
             _logger.LogInformation(
-                "Completed in {OverallTimeInMilliseconds}ms ({OverallDuration}).", overallStopwatch.ElapsedMilliseconds,
-                overallStopwatch.Elapsed);
-
-            _logger.LogInformation(
-                "Overall: Applied {NumCommands} command(s) from {NumScripts} script(s) (execution time: {ElapsedMilliseconds}ms / {Duration}; ~ {NumPerSec}/sec)",
-                totalCommands, scriptFiles.Count, Math.Round(totalMilliseconds),
+                "Overall: Applied {NumCommands} command(s){ErrorsDescription} from {NumScripts} script(s) (execution time: {ElapsedMilliseconds}ms / {Duration}; ~ {NumPerSec}/sec)",
+                totalCommands, GetErrorsBrief(errorsDict.Sum(e => e.Value.Count)), errorsDict.Count,
+                Math.Round(totalMilliseconds),
                 TimeSpan.FromMilliseconds(totalMilliseconds),
                 totalCommandsPerSecond);
 
-            if (!DisableBackup)
+            if (DryRun)
             {
-                _logger.LogInformation("Generating backup");
-                Directory.Move(InputDirectory,
-                    $"{InputDirectory.TrimEnd('/', '\\')}_{DateTimeOffset.Now.ToUnixTimeSeconds()}");
-                Directory.CreateDirectory(InputDirectory);
+                foreach (var (scriptFile, errors) in errorsDict)
+                {
+                    if (errors.Count == 0)
+                    {
+                        _logger.LogInformation("{FileName}: no errors", scriptFile);
+                    }
+                    else
+                    {
+                        _logger.LogError("{FileName}: {ErrorCount} error(s)", scriptFile, errors.Count);
+                        foreach (var (lineNumber, lineContents, exception) in errors)
+                            _logger.LogError(exception,
+                                "\tFailed to execute script command at line {LineNumber}: {Line}",
+                                lineNumber, lineContents);
+                    }
+                }
             }
-
-            _logger.LogInformation("Saving database");
-            storageFormat.Serialize(database, InputDirectory, files);
-
-            // TODO: should build cache be updated?
-
-            if (!DisableBinGeneration)
+            else
             {
-                _logger.LogInformation("Saving binaries");
-                profile.SaveFiles(database, OutputDirectory, files);
+                var modifiedVaultNames = modScriptDatabase.GetModifiedVaults().ToList();
+
+                if (SaveAllVaults || modifiedVaultNames.Count > 0)
+                {
+                    _logger.LogInformation("Saving database");
+
+                    bool VaultFilter(Vault<TKey> vault)
+                    {
+                        return SaveAllVaults || modifiedVaultNames.Contains(vault.Name);
+                    }
+
+                    var modifiedFiles = files.Where(f => f.Vaults.Any(VaultFilter)).ToList();
+
+                    if (!DisableBackup)
+                    {
+                        var backupDir = Path.Combine(InputDirectory,
+                            $"backup_{DateTimeOffset.Now.ToUnixTimeSeconds()}");
+                        Directory.CreateDirectory(backupDir);
+                        foreach (var modifiedFile in modifiedFiles)
+                            storageFormat.Backup(InputDirectory, backupDir, modifiedFile,
+                                modifiedFile.Vaults.Where(v => modifiedVaultNames.Contains(v.Name)));
+                    }
+
+                    storageFormat.Serialize(database, InputDirectory, files, VaultFilter);
+
+                    // TODO: should build cache be updated?
+
+                    if (!DisableBinGeneration)
+                    {
+                        _logger.LogInformation("Saving binaries");
+                        profile.SaveFiles(database, OutputDirectory, modifiedFiles);
+                    }
+                }
+                else
+                {
+                    // TODO: Currently this can't happen unless the script is empty. We need actual change detection.
+                    _logger.LogInformation("No changes detected");
+                }
             }
 
             _logger.LogInformation("Done!");
 
             return 0;
+        }
+
+        private bool ExecuteScript<TKey>(DatabaseHelper<TKey> modScriptDatabase, string scriptFile,
+            Dictionary<string, List<(long, string, Exception)>> errorsDict,
+            ref long totalCommands) where TKey : struct, IKey<TKey>
+        {
+            var fileStopwatch = Stopwatch.StartNew();
+            var numCommands = 0L;
+            var errors = new List<(long, string, Exception)>();
+
+            var scriptDirectory = Path.GetDirectoryName(scriptFile)!;
+
+            foreach (var command in _modScriptService.ParseCommands(File.ReadLines(scriptFile)))
+            {
+                try
+                {
+                    numCommands++;
+                    if (command is not ExecScriptModScriptCommand execCommand)
+                    {
+                        command.Execute(modScriptDatabase);
+                    }
+                    else
+                    {
+                        var resolvedPath = Path.Combine(scriptDirectory, execCommand.FileName);
+                        if (!File.Exists(resolvedPath))
+                        {
+                            throw new CommandExecutionException(
+                                $"Can't find external script: {resolvedPath} (relative path: {execCommand.FileName})");
+                        }
+
+                        _logger.LogInformation("Running script referenced by command: {ResolvedPath}", resolvedPath);
+                        if (!ExecuteScript(modScriptDatabase, resolvedPath, errorsDict, ref totalCommands))
+                        {
+                            throw new CommandExecutionException("External script failed");
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+                    if (DryRun)
+                    {
+                        errors.Add((command.LineNumber, command.Line, e));
+                    }
+                    else
+                    {
+                        _logger.LogError(e, "Failed to execute script command at line {LineNumber}: {Line}",
+                            command.LineNumber, command.Line);
+                        return false;
+                    }
+                }
+            }
+
+            fileStopwatch.Stop();
+
+            var commandsPerSecond = (ulong)(numCommands / (fileStopwatch.Elapsed.TotalMilliseconds / 1000.0));
+            _logger.LogInformation(
+                "Applied {NumCommands} command(s){ErrorsDescription} from script [{FileName}] in {ElapsedMilliseconds}ms ({Duration}; ~ {NumPerSec}/sec)",
+                numCommands,
+                GetErrorsBrief(errors.Count),
+                scriptFile, fileStopwatch.ElapsedMilliseconds, fileStopwatch.Elapsed,
+                commandsPerSecond);
+
+            totalCommands += numCommands;
+            errorsDict.Add(scriptFile, errors);
+            return true;
+        }
+
+        private static string GetErrorsBrief(long num)
+        {
+            return num switch
+            {
+                0 => string.Empty,
+                1 => " (with 1 error)",
+                _ => $" (with {num} errors)"
+            };
         }
     }
 }

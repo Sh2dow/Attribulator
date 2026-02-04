@@ -1,33 +1,41 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using Attribulator.API.Utils;
 using Attribulator.ModScript.API;
+using Attribulator.ModScript.API.Utils;
 using VaultLib.Core;
 using VaultLib.Core.Data;
-using VaultLib.Core.Hashing;
 using VaultLib.Core.Types;
 
 namespace Attribulator.Plugins.ModScript.Commands
 {
-    // add_node class parentNode nodeName
-    public class AddNodeModScriptCommand : BaseModScriptCommand
+    // add_node class [parentNode] nodeName
+    public class AddNodeModScriptCommand : BaseModScriptCommand, IParseableModScriptCommand<AddNodeModScriptCommand>
     {
-        public string ClassName { get; set; }
-        public string ParentCollectionName { get; set; }
-        public string CollectionName { get; set; }
+        public required string ClassName { get; init; }
+        public required string? ParentCollectionName { get; init; }
+        public required string CollectionName { get; init; }
 
-        public override void Parse(List<string> parts)
+        public static AddNodeModScriptCommand Parse(List<string> parts)
         {
             if (parts.Count != 3 && parts.Count != 4)
                 throw new CommandParseException($"3 or 4 tokens expected, got {parts.Count}");
 
-            ClassName = CleanHashString(parts[1]);
-            ParentCollectionName = parts.Count == 4 ? CleanHashString(parts[2]) : "";
-            CollectionName = CleanHashString(parts[^1]);
+            var className = parts[1];
+            var parentCollectionName = parts.Count == 4 ? parts[2] : null;
+            var collectionName = parts[^1];
+
+            return new AddNodeModScriptCommand
+            {
+                ClassName = className,
+                ParentCollectionName = parentCollectionName,
+                CollectionName = collectionName,
+            };
         }
 
-        public override void Execute(DatabaseHelper databaseHelper)
+        protected override void Execute<TKey>(DatabaseHelper<TKey> databaseHelper)
         {
-            VltCollection parentCollection = null;
+            VltCollection<TKey>? parentCollection = null;
             if (!string.IsNullOrEmpty(ParentCollectionName))
                 if ((parentCollection = GetCollection(databaseHelper, ClassName, ParentCollectionName, false)) == null)
                     throw new CommandExecutionException(
@@ -37,14 +45,14 @@ namespace Attribulator.Plugins.ModScript.Commands
                 throw new CommandExecutionException(
                     $"add_node failed because collection already exists: {ClassName}/{CollectionName}");
 
-            Vault addToVault;
+            Vault<TKey>? addToVault;
 
             if (parentCollection != null)
                 addToVault = parentCollection.Vault;
             else
                 addToVault = databaseHelper.Vaults.FirstOrDefault(vault =>
                     databaseHelper.GetCollectionsInVault(vault)
-                        .Any(collection => ResolveName(collection.Class.Key) == ClassName));
+                        .Any(collection => collection.Class.Key == databaseHelper.StringToKey(ClassName)));
 
             if (addToVault == null)
                 throw new CommandExecutionException("failed to determine vault to insert new collection into");
@@ -52,28 +60,38 @@ namespace Attribulator.Plugins.ModScript.Commands
             var newNode = databaseHelper.AddCollection(addToVault, ClassName, CollectionName, parentCollection);
             var vltClass = newNode.Class;
 
-            //if (parentCollection != null)
-            //    databaseHelper.CopyCollection(databaseHelper.Database, parentCollection, newNode);
-            //else
+            var defaultCollection = databaseHelper.FindCollectionByName(ClassName, "default");
+
+            if (defaultCollection != null)
+            {
                 foreach (var baseField in vltClass.BaseFields)
                 {
-                    var registry = databaseHelper.Database.TypeRegistry;
-                    var fieldType = registry.ResolveFieldType(baseField);
-                    object vltBaseType = registry.ConstructTypeInstance(fieldType);
+                    newNode.SetRawValue(baseField.Key, ValueCloningUtils.CloneValue(databaseHelper.Database,
+                        defaultCollection.GetRawValue(baseField.Key),
+                        vltClass,
+                        baseField, newNode));
+                }
+            }
+            else
+            {
+                foreach (var baseField in vltClass.BaseFields)
+                {
+                    var vltBaseType = FieldUtils.CreateFieldValue(databaseHelper.Database.TypeRegistry, baseField);
 
-                    if (baseField.IsArray && vltBaseType is VLTArrayType array)
+                    if (vltBaseType is VltArrayType<TKey> array)
                     {
                         array.Capacity = baseField.MaxCount;
-                        var itemType = array.ItemType;
                         for (var i = 0; i < array.Capacity; i++)
-                            array.Items.Add(registry.ConstructTypeInstance(itemType));
+                            array.Items.Add(FieldUtils.ConstructFieldType(databaseHelper.Database.TypeRegistry,
+                                baseField));
                     }
 
-                    newNode.SetRawValue(baseField.Key, vltBaseType);
+                    newNode.SetRawValue(baseField.Key,
+                        vltBaseType);
                 }
+            }
 
             if (vltClass.HasField("CollectionName")) newNode.SetRawValue("CollectionName", CollectionName);
-            HashManager.AddVlt(CollectionName);
         }
     }
 }

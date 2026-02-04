@@ -1,142 +1,120 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Linq;
-using Attribulator.API.Data;
+using Attribulator.API.Utils;
 using Attribulator.ModScript.API.Utils;
 using VaultLib.Core;
 using VaultLib.Core.Data;
+using VaultLib.Core.DataInterfaces;
 using VaultLib.Core.DB;
-using VaultLib.Core.Hashing;
 
 namespace Attribulator.ModScript.API
 {
-    public class DatabaseHelper
+    public class DatabaseHelper<TKey> where TKey : struct, IKey<TKey>
     {
-        public DatabaseHelper(Database database, IEnumerable<LoadedFile> files = null)
+        private readonly Dictionary<VltUtils.FieldIdentifier<TKey>, VltClassField<TKey>>
+            _fieldCache = new();
+
+        private readonly Dictionary<Vault<TKey>, bool> _vaultsModified = new Dictionary<Vault<TKey>, bool>();
+
+        public DatabaseHelper(Database<TKey> database)
         {
             Database = database;
-            Collections = BuildCollectionIndex(database);
-            Files = files;
+            Collections = database.RowManager.GetCollections()
+                .ToDictionary(VltUtils.CreateCollectionIdentifier, c => c);
+            database.Vaults.ForEach(v => _vaultsModified[v] = false);
         }
 
-        public Dictionary<string, VltCollection> Collections { get; }
-        public Database Database { get; }
-        public List<Vault> Vaults => Database.Vaults;
-        public IEnumerable<LoadedFile> Files;
+        public Dictionary<VltUtils.CollectionIdentifier<TKey>, VltCollection<TKey>> Collections { get; }
+        public Database<TKey> Database { get; }
+        public List<Vault<TKey>> Vaults => Database.Vaults;
 
-        private static string ResolveName(Key32 key)
+        public TKey StringToKey(string text, bool register = false)
         {
-            return HashManager.ResolveVlt(key.Hash) ?? key.ToString();
+            return KeyUtils.StringToKey<TKey>(text, register);
         }
 
-        private static Key32 ParseKey(string name)
+        public VltCollection<TKey>? FindCollectionByName(string className, string collectionName)
         {
-            if (name.StartsWith("0x") && uint.TryParse(name.Substring(2),
-                    System.Globalization.NumberStyles.AllowHexSpecifier,
-                    System.Globalization.CultureInfo.InvariantCulture, out var hexVal))
+            var cid = new VltUtils.CollectionIdentifier<TKey>(
+                StringToKey(className),
+                StringToKey(collectionName));
+            var fromLocalDict = Collections.GetValueOrDefault(cid);
+#if DEBUG
+            var fromDb = Database.RowManager.FindCollection(cid.ClassKey, cid.CollectionKey);
+            if ((fromLocalDict == null) !=
+                (fromDb == null))
             {
-                return new Key32(hexVal);
+                if (fromLocalDict == null)
+                    throw new Exception(
+                        $"CORRUPTED STATE - collection ({className}, {collectionName}) found in DB but not in ModScript cache");
+                if (fromDb == null)
+                    throw new Exception(
+                        $"CORRUPTED STATE - collection ({className}, {collectionName}) found in ModScript cache but not in DB");
             }
-
-            return Key32.FromString(name);
+#endif
+            return fromLocalDict;
         }
 
-        private static string GetShortPath(Key32 classKey, Key32 collectionKey)
-        {
-            return $"{ResolveName(classKey)}/{ResolveName(collectionKey)}";
-        }
-
-        private static string GetShortPath(VltCollection collection)
-        {
-            return GetShortPath(collection.Class.Key, collection.Key);
-        }
-
-        private static Dictionary<string, VltCollection> BuildCollectionIndex(Database database)
-        {
-            var collections = database.RowManager.GetCollections()
-                .OrderByDescending(c => c.Vault != null && c.Vault.IsPrimaryVault);
-            var lookup = new Dictionary<string, VltCollection>();
-
-            foreach (var collection in collections)
-            {
-                var shortPath = GetShortPath(collection);
-                if (!lookup.ContainsKey(shortPath))
-                {
-                    lookup.Add(shortPath, collection);
-                }
-            }
-
-            return lookup;
-        }
-
-        public VltCollection FindCollectionByName(string className, string collectionName)
-        {
-            var key = GetShortPath(ParseKey(className), ParseKey(collectionName));
-            if (Collections.TryGetValue(key, out var collection))
-            {
-                return collection;
-            }
-
-            return null;
-        }
-
-        public IEnumerable<VltCollection> GetCollectionsInVault(Vault vault)
+        public IEnumerable<VltCollection<TKey>> GetCollectionsInVault(Vault<TKey> vault)
         {
             return Collections.Values.Where(c => ReferenceEquals(c.Vault, vault));
         }
 
-        public VltCollection AddCollection(Vault addToVault, string className, string collectionName,
-            VltCollection parentCollection)
+        public VltCollection<TKey> AddCollection(Vault<TKey> addToVault, string className, string collectionName,
+            VltCollection<TKey>? parentCollection)
         {
             if (FindCollectionByName(className, collectionName) != null)
                 throw new DuplicateNameException(
                     $"A collection in the class '{className}' with the name '{collectionName}' already exists.");
 
-            var collection = new VltCollection(addToVault, Database.FindClass(className), ParseKey(collectionName));
+            var collection = new VltCollection<TKey>(addToVault,
+                Database.FindClass(StringToKey(className)),
+                StringToKey(collectionName, true));
             return AddCollection(collection, parentCollection);
         }
 
-        public VltCollection AddCollection(VltCollection collection, VltCollection parentCollection = null)
+        public VltCollection<TKey> AddCollection(VltCollection<TKey> collection,
+            VltCollection<TKey>? parentCollection = null)
         {
-            if (parentCollection != null)
-                collection.SetParent(parentCollection);
-            else
-                Database.RowManager.AddCollection(collection);
+            Database.RowManager.AddCollection(collection);
+            parentCollection?.AddChild(collection);
 
-            Collections[GetShortPath(collection)] = collection;
-
+            Collections[VltUtils.CreateCollectionIdentifier(collection)] = collection;
+            MarkVaultAsModified(collection.Vault);
             return collection;
         }
 
-        public void RenameCollection(VltCollection collection, string newName)
+        public void RenameCollection(VltCollection<TKey> collection, string newName)
         {
-            Collections.Remove(GetShortPath(collection));
-            collection.SetKey(ParseKey(newName));
+            Collections.Remove(VltUtils.CreateCollectionIdentifier(collection));
+            collection.SetKey(StringToKey(newName));
             if (collection.Class.HasField("CollectionName")) collection.SetRawValue("CollectionName", newName);
-            Collections.Add(GetShortPath(collection), collection);
+            Collections.Add(VltUtils.CreateCollectionIdentifier(collection), collection);
+            MarkVaultAsModified(collection.Vault);
         }
 
-        public List<VltCollection> RemoveCollection(VltCollection collection)
+        public List<VltCollection<TKey>> RemoveCollection(VltCollection<TKey> collection)
         {
-            var removed = new List<VltCollection> { collection };
+            var removed = new List<VltCollection<TKey>> { collection };
 
-            // Disassociate children
-            var hasParent = collection.Parent != null;
-            collection.SetParent(null);
-            Collections.Remove(GetShortPath(collection));
-
-            foreach (var collectionChild in Database.RowManager.GetCollections()
-                .Where(c => ReferenceEquals(c.Parent, collection)).ToList())
+            foreach (var child in Database.RowManager.GetCollections(collection.Class.Key)
+                         .Where(c => ReferenceEquals(c.Parent, collection))
+                         .ToList())
             {
-                removed.AddRange(RemoveCollection(collectionChild));
+                removed.AddRange(RemoveCollection(child));
             }
 
-            if (!hasParent) Database.RowManager.RemoveCollection(collection);
+            Collections.Remove(VltUtils.CreateCollectionIdentifier(collection));
+            Database.RowManager.RemoveCollection(collection);
+
+            MarkVaultAsModified(collection.Vault);
 
             return removed;
         }
 
-        public void CopyCollection(Database database, VltCollection from, VltCollection to)
+        public void CopyCollection(Database<TKey> database, VltCollection<TKey> from, VltCollection<TKey> to)
         {
             foreach (var dataPair in from.GetData())
             {
@@ -144,6 +122,44 @@ namespace Attribulator.ModScript.API
                 to.SetRawValue(dataPair.Key,
                     ValueCloningUtils.CloneValue(database, dataPair.Value, to.Class, field, to));
             }
+
+            MarkVaultAsModified(to.Vault);
+        }
+
+        public void MarkVaultAsModified(Vault<TKey> vault)
+        {
+            _vaultsModified[vault] = true;
+        }
+
+        public void ChangeVault(VltCollection<TKey> collection, Vault<TKey> newVault)
+        {
+            var oldVault = collection.Vault;
+            collection.SetVault(newVault);
+            MarkVaultAsModified(oldVault);
+            MarkVaultAsModified(newVault);
+        }
+
+        public IEnumerable<string> GetModifiedVaults()
+        {
+            return _vaultsModified.Where(v => v.Value).Select(v => v.Key.Name);
+        }
+
+        /// <summary>
+        ///     Finds the field with the given name in the given class.
+        /// </summary>
+        /// <param name="vltClass">The <see cref="VltClass" /> object to search in.</param>
+        /// <param name="fieldName">The field name.</param>
+        /// <returns>An instance of the <see cref="VltClassField" /> class.</returns>
+        /// <exception cref="CommandExecutionException">if the field cannot be found</exception>
+        public VltClassField<TKey> GetField(VltClass<TKey> vltClass, string fieldName)
+        {
+            if (vltClass == null) throw new CommandExecutionException("GetField() was given a null VltClass!");
+
+            var fieldKey = StringToKey(fieldName);
+            var fieldIdentifier = VltUtils.CreateFieldIdentifier(vltClass, fieldKey);
+            if (_fieldCache.TryGetValue(fieldIdentifier, out var field)) return field;
+
+            return _fieldCache[fieldIdentifier] = vltClass.FindField(fieldKey);
         }
     }
 }

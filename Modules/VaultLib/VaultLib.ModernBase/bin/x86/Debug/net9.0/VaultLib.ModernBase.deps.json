@@ -1,0 +1,55 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v9.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v9.0": {
+      "VaultLib.ModernBase/3.0.0-dev": {
+        "dependencies": {
+          "VaultLib.Core": "3.0.0-dev"
+        },
+        "runtime": {
+          "VaultLib.ModernBase.dll": {}
+        }
+      },
+      "CoreLibraries.IO/2.0.0": {
+        "runtime": {
+          "CoreLibraries.IO.dll": {
+            "assemblyVersion": "2.0.0.0",
+            "fileVersion": "2.0.0.0"
+          }
+        }
+      },
+      "VaultLib.Core/3.0.0-dev": {
+        "dependencies": {
+          "CoreLibraries.IO": "2.0.0"
+        },
+        "runtime": {
+          "VaultLib.Core.dll": {
+            "assemblyVersion": "3.0.0.0",
+            "fileVersion": "3.0.0.0"
+          }
+        }
+      }
+    }
+  },
+  "libraries": {
+    "VaultLib.ModernBase/3.0.0-dev": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "CoreLibraries.IO/2.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "VaultLib.Core/3.0.0-dev": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}

@@ -1,68 +1,89 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.IO;
-using System.Reflection;
-using Attribulator.API.Exceptions;
-using VaultLib.Core.Hashing;
+using VaultLib.Core.DataInterfaces;
 
 namespace Attribulator.API.Utils
 {
     public static class ValueConversionUtils
     {
-        private static readonly Dictionary<Type, Type> TypeCache = new Dictionary<Type, Type>();
-
-        public static object DoPrimitiveConversion(Type conversionType, string str)
+        public static object ConvertPrimitiveToNewPrimitive(Type primitiveType, string primitiveString)
         {
-            if (conversionType.IsEnum)
-            {
-                if (str.StartsWith("0x", StringComparison.Ordinal) &&
-                    uint.TryParse(str.Substring(2), NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture,
-                        out var val))
-                    return Enum.Parse(conversionType, val.ToString());
+            if (primitiveType == typeof(string))
+                return primitiveString;
 
-                return Enum.Parse(conversionType, str);
+            if (primitiveType.IsEnum)
+            {
+                // 3 acceptable input formats:
+                // 1. Name (string)
+                // 2. Value (decimal)
+                // 3. Value (0x<hex>) (this may disappear eventually?)
+
+                if (!primitiveString.StartsWith("0x")) return Enum.Parse(primitiveType, primitiveString);
+
+                if (!uint.TryParse(primitiveString.AsSpan(2), NumberStyles.HexNumber, CultureInfo.InvariantCulture,
+                        out var result))
+                {
+                    throw new FormatException(
+                        $"Can't interpret {primitiveString} as a hexadecimal value for conversion to enum {primitiveType.Name}.");
+                }
+
+                return Enum.ToObject(primitiveType, result);
             }
 
-            if (str.StartsWith("0x", StringComparison.Ordinal) && uint.TryParse(str.Substring(2),
-                NumberStyles.AllowHexSpecifier,
-                CultureInfo.InvariantCulture, out var hexVal))
-                return Convert.ChangeType(hexVal, conversionType, CultureInfo.InvariantCulture);
+            if (primitiveType == typeof(bool))
+            {
+                return Convert.ToBoolean(primitiveString);
+            }
 
-            try
+            if (primitiveType == typeof(Key32))
             {
-                return Convert.ChangeType(str, conversionType, CultureInfo.InvariantCulture);
+                return KeyUtils.StringToKey<Key32>(primitiveString);
             }
-            catch (Exception e)
+
+            if (primitiveType == typeof(Key64))
             {
-                throw new ValueConversionException($"Failed to parse value [{str}] as type {conversionType}", e);
+                return KeyUtils.StringToKey<Key64>(primitiveString);
             }
+
+            if (primitiveType == typeof(BinKey32))
+            {
+                return KeyUtils.StringToKey<BinKey32>(primitiveString);
+            }
+
+            if (primitiveType == typeof(BinKey64))
+            {
+                return KeyUtils.StringToKey<BinKey64>(primitiveString);
+            }
+
+            if (primitiveType.IsPrimitive)
+            {
+                return primitiveString.StartsWith("0x")
+                    ? ConvertHexToPrimitive(primitiveType, primitiveString[2..])
+                    : Convert.ChangeType(primitiveString, primitiveType, CultureInfo.InvariantCulture);
+            }
+
+            throw new InvalidCastException($"Can't convert input string '{primitiveString}' to {primitiveType}.");
         }
 
-        public static object DoPrimitiveConversion(object value, string str)
+        private static object ConvertHexToPrimitive(Type primitiveType, string hexString)
         {
-            if (value == null)
-                // we don't know the type, just assume we need a string
-                return str;
-
-            var type = value.GetType();
-
-            if (type == typeof(uint))
-            {
-                if (str.StartsWith("0x", StringComparison.Ordinal))
-                    return uint.Parse(str.Substring(2), NumberStyles.AllowHexSpecifier);
-                if (!uint.TryParse(str, out _))
-                    return Vlt32Hasher.Hash(str);
-            }
-            else if (type == typeof(int))
-            {
-                if (str.StartsWith("0x", StringComparison.Ordinal))
-                    return int.Parse(str.Substring(2), NumberStyles.AllowHexSpecifier);
-                if (!uint.TryParse(str, out _))
-                    return unchecked((int) Vlt32Hasher.Hash(str));
-            }
-
-            return DoPrimitiveConversion(type, str);
+            if (primitiveType == typeof(ulong))
+                return ulong.Parse(hexString, NumberStyles.HexNumber, CultureInfo.InvariantCulture);
+            if (primitiveType == typeof(long))
+                return long.Parse(hexString, NumberStyles.HexNumber, CultureInfo.InvariantCulture);
+            if (primitiveType == typeof(uint))
+                return uint.Parse(hexString, NumberStyles.HexNumber, CultureInfo.InvariantCulture);
+            if (primitiveType == typeof(int))
+                return int.Parse(hexString, NumberStyles.HexNumber, CultureInfo.InvariantCulture);
+            if (primitiveType == typeof(ushort))
+                return ushort.Parse(hexString, NumberStyles.HexNumber, CultureInfo.InvariantCulture);
+            if (primitiveType == typeof(short))
+                return short.Parse(hexString, NumberStyles.HexNumber, CultureInfo.InvariantCulture);
+            if (primitiveType == typeof(byte))
+                return byte.Parse(hexString, NumberStyles.HexNumber, CultureInfo.InvariantCulture);
+            if (primitiveType == typeof(sbyte))
+                return sbyte.Parse(hexString, NumberStyles.HexNumber, CultureInfo.InvariantCulture);
+            throw new InvalidCastException($"Can't convert hexadecimal string '{hexString}' to {primitiveType}.");
         }
     }
 }

@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
+  <metadata>
+    <id>VaultLib.LegacyBase</id>
+    <version>1.2.0</version>
+    <authors>heyitsleo/NFSTools</authors>
+    <description>Implements the classic AttribSys format</description>
+    <repository type="git" commit="16bf24b374ee6bdcc8aad5d3e0085c6ac9597165" />
+    <dependencies>
+      <group targetFramework="net9.0-windows7.0">
+        <dependency id="VaultLib.Core" version="1.2.0" exclude="Build,Analyzers" />
+      </group>
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="D:\Repos\Games\OGVI\Modules\VaultLib\VaultLib.LegacyBase\bin\x86\Release\net9.0-windows\VaultLib.LegacyBase.dll" target="lib\net9.0-windows7.0\VaultLib.LegacyBase.dll" />
+  </files>
+</package>

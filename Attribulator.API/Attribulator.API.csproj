@@ -4,24 +4,27 @@
         <Authors>heyitsleo/NFSTools</Authors>
         <Company>NFSTools</Company>
         <Description>API for Attribulator extensions</Description>
-        <Platforms>x86</Platforms>
         <Product>Attribulator API</Product>
-        <LangVersion>default</LangVersion>
-        <TargetFramework>net9.0-windows</TargetFramework>
-        <Version>2.0.0</Version>
+        
+        <Version>3.0.0-dev</Version>
+        <TargetFramework>net9.0</TargetFramework>
+        <Configurations>Debug;Release</Configurations>
+        <Platforms>AnyCPU</Platforms>
+        <Nullable>enable</Nullable>
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.0-rc.1.24431.7" />
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.2" />
+        <PackageReference Include="VaultLib.Core" Version="3.0.0-dev"/>
     </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\Modules\VaultLib\VaultLib.Core\VaultLib.Core.csproj" />
-    <ProjectReference Include="..\Modules\VaultLib\VaultLib.Support.Carbon\VaultLib.Support.Carbon.csproj" />
-    <ProjectReference Include="..\Modules\VaultLib\VaultLib.Support.MostWanted\VaultLib.Support.MostWanted.csproj" />
-    <ProjectReference Include="..\Modules\VaultLib\VaultLib.Support.ProStreet\VaultLib.Support.ProStreet.csproj" />
-    <ProjectReference Include="..\Modules\VaultLib\VaultLib.Support.Undercover\VaultLib.Support.Undercover.csproj" />
-    <ProjectReference Include="..\Modules\VaultLib\VaultLib.Support.World\VaultLib.Support.World.csproj" />
-  </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\Modules\VaultLib\VaultLib.Core\VaultLib.Core.csproj" />
+        <ProjectReference Include="..\Modules\VaultLib\VaultLib.Support.Carbon\VaultLib.Support.Carbon.csproj" />
+        <ProjectReference Include="..\Modules\VaultLib\VaultLib.Support.MostWanted\VaultLib.Support.MostWanted.csproj" />
+        <ProjectReference Include="..\Modules\VaultLib\VaultLib.Support.ProStreet\VaultLib.Support.ProStreet.csproj" />
+        <ProjectReference Include="..\Modules\VaultLib\VaultLib.Support.Undercover\VaultLib.Support.Undercover.csproj" />
+        <ProjectReference Include="..\Modules\VaultLib\VaultLib.Support.World\VaultLib.Support.World.csproj" />
+    </ItemGroup>
 
 </Project>

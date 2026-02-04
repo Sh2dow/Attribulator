@@ -1,0 +1,219 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v9.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v9.0": {
+      "VaultLib.Support.Carbon/3.0.0-dev": {
+        "dependencies": {
+          "NFSTools.Core.ModuleSystem": "1.0.3",
+          "VaultLib.Frameworks.Speed": "3.0.0-dev",
+          "VaultLib.ModernBase": "3.0.0-dev"
+        },
+        "runtime": {
+          "VaultLib.Support.Carbon.dll": {}
+        }
+      },
+      "Microsoft.NETCore.Platforms/2.0.0": {},
+      "MSBuildGitHash/0.5.0": {},
+      "NFSTools.Core.GameUtilities/1.0.4": {
+        "runtime": {
+          "lib/netstandard2.0/CoreLibraries.GameUtilities.dll": {
+            "assemblyVersion": "1.0.4.0",
+            "fileVersion": "1.0.4.0"
+          }
+        }
+      },
+      "NFSTools.Core.IO/1.0.3": {
+        "runtime": {
+          "lib/netstandard2.0/CoreLibraries.IO.dll": {
+            "assemblyVersion": "1.0.3.0",
+            "fileVersion": "1.0.3.0"
+          }
+        }
+      },
+      "NFSTools.Core.ModuleSystem/1.0.3": {
+        "dependencies": {
+          "NFSTools.Core.GameUtilities": "1.0.4",
+          "System.ComponentModel.Composition": "4.5.0"
+        },
+        "runtime": {
+          "lib/netstandard2.0/CoreLibraries.ModuleSystem.dll": {
+            "assemblyVersion": "1.0.3.0",
+            "fileVersion": "1.0.3.0"
+          }
+        }
+      },
+      "System.ComponentModel.Composition/4.5.0": {
+        "dependencies": {
+          "System.Security.Permissions": "4.5.0"
+        },
+        "runtime": {
+          "lib/netcoreapp2.0/System.ComponentModel.Composition.dll": {
+            "assemblyVersion": "4.0.0.0",
+            "fileVersion": "4.6.26515.6"
+          }
+        }
+      },
+      "System.Security.AccessControl/4.5.0": {
+        "dependencies": {
+          "Microsoft.NETCore.Platforms": "2.0.0",
+          "System.Security.Principal.Windows": "4.5.0"
+        }
+      },
+      "System.Security.Permissions/4.5.0": {
+        "dependencies": {
+          "System.Security.AccessControl": "4.5.0"
+        },
+        "runtime": {
+          "lib/netstandard2.0/System.Security.Permissions.dll": {
+            "assemblyVersion": "4.0.1.0",
+            "fileVersion": "4.6.26515.6"
+          }
+        }
+      },
+      "System.Security.Principal.Windows/4.5.0": {
+        "dependencies": {
+          "Microsoft.NETCore.Platforms": "2.0.0"
+        }
+      },
+      "CompLib/1.0.0": {
+        "runtime": {
+          "CompLib.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      },
+      "VaultLib.Core/3.0.0-dev": {
+        "dependencies": {
+          "MSBuildGitHash": "0.5.0",
+          "NFSTools.Core.IO": "1.0.3",
+          "NFSTools.Core.ModuleSystem": "1.0.3"
+        },
+        "runtime": {
+          "VaultLib.Core.dll": {
+            "assemblyVersion": "3.0.0.0",
+            "fileVersion": "3.0.0.0"
+          }
+        }
+      },
+      "VaultLib.Frameworks.Speed/3.0.0-dev": {
+        "dependencies": {
+          "CompLib": "1.0.0",
+          "NFSTools.Core.ModuleSystem": "1.0.3",
+          "VaultLib.Core": "3.0.0-dev"
+        },
+        "runtime": {
+          "VaultLib.Frameworks.Speed.dll": {
+            "assemblyVersion": "3.0.0.0",
+            "fileVersion": "3.0.0.0"
+          }
+        }
+      },
+      "VaultLib.ModernBase/3.0.0-dev": {
+        "dependencies": {
+          "VaultLib.Core": "3.0.0-dev"
+        },
+        "runtime": {
+          "VaultLib.ModernBase.dll": {
+            "assemblyVersion": "3.0.0.0",
+            "fileVersion": "3.0.0.0"
+          }
+        }
+      }
+    }
+  },
+  "libraries": {
+    "VaultLib.Support.Carbon/3.0.0-dev": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "Microsoft.NETCore.Platforms/2.0.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-VdLJOCXhZaEMY7Hm2GKiULmn7IEPFE4XC5LPSfBVCUIA8YLZVh846gtfBJalsPQF2PlzdD7ecX7DZEulJ402ZQ==",
+      "path": "microsoft.netcore.platforms/2.0.0",
+      "hashPath": "microsoft.netcore.platforms.2.0.0.nupkg.sha512"
+    },
+    "MSBuildGitHash/0.5.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-4+0XB7ainXRUJGvDGEJxV+K5nFdMFXc4wdY2gO4vpM9nISg3jZ1zEioUtZwlHegYQv8+wdq4rynzaPidtCi7Fg==",
+      "path": "msbuildgithash/0.5.0",
+      "hashPath": "msbuildgithash.0.5.0.nupkg.sha512"
+    },
+    "NFSTools.Core.GameUtilities/1.0.4": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-1cD/7qaP48vsDQQx7VieJJpgaRT/IqRc7U2CBdQzKQzbP0p3mtI3UsOs82i7/lZCWshLPr+AlTrWCcup1fiq0Q==",
+      "path": "nfstools.core.gameutilities/1.0.4",
+      "hashPath": "nfstools.core.gameutilities.1.0.4.nupkg.sha512"
+    },
+    "NFSTools.Core.IO/1.0.3": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-PKPpYTqeLadtJdGcNNPqsH3iEJJaUEM+OBCJI5s1MibqtNdnnJ2tj9H3GUAXUbp1LWxQ4iRHIuOYE+UODKCx/Q==",
+      "path": "nfstools.core.io/1.0.3",
+      "hashPath": "nfstools.core.io.1.0.3.nupkg.sha512"
+    },
+    "NFSTools.Core.ModuleSystem/1.0.3": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-6A3he4Gc/ExG0tZJIKvKN6O8xn11N/v4mVyEn8cAwJrgufK26XX53YyMTPFf8vDFrq660YXVUNf1OE5RloboTA==",
+      "path": "nfstools.core.modulesystem/1.0.3",
+      "hashPath": "nfstools.core.modulesystem.1.0.3.nupkg.sha512"
+    },
+    "System.ComponentModel.Composition/4.5.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-+iB9FoZnfdqMEGq6np28X6YNSUrse16CakmIhV3h6PxEWt7jYxUN3Txs1D8MZhhf4QmyvK0F/EcIN0f4gGN0dA==",
+      "path": "system.componentmodel.composition/4.5.0",
+      "hashPath": "system.componentmodel.composition.4.5.0.nupkg.sha512"
+    },
+    "System.Security.AccessControl/4.5.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-vW8Eoq0TMyz5vAG/6ce483x/CP83fgm4SJe5P8Tb1tZaobcvPrbMEL7rhH1DRdrYbbb6F0vq3OlzmK0Pkwks5A==",
+      "path": "system.security.accesscontrol/4.5.0",
+      "hashPath": "system.security.accesscontrol.4.5.0.nupkg.sha512"
+    },
+    "System.Security.Permissions/4.5.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-9gdyuARhUR7H+p5CjyUB/zPk7/Xut3wUSP8NJQB6iZr8L3XUXTMdoLeVAg9N4rqF8oIpE7MpdqHdDHQ7XgJe0g==",
+      "path": "system.security.permissions/4.5.0",
+      "hashPath": "system.security.permissions.4.5.0.nupkg.sha512"
+    },
+    "System.Security.Principal.Windows/4.5.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-U77HfRXlZlOeIXd//Yoj6Jnk8AXlbeisf1oq1os+hxOGVnuG+lGSfGqTwTZBoORFF6j/0q7HXIl8cqwQ9aUGqQ==",
+      "path": "system.security.principal.windows/4.5.0",
+      "hashPath": "system.security.principal.windows.4.5.0.nupkg.sha512"
+    },
+    "CompLib/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "VaultLib.Core/3.0.0-dev": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "VaultLib.Frameworks.Speed/3.0.0-dev": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "VaultLib.ModernBase/3.0.0-dev": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}

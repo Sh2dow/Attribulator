@@ -1,0 +1,16 @@
+D:\Repos\Games\OGVI\Modules\VaultLib\VaultLib.LegacyBase\bin\Debug\net9.0\VaultLib.LegacyBase.deps.json
+D:\Repos\Games\OGVI\Modules\VaultLib\VaultLib.LegacyBase\bin\Debug\net9.0\VaultLib.LegacyBase.dll
+D:\Repos\Games\OGVI\Modules\VaultLib\VaultLib.LegacyBase\bin\Debug\net9.0\VaultLib.LegacyBase.pdb
+D:\Repos\Games\OGVI\Modules\VaultLib\VaultLib.LegacyBase\bin\Debug\net9.0\VaultLib.Core.dll
+D:\Repos\Games\OGVI\Modules\VaultLib\VaultLib.LegacyBase\bin\Debug\net9.0\VaultLib.Core.pdb
+D:\Repos\Games\OGVI\Modules\VaultLib\VaultLib.LegacyBase\obj\Debug\net9.0\VaultLib.LegacyBase.csproj.AssemblyReference.cache
+D:\Repos\Games\OGVI\Modules\VaultLib\VaultLib.LegacyBase\obj\Debug\net9.0\VaultLib.LegacyBase.GeneratedMSBuildEditorConfig.editorconfig
+D:\Repos\Games\OGVI\Modules\VaultLib\VaultLib.LegacyBase\obj\Debug\net9.0\VaultLib.LegacyBase.AssemblyInfoInputs.cache
+D:\Repos\Games\OGVI\Modules\VaultLib\VaultLib.LegacyBase\obj\Debug\net9.0\VaultLib.LegacyBase.AssemblyInfo.cs
+D:\Repos\Games\OGVI\Modules\VaultLib\VaultLib.LegacyBase\obj\Debug\net9.0\VaultLib.LegacyBase.csproj.CoreCompileInputs.cache
+D:\Repos\Games\OGVI\Modules\VaultLib\VaultLib.LegacyBase\obj\Debug\net9.0\VaultLib.LegacyBase.sourcelink.json
+D:\Repos\Games\OGVI\Modules\VaultLib\VaultLib.LegacyBase\obj\Debug\net9.0\VaultLib.E7CD81CC.Up2Date
+D:\Repos\Games\OGVI\Modules\VaultLib\VaultLib.LegacyBase\obj\Debug\net9.0\VaultLib.LegacyBase.dll
+D:\Repos\Games\OGVI\Modules\VaultLib\VaultLib.LegacyBase\obj\Debug\net9.0\refint\VaultLib.LegacyBase.dll
+D:\Repos\Games\OGVI\Modules\VaultLib\VaultLib.LegacyBase\obj\Debug\net9.0\VaultLib.LegacyBase.pdb
+D:\Repos\Games\OGVI\Modules\VaultLib\VaultLib.LegacyBase\obj\Debug\net9.0\ref\VaultLib.LegacyBase.dll

@@ -1,12 +1,11 @@
 ﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System;
 using System.IO;
-using System.Linq;
 using CoreLibraries.IO;
 using VaultLib.Core;
-using VaultLib.Core.Pack;
 using VaultLib.Core.DataInterfaces;
+using VaultLib.Core.DB;
+using VaultLib.Core.Pack;
 
 namespace Attribulator.Plugins.BPSupport
 {
@@ -19,18 +18,8 @@ namespace Attribulator.Plugins.BPSupport
             _vaultName = vaultName;
         }
 
-        public IList<Vault<TKey>> Load<TKey>(BinaryReader br, VaultLib.Core.DB.Database<TKey> database,
-            PackLoadingOptions? loadingOptions = null) where TKey : struct, IKey<TKey>
-        {
-            if (typeof(TKey) != typeof(Key32))
-                throw new NotSupportedException("BurnoutVaultPack only supports Key32 databases.");
-
-            var typedDatabase = (Database)(object)database;
-            var loaded = LoadKey32(br, typedDatabase, loadingOptions);
-            return loaded.Cast<Vault<TKey>>().ToList();
-        }
-
-        private IList<Vault> LoadKey32(BinaryReader br, Database database, PackLoadingOptions? loadingOptions)
+        public IList<Vault<TKey>> Load<TKey>(BinaryReader br, Database<TKey> database,
+            PackLoadingOptions loadingOptions = null) where TKey : struct, IKey<TKey>
         {
             var vltOffset = br.ReadUInt32();
             var vltSize = br.ReadUInt32();
@@ -53,36 +42,26 @@ namespace Attribulator.Plugins.BPSupport
 
             if (br.Read(binData) != binData.Length) throw new InvalidDataException();
 
-            using var readWrapper = new VaultReadWrapper(
-                _vaultName,
-                new MemoryStream(binData),
-                new MemoryStream(vltData),
-                loadingOptions?.ByteOrder ?? ByteOrder.Little);
-            var vault = database.LoadVault(readWrapper);
+            var byteOrder = loadingOptions?.ByteOrder ?? ByteOrder.Little;
 
-            return new ReadOnlyCollection<Vault>(new List<Vault>(new[] {vault}));
+            var binStream = new MemoryStream(binData);
+            var vltStream = new MemoryStream(vltData);
+            using var loadingWrapper = new VaultReadWrapper(_vaultName, binStream, vltStream,
+                byteOrder);
+            var vault = database.LoadVault(loadingWrapper);
+            return new ReadOnlyCollection<Vault<TKey>>(new List<Vault<TKey>>(new[] { vault }));
         }
 
-        public void Save<TKey>(BinaryWriter bw, IList<Vault<TKey>> vaults, PackSavingOptions? savingOptions = null)
+        public void Save<TKey>(BinaryWriter bw, IList<Vault<TKey>> vaults, PackSavingOptions savingOptions)
             where TKey : struct, IKey<TKey>
-        {
-            if (typeof(TKey) != typeof(Key32))
-                throw new NotSupportedException("BurnoutVaultPack only supports Key32 databases.");
-
-            var typedVaults = vaults.Cast<Vault>().ToList();
-            SaveKey32(bw, typedVaults, savingOptions);
-        }
-
-        private void SaveKey32(BinaryWriter bw, IList<Vault> vaults, PackSavingOptions? savingOptions)
         {
             bw.Write(0x10);
             var vault = vaults[0];
-            var writeOptions = savingOptions?.VaultWriteOptions ?? new VaultWriteOptions();
-            var vw = new VaultWriter<Key32>(vault, writeOptions);
+            var vw = new VaultWriter<TKey>(vault, new VaultWriteOptions() { HashMode = VaultHashMode.Hash64 });
             var streamInfo = vw.BuildVault();
-            bw.Write((uint) streamInfo.VltStream.Length);
+            bw.Write((uint)streamInfo.VltStream.Length);
             bw.Write(0);
-            bw.Write((uint) streamInfo.BinStream.Length);
+            bw.Write((uint)streamInfo.BinStream.Length);
 
             streamInfo.VltStream.CopyTo(bw.BaseStream);
             bw.AlignWriter(0x10);
@@ -91,7 +70,7 @@ namespace Attribulator.Plugins.BPSupport
             var endOffset = bw.BaseStream.Position;
 
             bw.BaseStream.Position = 8;
-            bw.Write((uint) binOffset);
+            bw.Write((uint)binOffset);
             bw.BaseStream.Position = endOffset;
         }
     }

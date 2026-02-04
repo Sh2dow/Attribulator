@@ -2,185 +2,230 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Numerics;
 using Attribulator.API.Utils;
 using Attribulator.ModScript.API;
 using Attribulator.ModScript.API.Utils;
 using VaultLib.Core.Types;
-using VaultLib.Core.Types.Attrib.Types;
 using VaultLib.Core.Utils;
-using VaultLib.Core.Hashing;
 
 namespace Attribulator.Plugins.ModScript.Commands
 {
     // update_field class node field [property] value
-    public class UpdateFieldModScriptCommand : BaseModScriptCommand
+    public class UpdateFieldModScriptCommand : BaseModScriptCommand,
+        IParseableModScriptCommand<UpdateFieldModScriptCommand>
     {
-        public string ClassName { get; set; }
-        public string CollectionName { get; set; }
-        public string FieldName { get; set; }
-        public int ArrayIndex { get; set; }
-        public List<string> PropertyPath { get; set; }
-        public string Value { get; set; }
+        public required string ClassName { get; init; }
+        public required string CollectionName { get; init; }
+        public required string FieldName { get; init; }
+        public int ArrayIndex { get; init; }
+        public required List<string> PropertyPath { get; init; }
+        public required string Value { get; init; }
 
-        public override void Parse(List<string> parts)
+        public static UpdateFieldModScriptCommand Parse(List<string> parts)
         {
             if (parts.Count < 5) throw new CommandParseException("Expected at least 5 tokens");
 
-            ClassName = parts[1];
-            CollectionName = CleanHashString(parts[2]);
-            FieldName = parts[3];
-            PropertyPath = new List<string>();
+            var className = parts[1];
+            var collectionName = parts[2];
+            var fieldName = parts[3];
+            var propertyPath = new List<string>();
 
-            var split = FieldName.Split(new[] {'[', ']'}, StringSplitOptions.RemoveEmptyEntries);
+            var split = fieldName.Split(new[] { '[', ']' }, StringSplitOptions.RemoveEmptyEntries);
+
+            int arrayIndex = 0;
 
             switch (split.Length)
             {
                 case 2:
                     if (split[1] == "^")
-                        ArrayIndex = -1;
+                        arrayIndex = -1;
                     else
-                        ArrayIndex = int.Parse(split[1]);
-                    FieldName = split[0];
+                        arrayIndex = int.Parse(split[1]);
+                    fieldName = split[0];
                     break;
                 case 1:
-                    FieldName = split[0];
+                    fieldName = split[0];
                     break;
                 default:
                     throw new CommandParseException("Badly malformed update_field command...");
             }
 
-            FieldName = CleanHashString(FieldName);
-
+            string value;
             if (parts.Count > 5)
             {
-                PropertyPath = parts.Skip(4).Take(parts.Count - 5).ToList();
-                Value = parts[^1];
+                propertyPath = parts.Skip(4).Take(parts.Count - 5).ToList();
+                value = parts[^1];
             }
             else
             {
-                Value = parts[4];
+                value = parts[4];
             }
+
+            return new UpdateFieldModScriptCommand
+            {
+                ClassName = className,
+                CollectionName = collectionName,
+                FieldName = fieldName,
+                ArrayIndex = arrayIndex,
+                Value = value,
+                PropertyPath = propertyPath
+            };
         }
 
-        public override void Execute(DatabaseHelper databaseHelper)
+        protected override void Execute<TKey>(DatabaseHelper<TKey> databaseHelper)
         {
-            var collection = GetCollection(databaseHelper, ClassName, CollectionName);
-            var field = GetField(collection.Class, FieldName);
-            var data = collection.GetRawValue(field.Key);
-            var itemToEdit = data;
+            var collection = GetCollection(databaseHelper, ClassName, CollectionName)!;
+            var field = databaseHelper.GetField(collection.Class, FieldName);
+            var rawValue = collection.GetRawValue(field.Key);
+            // var itemToEdit = rawValue;
 
-            if (data is VLTArrayType array)
+            object itemToEdit;
+
+            var arrayIndex = ArrayIndex;
+
+            if (rawValue is VltArrayType<TKey> array)
             {
-                if (ArrayIndex == -1)
-                    ArrayIndex = array.Items.Count - 1;
-                if (ArrayIndex >= 0 && ArrayIndex < array.Items.Count)
-                    itemToEdit = array.Items[ArrayIndex];
+                if (arrayIndex == -1)
+                    arrayIndex = array.Items.Count - 1;
+                if (arrayIndex >= 0 && arrayIndex < array.Items.Count)
+                    itemToEdit = array.Items[arrayIndex];
                 else
                     throw new CommandExecutionException(
-                        $"update_field command is out of bounds. Checked: 0 <= {ArrayIndex} < {array.Items.Count}");
+                        $"update_field command is out of bounds. Checked: 0 <= {arrayIndex} < {array.Items.Count}");
+            }
+            else
+            {
+                itemToEdit = rawValue;
             }
 
             if (PropertyPath.Count == 0)
             {
-                switch (itemToEdit)
+                if (TypeUtils.IsPrimitiveValue(itemToEdit))
                 {
-                    case IStringValue stringValue:
-                        stringValue.SetString(Value);
-                        break;
-                    case BaseRefSpec<Key32> refSpec:
-                        // NOTE: This is a compatibility feature for certain types, such as GCollectionKey, which are technically a RefSpec.
-                        refSpec.SetCollectionKey(ParseKey(Value));
-                        break;
-                    default:
-                        if (itemToEdit is IConvertible)
-                        {
-                            var converted = ValueConversionUtils.DoPrimitiveConversion(itemToEdit.GetType(), Value);
-                            if (data is VLTArrayType arrayValue)
-                            {
-                                arrayValue.SetValue(ArrayIndex, converted);
-                            }
-                            else
-                            {
-                                collection.SetRawValue(field.Key, converted);
-                            }
-
+                    itemToEdit = ValueConversionUtils.ConvertPrimitiveToNewPrimitive(itemToEdit.GetType(), Value);
+                }
+                else
+                {
+                    switch (itemToEdit)
+                    {
+                        case IStringValue stringValue:
+                            stringValue.SetString(Value);
                             break;
-                        }
-
-                        throw new CommandExecutionException(
-                            $"cannot handle update for {ResolveName(collection.Class.Key)}[{ResolveName(field.Key)}]");
+                        case BaseRefSpec<TKey> refSpec:
+                            refSpec.SetCollectionKey(databaseHelper.StringToKey(Value, true));
+                            break;
+                        default:
+                            throw new CommandExecutionException(
+                                $"Object stored in {ClassName}[{FieldName}] is not a simple type and cannot be used in a value-update command");
+                    }
                 }
             }
             else
             {
                 // TODO for VaultLib: change Matrix to be multiple floats instead of 1 array
-                if (itemToEdit is Matrix matrix && PropertyPath.Count == 1)
+                if (itemToEdit is Matrix4x4 matrix && PropertyPath.Count == 1)
                 {
                     var matrixPath =
-                        PropertyPath[0].Split(new[] {'[', ']'}, StringSplitOptions.RemoveEmptyEntries)[1];
+                        PropertyPath[0].Split(new[] { '[', ']' }, StringSplitOptions.RemoveEmptyEntries)[1];
                     var indices = matrixPath.Split(',', StringSplitOptions.RemoveEmptyEntries)
                         .Select(int.Parse)
                         .ToArray();
                     if (indices.Length != 2) throw new CommandExecutionException("invalid matrix access");
 
-                    var index = 4 * (indices[0] - 1) + (indices[1] - 1);
-                    var parsedValue = float.Parse(Value, CultureInfo.InvariantCulture);
-                    SetMatrixValue(ref matrix, index, parsedValue);
+                    var value = float.Parse(Value, CultureInfo.InvariantCulture);
+                    switch ((indices[0], indices[1]))
+                    {
+                        case (1, 1):
+                            matrix.M11 = value;
+                            break;
+                        case (1, 2):
+                            matrix.M12 = value;
+                            break;
+                        case (1, 3):
+                            matrix.M13 = value;
+                            break;
+                        case (1, 4):
+                            matrix.M14 = value;
+                            break;
+                        case (2, 1):
+                            matrix.M21 = value;
+                            break;
+                        case (2, 2):
+                            matrix.M22 = value;
+                            break;
+                        case (2, 3):
+                            matrix.M23 = value;
+                            break;
+                        case (2, 4):
+                            matrix.M24 = value;
+                            break;
+                        case (3, 1):
+                            matrix.M31 = value;
+                            break;
+                        case (3, 2):
+                            matrix.M32 = value;
+                            break;
+                        case (3, 3):
+                            matrix.M33 = value;
+                            break;
+                        case (3, 4):
+                            matrix.M34 = value;
+                            break;
+                        case (4, 1):
+                            matrix.M41 = value;
+                            break;
+                        case (4, 2):
+                            matrix.M42 = value;
+                            break;
+                        case (4, 3):
+                            matrix.M43 = value;
+                            break;
+                        case (4, 4):
+                            matrix.M44 = value;
+                            break;
+                    }
 
-                    if (data is VLTArrayType arrayValue)
-                        arrayValue.SetValue(ArrayIndex, matrix);
-                    else
-                        collection.SetRawValue(field.Key, matrix);
+                    itemToEdit = matrix;
+                }
+                else if (itemToEdit is BaseRefSpec<TKey> baseRefSpec && PropertyPath.Count == 1
+                                                                     && (PropertyPath[0] == "Class" ||
+                                                                         PropertyPath[0] == "Collection"))
+                {
+                    switch (PropertyPath[0])
+                    {
+                        case "Class":
+                            baseRefSpec.SetClassKey(databaseHelper.StringToKey(Value, true));
+                            break;
+                        case "Collection":
+                            baseRefSpec.SetCollectionKey(databaseHelper.StringToKey(Value, true));
+                            break;
+                    }
                 }
                 else
                 {
                     var parsedProperties = PropertyUtils.ParsePath(PropertyPath).ToList();
-                    var retrievedProperty = PropertyUtils.GetProperty((VLTBaseType)itemToEdit, parsedProperties);
-                    var retrievedValue = retrievedProperty.GetValue();
+                    var retrievedProperty = PropertyUtils.GetProperty(itemToEdit, parsedProperties);
 
-                    var value = ValueConversionUtils.DoPrimitiveConversion(retrievedValue, Value);
+                    var value = ValueConversionUtils.ConvertPrimitiveToNewPrimitive(retrievedProperty.GetPropertyType(),
+                        Value);
                     if (value == null) throw new Exception();
 
                     retrievedProperty.SetValue(value);
                 }
             }
-        }
 
-        private static void SetMatrixValue(ref Matrix matrix, int index, float value)
-        {
-            switch (index)
+            if (rawValue is VltArrayType<TKey> array2)
             {
-                case 0: matrix.M11 = value; break;
-                case 1: matrix.M12 = value; break;
-                case 2: matrix.M13 = value; break;
-                case 3: matrix.M14 = value; break;
-                case 4: matrix.M21 = value; break;
-                case 5: matrix.M22 = value; break;
-                case 6: matrix.M23 = value; break;
-                case 7: matrix.M24 = value; break;
-                case 8: matrix.M31 = value; break;
-                case 9: matrix.M32 = value; break;
-                case 10: matrix.M33 = value; break;
-                case 11: matrix.M34 = value; break;
-                case 12: matrix.M41 = value; break;
-                case 13: matrix.M42 = value; break;
-                case 14: matrix.M43 = value; break;
-                case 15: matrix.M44 = value; break;
-                default: throw new CommandExecutionException("invalid matrix index");
+                array2.Items[arrayIndex] = itemToEdit;
+                collection.SetRawValue(field.Key, array2);
             }
-        }
-
-        private static Key32 ParseKey(string name)
-        {
-            if (name.StartsWith("0x") && uint.TryParse(name.Substring(2),
-                    NumberStyles.AllowHexSpecifier,
-                    CultureInfo.InvariantCulture, out var hexVal))
+            else
             {
-                return new Key32(hexVal);
+                collection.SetRawValue(field.Key, itemToEdit);
             }
 
-            return Key32.FromString(name);
+            databaseHelper.MarkVaultAsModified(collection.Vault);
         }
-
     }
 }

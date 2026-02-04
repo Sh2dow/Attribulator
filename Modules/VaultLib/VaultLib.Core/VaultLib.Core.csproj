@@ -16,9 +16,14 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="MSBuildGitHash" Version="0.5.0" />
-    <PackageReference Include="NFSTools.Core.IO" Version="2.0.0" />
-    <PackageReference Include="NFSTools.Core.ModuleSystem" Version="2.0.0" />
+    <PackageReference Include="MSBuildGitHash" Version="2.0.2">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\CoreLibraries\CoreLibraries.IO\CoreLibraries.IO.csproj" />
   </ItemGroup>
 
 </Project>

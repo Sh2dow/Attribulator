@@ -1,6 +1,5 @@
-using System.IO;
+﻿using System.IO;
 using System.Reflection;
-using Attribulator.API;
 using Attribulator.API.Plugin;
 using VaultLib.Core.Hashing;
 
@@ -17,8 +16,6 @@ namespace Attribulator.Plugins.BPSupport
         {
             HashManager.LoadDictionary(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location),
                 "Resources", "hashes.txt"));
-
-            DatabaseModuleRegistry.Register("BURNOUT_PARADISE", new BurnoutParadiseModuleDef());
         }
     }
 }

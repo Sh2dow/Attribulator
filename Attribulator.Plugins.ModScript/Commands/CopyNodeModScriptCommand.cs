@@ -1,30 +1,37 @@
 ﻿using System.Collections.Generic;
 using Attribulator.ModScript.API;
 using VaultLib.Core.Data;
-using VaultLib.Core.Hashing;
 
 namespace Attribulator.Plugins.ModScript.Commands
 {
-    // copy_node class sourceNode parentNode nodeName
-    public class CopyNodeModScriptCommand : BaseModScriptCommand
+    // copy_node class sourceNode [parentNode] nodeName
+    public class CopyNodeModScriptCommand : BaseModScriptCommand, IParseableModScriptCommand<CopyNodeModScriptCommand>
     {
-        public string ClassName { get; set; }
-        public string SourceCollectionName { get; set; }
-        public string ParentCollectionName { get; set; }
-        public string DestinationCollectionName { get; set; }
+        public required string ClassName { get; init; }
+        public required string SourceCollectionName { get; init; }
+        public required string? ParentCollectionName { get; init; }
+        public required string DestinationCollectionName { get; init; }
 
-        public override void Parse(List<string> parts)
+        public static CopyNodeModScriptCommand Parse(List<string> parts)
         {
             if (parts.Count != 4 && parts.Count != 5)
                 throw new CommandParseException($"4 or 5 tokens expected, got {parts.Count}");
 
-            ClassName = parts[1];
-            SourceCollectionName = parts[2];
-            ParentCollectionName = parts.Count == 5 ? parts[3] : "";
-            DestinationCollectionName = parts[^1];
+            var className = parts[1];
+            var sourceCollectionName = parts[2];
+            var parentCollectionName = parts.Count == 5 ? parts[3] : null;
+            var destinationCollectionName = parts[^1];
+
+            return new CopyNodeModScriptCommand
+            {
+                ClassName = className,
+                SourceCollectionName = sourceCollectionName,
+                ParentCollectionName = parentCollectionName,
+                DestinationCollectionName = destinationCollectionName,
+            };
         }
 
-        public override void Execute(DatabaseHelper databaseHelper)
+        protected override void Execute<TKey>(DatabaseHelper<TKey> databaseHelper)
         {
             var collection = GetCollection(databaseHelper, ClassName, SourceCollectionName);
 
@@ -36,7 +43,7 @@ namespace Attribulator.Plugins.ModScript.Commands
                 throw new CommandExecutionException(
                     $"copy_node failed because there is already a collection called '{DestinationCollectionName}'");
 
-            VltCollection parentCollection = null;
+            VltCollection<TKey>? parentCollection = null;
 
             if (!string.IsNullOrWhiteSpace(ParentCollectionName))
             {
@@ -47,26 +54,14 @@ namespace Attribulator.Plugins.ModScript.Commands
                         $"copy_node failed because the parent collection called '{ParentCollectionName}' does not exist");
             }
 
-            var newCollection = new VltCollection(collection.Vault, collection.Class, ParseKey(DestinationCollectionName));
+            var newCollection = new VltCollection<TKey>(collection.Vault, collection.Class,
+                databaseHelper.StringToKey(DestinationCollectionName, true));
             databaseHelper.CopyCollection(databaseHelper.Database, collection, newCollection);
 
             if (newCollection.Class.HasField("CollectionName"))
                 newCollection.SetRawValue("CollectionName", DestinationCollectionName);
 
             databaseHelper.AddCollection(newCollection, parentCollection);
-            HashManager.AddVlt(DestinationCollectionName);
-        }
-
-        private static Key32 ParseKey(string name)
-        {
-            if (name.StartsWith("0x") && uint.TryParse(name.Substring(2),
-                    System.Globalization.NumberStyles.AllowHexSpecifier,
-                    System.Globalization.CultureInfo.InvariantCulture, out var hexVal))
-            {
-                return new Key32(hexVal);
-            }
-
-            return Key32.FromString(name);
         }
     }
 }

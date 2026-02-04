@@ -16,10 +16,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="NFSTools.Core.IO" Version="2.0.0" />
-  </ItemGroup>
-
-  <ItemGroup>
+    <ProjectReference Include="..\..\CoreLibraries\CoreLibraries.IO\CoreLibraries.IO.csproj" />
     <ProjectReference Include="..\VaultLib.Core\VaultLib.Core.csproj" />
   </ItemGroup>
 

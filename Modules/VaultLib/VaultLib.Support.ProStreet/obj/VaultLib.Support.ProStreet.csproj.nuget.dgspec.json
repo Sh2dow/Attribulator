@@ -1,0 +1,512 @@
+{
+  "format": 1,
+  "restore": {
+    "D:\\Repos\\Games\\OGVI\\Modules\\VaultLib\\VaultLib.Support.ProStreet\\VaultLib.Support.ProStreet.csproj": {}
+  },
+  "projects": {
+    "D:\\Repos\\Games\\OGVI\\Modules\\CompLib\\CompLib.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "D:\\Repos\\Games\\OGVI\\Modules\\CompLib\\CompLib.csproj",
+        "projectName": "CompLib",
+        "projectPath": "D:\\Repos\\Games\\OGVI\\Modules\\CompLib\\CompLib.csproj",
+        "packagesPath": "D:\\Users\\sh2dow\\.nuget\\packages\\",
+        "outputPath": "D:\\Repos\\Games\\OGVI\\Modules\\CompLib\\obj\\",
+        "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        ],
+        "configFilePaths": [
+          "D:\\Users\\sh2dow\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "net9.0"
+        ],
+        "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "C:\\Program Files\\dotnet\\library-packs": {},
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net9.0": {
+            "targetAlias": "net9.0",
+            "projectReferences": {}
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "10.0.100"
+      },
+      "frameworks": {
+        "net9.0": {
+          "targetAlias": "net9.0",
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.101/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "D:\\Repos\\Games\\OGVI\\Modules\\CoreLibraries\\CoreLibraries.IO\\CoreLibraries.IO.csproj": {
+      "version": "2.0.0",
+      "restore": {
+        "projectUniqueName": "D:\\Repos\\Games\\OGVI\\Modules\\CoreLibraries\\CoreLibraries.IO\\CoreLibraries.IO.csproj",
+        "projectName": "CoreLibraries.IO",
+        "projectPath": "D:\\Repos\\Games\\OGVI\\Modules\\CoreLibraries\\CoreLibraries.IO\\CoreLibraries.IO.csproj",
+        "packagesPath": "D:\\Users\\sh2dow\\.nuget\\packages\\",
+        "outputPath": "D:\\Repos\\Games\\OGVI\\Modules\\CoreLibraries\\CoreLibraries.IO\\obj\\",
+        "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        ],
+        "configFilePaths": [
+          "D:\\Users\\sh2dow\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "net9.0"
+        ],
+        "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "C:\\Program Files\\dotnet\\library-packs": {},
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net9.0": {
+            "targetAlias": "net9.0",
+            "projectReferences": {}
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "10.0.100"
+      },
+      "frameworks": {
+        "net9.0": {
+          "targetAlias": "net9.0",
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.101/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "D:\\Repos\\Games\\OGVI\\Modules\\CoreLibraries\\CoreLibraries.ModuleSystem\\CoreLibraries.ModuleSystem.csproj": {
+      "version": "2.0.0",
+      "restore": {
+        "projectUniqueName": "D:\\Repos\\Games\\OGVI\\Modules\\CoreLibraries\\CoreLibraries.ModuleSystem\\CoreLibraries.ModuleSystem.csproj",
+        "projectName": "CoreLibraries.ModuleSystem",
+        "projectPath": "D:\\Repos\\Games\\OGVI\\Modules\\CoreLibraries\\CoreLibraries.ModuleSystem\\CoreLibraries.ModuleSystem.csproj",
+        "packagesPath": "D:\\Users\\sh2dow\\.nuget\\packages\\",
+        "outputPath": "D:\\Repos\\Games\\OGVI\\Modules\\CoreLibraries\\CoreLibraries.ModuleSystem\\obj\\",
+        "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        ],
+        "configFilePaths": [
+          "D:\\Users\\sh2dow\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "net9.0"
+        ],
+        "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "C:\\Program Files\\dotnet\\library-packs": {},
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net9.0": {
+            "targetAlias": "net9.0",
+            "projectReferences": {}
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "10.0.100"
+      },
+      "frameworks": {
+        "net9.0": {
+          "targetAlias": "net9.0",
+          "dependencies": {
+            "System.ComponentModel.Composition": {
+              "target": "Package",
+              "version": "[10.0.2, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.101/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "D:\\Repos\\Games\\OGVI\\Modules\\VaultLib\\VaultLib.Core\\VaultLib.Core.csproj": {
+      "version": "3.0.0-dev",
+      "restore": {
+        "projectUniqueName": "D:\\Repos\\Games\\OGVI\\Modules\\VaultLib\\VaultLib.Core\\VaultLib.Core.csproj",
+        "projectName": "VaultLib.Core",
+        "projectPath": "D:\\Repos\\Games\\OGVI\\Modules\\VaultLib\\VaultLib.Core\\VaultLib.Core.csproj",
+        "packagesPath": "D:\\Users\\sh2dow\\.nuget\\packages\\",
+        "outputPath": "D:\\Repos\\Games\\OGVI\\Modules\\VaultLib\\VaultLib.Core\\obj\\",
+        "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        ],
+        "configFilePaths": [
+          "D:\\Users\\sh2dow\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "net9.0"
+        ],
+        "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "C:\\Program Files\\dotnet\\library-packs": {},
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net9.0": {
+            "targetAlias": "net9.0",
+            "projectReferences": {
+              "D:\\Repos\\Games\\OGVI\\Modules\\CoreLibraries\\CoreLibraries.IO\\CoreLibraries.IO.csproj": {
+                "projectPath": "D:\\Repos\\Games\\OGVI\\Modules\\CoreLibraries\\CoreLibraries.IO\\CoreLibraries.IO.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "10.0.100"
+      },
+      "frameworks": {
+        "net9.0": {
+          "targetAlias": "net9.0",
+          "dependencies": {
+            "MSBuildGitHash": {
+              "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[2.0.2, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.101/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "D:\\Repos\\Games\\OGVI\\Modules\\VaultLib\\VaultLib.Frameworks.Speed\\VaultLib.Frameworks.Speed.csproj": {
+      "version": "3.0.0-dev",
+      "restore": {
+        "projectUniqueName": "D:\\Repos\\Games\\OGVI\\Modules\\VaultLib\\VaultLib.Frameworks.Speed\\VaultLib.Frameworks.Speed.csproj",
+        "projectName": "VaultLib.Frameworks.Speed",
+        "projectPath": "D:\\Repos\\Games\\OGVI\\Modules\\VaultLib\\VaultLib.Frameworks.Speed\\VaultLib.Frameworks.Speed.csproj",
+        "packagesPath": "D:\\Users\\sh2dow\\.nuget\\packages\\",
+        "outputPath": "D:\\Repos\\Games\\OGVI\\Modules\\VaultLib\\VaultLib.Frameworks.Speed\\obj\\",
+        "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        ],
+        "configFilePaths": [
+          "D:\\Users\\sh2dow\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "net9.0"
+        ],
+        "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "C:\\Program Files\\dotnet\\library-packs": {},
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net9.0": {
+            "targetAlias": "net9.0",
+            "projectReferences": {
+              "D:\\Repos\\Games\\OGVI\\Modules\\CompLib\\CompLib.csproj": {
+                "projectPath": "D:\\Repos\\Games\\OGVI\\Modules\\CompLib\\CompLib.csproj"
+              },
+              "D:\\Repos\\Games\\OGVI\\Modules\\CoreLibraries\\CoreLibraries.ModuleSystem\\CoreLibraries.ModuleSystem.csproj": {
+                "projectPath": "D:\\Repos\\Games\\OGVI\\Modules\\CoreLibraries\\CoreLibraries.ModuleSystem\\CoreLibraries.ModuleSystem.csproj"
+              },
+              "D:\\Repos\\Games\\OGVI\\Modules\\VaultLib\\VaultLib.Core\\VaultLib.Core.csproj": {
+                "projectPath": "D:\\Repos\\Games\\OGVI\\Modules\\VaultLib\\VaultLib.Core\\VaultLib.Core.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "10.0.100"
+      },
+      "frameworks": {
+        "net9.0": {
+          "targetAlias": "net9.0",
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.101/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "D:\\Repos\\Games\\OGVI\\Modules\\VaultLib\\VaultLib.ModernBase\\VaultLib.ModernBase.csproj": {
+      "version": "3.0.0-dev",
+      "restore": {
+        "projectUniqueName": "D:\\Repos\\Games\\OGVI\\Modules\\VaultLib\\VaultLib.ModernBase\\VaultLib.ModernBase.csproj",
+        "projectName": "VaultLib.ModernBase",
+        "projectPath": "D:\\Repos\\Games\\OGVI\\Modules\\VaultLib\\VaultLib.ModernBase\\VaultLib.ModernBase.csproj",
+        "packagesPath": "D:\\Users\\sh2dow\\.nuget\\packages\\",
+        "outputPath": "D:\\Repos\\Games\\OGVI\\Modules\\VaultLib\\VaultLib.ModernBase\\obj\\",
+        "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        ],
+        "configFilePaths": [
+          "D:\\Users\\sh2dow\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "net9.0"
+        ],
+        "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "C:\\Program Files\\dotnet\\library-packs": {},
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net9.0": {
+            "targetAlias": "net9.0",
+            "projectReferences": {
+              "D:\\Repos\\Games\\OGVI\\Modules\\VaultLib\\VaultLib.Core\\VaultLib.Core.csproj": {
+                "projectPath": "D:\\Repos\\Games\\OGVI\\Modules\\VaultLib\\VaultLib.Core\\VaultLib.Core.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "10.0.100"
+      },
+      "frameworks": {
+        "net9.0": {
+          "targetAlias": "net9.0",
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.101/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "D:\\Repos\\Games\\OGVI\\Modules\\VaultLib\\VaultLib.Support.ProStreet\\VaultLib.Support.ProStreet.csproj": {
+      "version": "3.0.0-dev",
+      "restore": {
+        "projectUniqueName": "D:\\Repos\\Games\\OGVI\\Modules\\VaultLib\\VaultLib.Support.ProStreet\\VaultLib.Support.ProStreet.csproj",
+        "projectName": "VaultLib.Support.ProStreet",
+        "projectPath": "D:\\Repos\\Games\\OGVI\\Modules\\VaultLib\\VaultLib.Support.ProStreet\\VaultLib.Support.ProStreet.csproj",
+        "packagesPath": "D:\\Users\\sh2dow\\.nuget\\packages\\",
+        "outputPath": "D:\\Repos\\Games\\OGVI\\Modules\\VaultLib\\VaultLib.Support.ProStreet\\obj\\",
+        "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        ],
+        "configFilePaths": [
+          "D:\\Users\\sh2dow\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "net9.0"
+        ],
+        "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "C:\\Program Files\\dotnet\\library-packs": {},
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net9.0": {
+            "targetAlias": "net9.0",
+            "projectReferences": {
+              "D:\\Repos\\Games\\OGVI\\Modules\\CoreLibraries\\CoreLibraries.ModuleSystem\\CoreLibraries.ModuleSystem.csproj": {
+                "projectPath": "D:\\Repos\\Games\\OGVI\\Modules\\CoreLibraries\\CoreLibraries.ModuleSystem\\CoreLibraries.ModuleSystem.csproj"
+              },
+              "D:\\Repos\\Games\\OGVI\\Modules\\VaultLib\\VaultLib.Frameworks.Speed\\VaultLib.Frameworks.Speed.csproj": {
+                "projectPath": "D:\\Repos\\Games\\OGVI\\Modules\\VaultLib\\VaultLib.Frameworks.Speed\\VaultLib.Frameworks.Speed.csproj"
+              },
+              "D:\\Repos\\Games\\OGVI\\Modules\\VaultLib\\VaultLib.ModernBase\\VaultLib.ModernBase.csproj": {
+                "projectPath": "D:\\Repos\\Games\\OGVI\\Modules\\VaultLib\\VaultLib.ModernBase\\VaultLib.ModernBase.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "10.0.100"
+      },
+      "frameworks": {
+        "net9.0": {
+          "targetAlias": "net9.0",
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.101/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    }
+  }
+}

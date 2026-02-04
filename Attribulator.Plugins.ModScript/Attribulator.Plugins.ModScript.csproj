@@ -4,27 +4,27 @@
         <Authors>heyitsleo/NFSTools</Authors>
         <Company>NFSTools</Company>
         <Description>Plugin providing ModScript support for Attribulator</Description>
-        <Platforms>x86</Platforms>
         <Product>Attribulator - ModScript Support</Product>
-        <LangVersion>default</LangVersion>
-        <TargetFramework>net9.0-windows</TargetFramework>
-        <Version>2.0.0</Version>
+        <TargetFramework>net9.0</TargetFramework>
+        <Version>3.0.0-dev</Version>
+        <Configurations>Debug;Release</Configurations>
+        <Platforms>AnyCPU</Platforms>
+        <Nullable>enable</Nullable>
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Attribulator.API\Attribulator.API.csproj" />
-        <ProjectReference Include="..\Attribulator.ModScript.API\Attribulator.ModScript.API.csproj" />
+        <ProjectReference Include="..\Attribulator.API\Attribulator.API.csproj"/>
+        <ProjectReference Include="..\Attribulator.ModScript.API\Attribulator.ModScript.API.csproj"/>
     </ItemGroup>
 
     <ItemGroup>
         <PackageReference Include="CommandLineParser" Version="2.9.1" />
-        <PackageReference Include="JetBrains.Annotations" Version="2024.2.0" />
-        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.0-rc.1.24431.7" />
+        <PackageReference Include="JetBrains.Annotations" Version="2025.2.4" />
+        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.2" />
     </ItemGroup>
 
-    <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="'$(SolutionDir)' != '' and '$(SolutionDir)' != '*Undefined*'">
+	<Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="'$(SolutionDir)' != '' and '$(SolutionDir)' != '*Undefined*'">
         <Exec Command="if not exist $(SolutionDir)Attribulator.UI\bin\$(Configuration)\net9.0-windows\plugins\Attribulator.Plugins.ModScript mkdir $(SolutionDir)Attribulator.UI\bin\$(Configuration)\net9.0-windows\plugins\Attribulator.Plugins.ModScript" />
         <Exec Command="xcopy /Y $(OutDir) $(SolutionDir)Attribulator.UI\bin\$(Configuration)\net9.0-windows\plugins\Attribulator.Plugins.ModScript" />
     </Target>
-
 </Project>

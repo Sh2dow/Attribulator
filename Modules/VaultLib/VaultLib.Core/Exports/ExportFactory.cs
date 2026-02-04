@@ -13,71 +13,61 @@ public class ExportFactory<TKey> where TKey : struct, IKey<TKey>
     private readonly Func<BaseCollectionLoad<TKey>> _collectionLoadFactory;
     private readonly Func<IExportEntry<TKey>> _exportEntryFactory;
     private readonly Func<IPtrRef<TKey>> _ptrRefFactory;
-
-    private Dictionary<TKey, Func<BaseExport<TKey>>> ExportBuilders { get; } = new();
-
     private static readonly TKey ClassLoadDataKey = TKey.FromString("Attrib::ClassLoadData");
     private static readonly TKey CollectionLoadDataKey = TKey.FromString("Attrib::CollectionLoadData");
     private static readonly TKey DatabaseLoadDataKey = TKey.FromString("Attrib::DatabaseLoadData");
 
-    public ExportFactory(Func<BaseDatabaseLoad<TKey>> databaseLoadFactory,
-        Func<BaseClassLoad<TKey>> classLoadFactory, Func<BaseCollectionLoad<TKey>> collectionLoadFactory,
-        Func<IExportEntry<TKey>> exportEntryFactory, Func<IPtrRef<TKey>>? ptrRefFactory = null)
-    {
-        _databaseLoadFactory = databaseLoadFactory;
-        _classLoadFactory = classLoadFactory;
-        _collectionLoadFactory = collectionLoadFactory;
-        _exportEntryFactory = exportEntryFactory;
-        _ptrRefFactory = ptrRefFactory ?? (() => new AttribPtrRef<TKey>());
+    private Dictionary<TKey, Func<BaseExport<TKey>>> ExportBuilders { get; } =
+        new Dictionary<TKey, Func<BaseExport<TKey>>>();
 
-        ExportBuilders.Add(ClassLoadDataKey, classLoadFactory);
-        ExportBuilders.Add(CollectionLoadDataKey, collectionLoadFactory);
-        ExportBuilders.Add(DatabaseLoadDataKey, databaseLoadFactory);
+    public ExportFactory(
+        Func<BaseDatabaseLoad<TKey>> databaseLoadFactory,
+        Func<BaseClassLoad<TKey>> classLoadFactory,
+        Func<BaseCollectionLoad<TKey>> collectionLoadFactory,
+        Func<IExportEntry<TKey>> exportEntryFactory,
+        Func<IPtrRef<TKey>>? ptrRefFactory = null)
+    {
+        this._databaseLoadFactory = databaseLoadFactory;
+        this._classLoadFactory = classLoadFactory;
+        this._collectionLoadFactory = collectionLoadFactory;
+        this._exportEntryFactory = exportEntryFactory;
+        this._ptrRefFactory = ptrRefFactory ?? (Func<IPtrRef<TKey>>)(() => (IPtrRef<TKey>)new AttribPtrRef<TKey>());
+        this.ExportBuilders.Add(ExportFactory<TKey>.ClassLoadDataKey, (Func<BaseExport<TKey>>)classLoadFactory);
+        this.ExportBuilders.Add(ExportFactory<TKey>.CollectionLoadDataKey,
+            (Func<BaseExport<TKey>>)collectionLoadFactory);
+        this.ExportBuilders.Add(ExportFactory<TKey>.DatabaseLoadDataKey, (Func<BaseExport<TKey>>)databaseLoadFactory);
     }
 
     public void RegisterExportType<TExport>(TKey exportType) where TExport : BaseExport<TKey>, new()
     {
-        ExportBuilders.Add(exportType, () => new TExport());
+        this.ExportBuilders.Add(exportType, (Func<BaseExport<TKey>>)(() => (BaseExport<TKey>)new TExport()));
     }
 
     public BaseExport<TKey> CreateExport(TKey exportType)
     {
-        if (!ExportBuilders.TryGetValue(exportType, out var exportBuilder))
-        {
+        Func<BaseExport<TKey>> func;
+        if (!this.ExportBuilders.TryGetValue(exportType, out func))
             throw new KeyNotFoundException($"No factory found for export type: {exportType}");
-        }
-
-        return exportBuilder();
+        return func();
     }
 
     public BaseCollectionLoad<TKey> BuildCollectionLoad(VltCollection<TKey> collection)
     {
-        var collectionLoad = _collectionLoadFactory();
-        collectionLoad.Collection = collection;
-
-        return collectionLoad;
+        BaseCollectionLoad<TKey> baseCollectionLoad = this._collectionLoadFactory();
+        baseCollectionLoad.Collection = collection;
+        return baseCollectionLoad;
     }
 
     public BaseClassLoad<TKey> BuildClassLoad(VltClass<TKey> vltClass)
     {
-        var classLoad = _classLoadFactory();
-
-        classLoad.Class = vltClass;
-        return classLoad;
+        BaseClassLoad<TKey> baseClassLoad = this._classLoadFactory();
+        baseClassLoad.Class = vltClass;
+        return baseClassLoad;
     }
 
-    public BaseDatabaseLoad<TKey> BuildDatabaseLoad()
-    {
-        return _databaseLoadFactory();
-    }
+    public BaseDatabaseLoad<TKey> BuildDatabaseLoad() => this._databaseLoadFactory();
 
-    public IPtrRef<TKey> CreatePtrRef()
-    {
-        return _ptrRefFactory();
-    }
+    public IPtrRef<TKey> CreatePtrRef() => this._ptrRefFactory();
 
-    public IExportEntry<TKey> BuildExportEntry()
-    {
-        return _exportEntryFactory();
-    }
+    public IExportEntry<TKey> BuildExportEntry() => this._exportEntryFactory();
 }

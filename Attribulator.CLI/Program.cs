@@ -29,7 +29,6 @@ namespace Attribulator.CLI
             services.AddSingleton<IProfileService, ProfileServiceImpl>();
             services.AddSingleton<IStorageFormatService, StorageFormatServiceImpl>();
             services.AddSingleton<IPluginService, PluginServiceImpl>();
-            services.AddSingleton<SerializationOptions>();
 
             // Set up logging
             Log.Logger = new LoggerConfiguration().MinimumLevel.Debug().WriteTo.Console().CreateLogger();
@@ -56,7 +55,7 @@ namespace Attribulator.CLI
             }
         }
 
-        private static async Task<int> RunApplication(IServiceProvider serviceProvider, IEnumerable<string> args)
+        public static async Task<int> RunApplication(IServiceProvider serviceProvider, IEnumerable<string> args)
         {
             var commandService = serviceProvider.GetRequiredService<ICommandService>();
             var commandTypes = commandService.GetCommandTypes().ToArray();
@@ -102,6 +101,9 @@ namespace Attribulator.CLI
             commandService.RegisterCommand<PackCommand>();
             commandService.RegisterCommand<UnpackCommand>();
             commandService.RegisterCommand<GenerateHashListCommand>();
+            commandService.RegisterCommand<ResolveHashesCommand>();
+            commandService.RegisterCommand<DumpCommand>();
+            commandService.RegisterCommand<HashCommand>();
 
             // Then register plugin commands
             foreach (var commandType in commandTypes) commandService.RegisterCommand(commandType);
@@ -116,7 +118,7 @@ namespace Attribulator.CLI
             foreach (var profileType in profileTypes) profileService.RegisterProfile(profileType);
         }
 
-		public static void LoadStorageFormats(ServiceCollection services, IServiceProvider serviceProvider)
+        public static void LoadStorageFormats(ServiceCollection services, IServiceProvider serviceProvider)
         {
             var storageFormatTypes = (from service in services
                 where typeof(IDatabaseStorageFormat).IsAssignableFrom(service.ImplementationType)
@@ -159,7 +161,7 @@ namespace Attribulator.CLI
                 where typeof(IPluginFactory).IsAssignableFrom(pluginType) && !pluginType.IsAbstract
                 select pluginType)
             {
-                var pluginFactory = (IPluginFactory) Activator.CreateInstance(pluginType);
+                var pluginFactory = (IPluginFactory)Activator.CreateInstance(pluginType);
 
                 if (pluginFactory == null)
                     throw new Exception("Activator.CreateInstance returned null while trying to load plugin");
@@ -210,7 +212,7 @@ namespace Attribulator.CLI
             return list;
         }
 
-        private static void ResolveDependencies(PluginResolutionNode node, List<PluginResolutionNode> resolved,
+        public static void ResolveDependencies(PluginResolutionNode node, List<PluginResolutionNode> resolved,
             List<PluginResolutionNode> unresolved)
         {
             unresolved.Add(node);
@@ -223,7 +225,7 @@ namespace Attribulator.CLI
             unresolved.Remove(node);
         }
 
-        private class PluginResolutionNode
+        public class PluginResolutionNode
         {
             public PluginResolutionNode(string id)
             {

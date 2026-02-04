@@ -43,7 +43,7 @@ public class VltExportChunk<TKey> : ChunkBase<TKey> where TKey : struct, IKey<TK
 
             export.Offset = exportEntry.Offset;
             export.Size = exportEntry.Size;
-            context.Exports.Add(export);
+            context.Vault.Exports.Add(export);
         }
     }
 

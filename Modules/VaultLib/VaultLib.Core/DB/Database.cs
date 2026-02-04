@@ -1,13 +1,10 @@
-﻿// This file is part of VaultLib by heyitsleo.
-// 
-// Created: 09/23/2019 @ 8:59 PM.
-
-using CoreLibraries.IO;
+﻿using CoreLibraries.IO;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using VaultLib.Core.Chunks;
 using VaultLib.Core.Data;
 using VaultLib.Core.DataInterfaces;
 using VaultLib.Core.Exports;
@@ -16,289 +13,152 @@ using VaultLib.Core.Utils;
 
 namespace VaultLib.Core.DB;
 
-/// <summary>
-///     The <see cref="Database{TKey}" /> is the powerhouse of the library. It keeps track of all data that is loaded.
-/// </summary>
 public class Database<TKey> where TKey : struct, IKey<TKey>
 {
-    private Dictionary<VltCollection<TKey>, TKey> _parentKeyDictionary = new();
+    private Dictionary<VltCollection<TKey>, TKey> _parentKeyDictionary = new Dictionary<VltCollection<TKey>, TKey>();
 
-    private ByteOrder _expectedByteOrder;
-
-    /// <summary>
-    /// Initializes the database. Sets up data collections.
-    /// </summary>
-    /// <param name="exportFactory"></param>
-    /// <param name="typeRegistryBuilder"></param>
-    public Database(ExportFactory<TKey> exportFactory, TypeRegistryBuilder<TKey> typeRegistryBuilder)
+    public Database(DatabaseOptions options, VaultLib.Core.Exports.ExportFactory<TKey> exportFactory)
     {
-        Classes = new List<VltClass<TKey>>();
-        Types = new List<DatabaseTypeInfo>();
-        Vaults = new List<Vault<TKey>>();
-        RowManager = new RowManager<TKey>(this);
-        TypeRegistry = typeRegistryBuilder.Build(this);
-        ExportFactory = exportFactory;
-        _expectedByteOrder = typeRegistryBuilder.ByteOrder;
+        this.Options = options;
+        this.Classes = new List<VltClass<TKey>>();
+        this.Types = new List<DatabaseTypeInfo>();
+        this.Vaults = new List<Vault<TKey>>();
+        this.RowManager = new VaultLib.Core.RowManager<TKey>(this);
+        this.TypeRegistry = new VaultLib.Core.TypeRegistry<TKey>(this);
+        this.ExportFactory = exportFactory;
     }
 
-    public RowManager<TKey> RowManager { get; }
+    public DatabaseOptions Options { get; }
+
+    public VaultLib.Core.RowManager<TKey> RowManager { get; }
 
     public List<VltClass<TKey>> Classes { get; }
 
     public List<DatabaseTypeInfo> Types { get; }
 
-    public TypeRegistry<TKey> TypeRegistry { get; }
+    public VaultLib.Core.TypeRegistry<TKey> TypeRegistry { get; }
 
-    public ExportFactory<TKey> ExportFactory { get; }
+    public VaultLib.Core.Exports.ExportFactory<TKey> ExportFactory { get; }
 
     public List<Vault<TKey>> Vaults { get; }
 
-    /// <summary>
-    /// Adds a new class to the database.
-    /// </summary>
-    /// <param name="vltClass">The class to add.</param>
-    public void AddClass(VltClass<TKey> vltClass)
-    {
-        Classes.Add(vltClass);
-    }
+    public void AddClass(VltClass<TKey> vltClass) => this.Classes.Add(vltClass);
 
-    /// <summary>
-    /// Locates the class with a particular key.
-    /// </summary>
-    /// <param name="key">The key to search for.</param>
-    /// <returns>The class with the given key.</returns>
-    /// <exception cref="InvalidOperationException">if no class can be found</exception>
     public VltClass<TKey> FindClass(TKey key)
     {
-        return Classes.First(c => c.Key == key);
+        return this.Classes.First<VltClass<TKey>>((Func<VltClass<TKey>, bool>)(c => c.Key == key));
     }
 
-    /// <summary>
-    /// Locates the class with a particular name.
-    /// </summary>
-    /// <param name="name">The name of the class to search for.</param>
-    /// <returns>The class with the given name.</returns>
-    /// <exception cref="InvalidOperationException">if no class can be found</exception>
-    public VltClass<TKey> FindClass(string name)
-    {
-        return FindClass(TKey.FromString(name));
-    }
+    public VltClass<TKey> FindClass(string name) => this.FindClass(TKey.FromString(name));
 
     public Vault<TKey> FindVault(string name)
     {
-        return Vaults.First(v => v.Name == name);
+        return this.Vaults.First<Vault<TKey>>((Func<Vault<TKey>, bool>)(v => v.Name == name));
     }
 
     public Vault<TKey> LoadVault(VaultReadWrapper readWrapper)
     {
-        if (_expectedByteOrder != readWrapper.ByteOrder)
+        Vault<TKey> vault = new Vault<TKey>(this, readWrapper.VaultName)
         {
-            throw new Exception(
-                $"Cannot load vault because its byte order ({readWrapper.ByteOrder}) does not match the database's byte order ({_expectedByteOrder}).");
-        }
-
-        var vault = new Vault<TKey>(this, readWrapper.VaultName);
-        var binStreamReader = CreateStreamReader(readWrapper.BinStream, readWrapper.ByteOrder);
-        var vltStreamReader = CreateStreamReader(readWrapper.VltStream, readWrapper.ByteOrder);
-
-        Debug.WriteLine("[IN] vault {0}: bin size 0x{1:X} vlt size 0x{2:X}", vault.Name, readWrapper.BinStream.Length,
-            readWrapper.VltStream.Length);
-
-        var binChunkReader = new ChunkReader<TKey>(binStreamReader);
-        var vltChunkReader = new ChunkReader<TKey>(vltStreamReader);
-
-        var vaultLoadContext =
-            new VaultReadContext<TKey>(vault, readWrapper.BinStream, readWrapper.VltStream, readWrapper.ByteOrder);
-
-        //Debug.WriteLine("Processing BIN chunks");
-        processBinChunks(vaultLoadContext, binChunkReader);
-
-        //Debug.WriteLine("Processing VLT chunks");
-        processVltChunks(vaultLoadContext, vltChunkReader);
-
-        //Debug.WriteLine("Processing pointers");
-        fixPointers(vaultLoadContext, VltPointerType.Bin, readWrapper.BinStream);
-        fixPointers(vaultLoadContext, VltPointerType.Vlt, readWrapper.VltStream);
-
-        //Debug.WriteLine("Reading exports");
-        ReadExports(vaultLoadContext, vltStreamReader, binStreamReader);
-
-        Vaults.Add(vault);
-
+            ByteOrder = readWrapper.ByteOrder
+        };
+        BinaryReader streamReader1 = Database<TKey>.CreateStreamReader(readWrapper.BinStream, readWrapper.ByteOrder);
+        BinaryReader streamReader2 = Database<TKey>.CreateStreamReader(readWrapper.VltStream, readWrapper.ByteOrder);
+        Debug.WriteLine("[IN] vault {0}: bin size 0x{1:X} vlt size 0x{2:X}", (object)vault.Name,
+            (object)readWrapper.BinStream.Length, (object)readWrapper.VltStream.Length);
+        ChunkReader<TKey> chunkReader1 = new ChunkReader<TKey>(streamReader1);
+        ChunkReader<TKey> chunkReader2 = new ChunkReader<TKey>(streamReader2);
+        VaultReadContext<TKey> context =
+            new VaultReadContext<TKey>(vault, readWrapper.BinStream, readWrapper.VltStream);
+        this.processBinChunks(context, chunkReader1);
+        this.processVltChunks(context, chunkReader2);
+        this.fixPointers(context, VltPointerType.Bin, readWrapper.BinStream);
+        this.fixPointers(context, VltPointerType.Vlt, readWrapper.VltStream);
+        this.ReadExports(context, streamReader2, streamReader1);
+        this.Vaults.Add(vault);
         return vault;
     }
 
     private static BinaryReader CreateStreamReader(Stream stream, ByteOrder byteOrder)
     {
-        return byteOrder == ByteOrder.Big ? new BigEndianBinaryReader(stream) : new BinaryReader(stream);
+        return byteOrder == ByteOrder.Big ? (BinaryReader)new BigEndianBinaryReader(stream) : new BinaryReader(stream);
     }
 
-    /// <summary>
-    ///     Called after all vaults have been loaded in order to generate a proper hierarchy.
-    /// </summary>
     public void CompleteLoad()
     {
-        var stopwatch = Stopwatch.StartNew();
-
-        var classToCollections = new Dictionary<VltClass<TKey>, Dictionary<TKey, VltCollection<TKey>>>();
-
-        foreach (var vltCollection in RowManager.Rows)
+        Stopwatch stopwatch = Stopwatch.StartNew();
+        Dictionary<VltClass<TKey>, Dictionary<TKey, VltCollection<TKey>>> dictionary1 =
+            new Dictionary<VltClass<TKey>, Dictionary<TKey, VltCollection<TKey>>>();
+        foreach (VltCollection<TKey> row in this.RowManager.Rows)
         {
-            if (!classToCollections.TryGetValue(vltCollection.Class, out var collections))
+            Dictionary<TKey, VltCollection<TKey>> dictionary2;
+            if (!dictionary1.TryGetValue(row.Class, out dictionary2))
             {
-                collections = new Dictionary<TKey, VltCollection<TKey>>();
-                classToCollections.Add(vltCollection.Class, collections);
+                dictionary2 = new Dictionary<TKey, VltCollection<TKey>>();
+                dictionary1.Add(row.Class, dictionary2);
             }
 
-            // var hash = Hash(vltCollection.Name);
-            if (!collections.TryAdd(vltCollection.Key, vltCollection))
-            {
-                Debug.WriteLine("WARN: duplicate key detected in class {2}: {0} (0x{1:X})", vltCollection.Key,
-                    vltCollection.Key,
-                    vltCollection.Class.Key);
-            }
+            if (!dictionary2.TryAdd(row.Key, row))
+                Debug.WriteLine("WARN: duplicate key detected in class {2}: {0} (0x{1:X})", (object)row.Key,
+                    (object)row.Key, (object)row.Class.Key);
         }
 
-        foreach (var vltCollection in RowManager.Rows)
+        foreach (VltCollection<TKey> row in this.RowManager.Rows)
         {
-            if (!_parentKeyDictionary.TryGetValue(vltCollection, out var parentKey)) continue;
-
-            var collections = classToCollections[vltCollection.Class];
-
-            if (!collections.TryGetValue(parentKey, out var parentCollection))
+            TKey key;
+            if (this._parentKeyDictionary.TryGetValue(row, out key))
             {
-                throw new Exception(
-                    $"could not find parent collection for {vltCollection.Key}: {parentKey}");
+                VltCollection<TKey> vltCollection;
+                if (!dictionary1[row.Class].TryGetValue(key, out vltCollection))
+                    throw new Exception($"could not find parent collection for {row.Key}: {key}");
+                vltCollection.AddChild(row);
             }
-
-            vltCollection.SetParent(parentCollection);
         }
 
         stopwatch.Stop();
-        _parentKeyDictionary.Clear();
-
-        FixupStaticData();
+        this._parentKeyDictionary.Clear();
+        this.FixupStaticData();
     }
 
     private void FixupStaticData()
     {
-        // foreach (var vltClass in Classes)
-        // {
-        //     foreach (var staticField in vltClass.StaticFields)
-        //     {
-        //         // TODO: We should really have some kind of post-processing abstraction for static data.
-        //         if (staticField.StaticValue is BaseManyToOneIndex staticTree)
-        //         {
-        //             var realRowManager = (RowManager<Key32>)(object)RowManager;
-        //             var classKey = (Key32)(object)vltClass.Key;
-        //             
-        //             BaseManyToOneIndex.TreeNodeType? nodeType = null;
-        //             for (var i = 0; i < staticTree.Keys.Count; i++)
-        //             {
-        //                 var key = staticTree.Keys[i];
-        //                 var indexTableEntry = staticTree.Indices[i];
-        //                 var values = staticTree.Values.GetRange(indexTableEntry.Index, indexTableEntry.Count);
-        //
-        //                 var keyToName = HashManager.ResolveVlt(key);
-        //
-        //                 if (key != 0)
-        //                 {
-        //                     var collection = realRowManager.FindCollection(classKey, new Key32(key));
-        //
-        //                     if (collection == null)
-        //                     {
-        //                         throw new InvalidDataException(
-        //                             $"static index references nonexistent collection: {keyToName}");
-        //                     }
-        //
-        //                     if (values.Count == 1)
-        //                     {
-        //                         var linkedKey = values[0];
-        //                         var linkedCollection = realRowManager.FindCollection(classKey, new Key32(linkedKey));
-        //
-        //                         if (ReferenceEquals(collection.Parent, linkedCollection))
-        //                         {
-        //                             if (nodeType == null)
-        //                             {
-        //                                 nodeType = BaseManyToOneIndex.TreeNodeType.ParentKey;
-        //                             }
-        //                             else if (nodeType != BaseManyToOneIndex.TreeNodeType.ParentKey)
-        //                             {
-        //                                 throw new Exception("strange mixture of nodes in static index");
-        //                             }
-        //                         }
-        //                         else
-        //                         {
-        //                             nodeType = BaseManyToOneIndex.TreeNodeType.ChildKeys;
-        //                         }
-        //                     }
-        //                     else if (nodeType == BaseManyToOneIndex.TreeNodeType.ParentKey)
-        //                     {
-        //                         throw new Exception("each node in a ParentKey index must have exactly 1 value");
-        //                     }
-        //                     else
-        //                     {
-        //                         nodeType = BaseManyToOneIndex.TreeNodeType.ChildKeys;
-        //                     }
-        //                 }
-        //             }
-        //
-        //             staticTree.NodeType = nodeType ?? BaseManyToOneIndex.TreeNodeType.ChildKeys;
-        //         }
-        //     }
-        // }
     }
 
-    #region Internal Data Reading
-
-    private void ReadExports(VaultReadContext<TKey> context, BinaryReader vltStreamReader, BinaryReader binStreamReader)
+    private void ReadExports(
+        VaultReadContext<TKey> context,
+        BinaryReader vltStreamReader,
+        BinaryReader binStreamReader)
     {
-        foreach (BaseExport<TKey> vaultExport in context.Exports)
+        foreach (BaseExport<TKey> export in context.Vault.Exports)
         {
-            vltStreamReader.BaseStream.Position = vaultExport.Offset;
-            vaultExport.Read(context, vltStreamReader);
-#if DEBUG
-            if ((vltStreamReader.BaseStream.Position - vaultExport.Offset) != vaultExport.Size)
+            vltStreamReader.BaseStream.Position = (long)export.Offset;
+            export.Read(context, vltStreamReader);
+            if (vltStreamReader.BaseStream.Position - (long)export.Offset != (long)export.Size)
                 throw new Exception();
-#endif
-
-            if (vaultExport is IPointerObject<TKey> pointerObject)
-            {
+            if (export is IPointerObject<TKey> pointerObject)
                 pointerObject.ReadPointerData(context, binStreamReader);
-            }
-
-            if (vaultExport is BaseCollectionLoad<TKey> bcl)
-            {
-                if (bcl.ParentKey != TKey.Zero)
-                {
-                    _parentKeyDictionary[bcl.Collection] = bcl.ParentKey;
-                }
-            }
+            if (export is BaseCollectionLoad<TKey> baseCollectionLoad && baseCollectionLoad.ParentKey != TKey.Zero)
+                this._parentKeyDictionary[baseCollectionLoad.Collection] = baseCollectionLoad.ParentKey;
         }
 
-        context.Vault.IsPrimaryVault = context.Exports.OfType<BaseClassLoad<TKey>>().Any();
+        context.Vault.IsPrimaryVault = context.Vault.Exports.OfType<BaseClassLoad<TKey>>().Any<BaseClassLoad<TKey>>();
     }
 
-    private void fixPointers(VaultReadContext<TKey> context, VltPointerType pointerType, Stream stream)
+    private void fixPointers(
+        VaultReadContext<TKey> context,
+        VltPointerType pointerType,
+        Stream stream)
     {
-        IEnumerable<VltPointer> pointers =
-            from pointer in context.Pointers where pointer.Type == pointerType select pointer;
-
-        ByteOrder byteOrder = context.ByteOrder;
-        bool isBigEndian = byteOrder == ByteOrder.Big;
-
-        foreach (VltPointer pointer in pointers)
+        IEnumerable<VltPointer> vltPointers =
+            context.Pointers.Where<VltPointer>((Func<VltPointer, bool>)(pointer => pointer.Type == pointerType));
+        bool flag = context.Vault.ByteOrder == ByteOrder.Big;
+        foreach (VltPointer vltPointer in vltPointers)
         {
-            stream.Position = pointer.FixUpOffset;
-            uint destination = pointer.Destination;
-            byte[] destBytes = BitConverter.GetBytes(destination);
-
-            if (isBigEndian)
-            {
-                Array.Reverse(destBytes);
-            }
-
-            stream.Write(destBytes, 0, 4);
+            stream.Position = (long)vltPointer.FixUpOffset;
+            byte[] bytes = BitConverter.GetBytes(vltPointer.Destination);
+            if (flag)
+                Array.Reverse<byte>(bytes);
+            stream.Write(bytes, 0, 4);
         }
     }
 
@@ -311,11 +171,9 @@ public class Database<TKey> where TKey : struct, IKey<TKey>
     {
         while (chunkReader.Reader.BaseStream.Position < chunkReader.Reader.BaseStream.Length)
         {
-            var chunk = chunkReader.NextChunk();
-            chunk.Read(context, chunkReader.Reader);
-            chunk.GoToEnd(chunkReader.Reader.BaseStream);
+            ChunkBase<TKey> chunkBase = chunkReader.NextChunk();
+            chunkBase.Read(context, chunkReader.Reader);
+            chunkBase.GoToEnd(chunkReader.Reader.BaseStream);
         }
     }
-
-    #endregion
 }

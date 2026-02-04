@@ -1,6 +1,12 @@
 [submodule "Modules/VaultLib"]
-    path = Modules/VaultLib
-    url = https://github.com/Sh2dow/VaultLib.git
+	path = Modules/VaultLib
+	url = https://github.com/Sh2dow/VaultLib.git
+	branch = master
+[submodule "Modules/CoreLibraries"]
+    path = Modules/CoreLibraries
+    url = https://github.com/Sh2dow/CoreLibraries.git
+	branch = master
 [submodule "Modules/CompLib"]
 	path = Modules/CompLib
 	url = https://github.com/Sh2dow/CompLib.git
+	branch = master

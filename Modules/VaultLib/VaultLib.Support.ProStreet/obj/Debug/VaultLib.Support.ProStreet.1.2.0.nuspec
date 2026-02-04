@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
+  <metadata>
+    <id>VaultLib.Support.ProStreet</id>
+    <version>1.2.0</version>
+    <authors>heyitsleo/NFSTools</authors>
+    <description>Support for Need for Speed: ProStreet</description>
+    <repository type="git" commit="16bf24b374ee6bdcc8aad5d3e0085c6ac9597165" />
+    <dependencies>
+      <group targetFramework="net9.0-windows7.0">
+        <dependency id="CoreLibraries.ModuleSystem" version="1.0.3" exclude="Build,Analyzers" />
+        <dependency id="VaultLib.Frameworks.Speed" version="1.2.0" exclude="Build,Analyzers" />
+        <dependency id="VaultLib.ModernBase" version="1.2.0" exclude="Build,Analyzers" />
+      </group>
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="D:\Repos\Games\OGVI\Modules\VaultLib\VaultLib.Support.ProStreet\bin\x86\Debug\net9.0-windows\VaultLib.Support.ProStreet.dll" target="lib\net9.0-windows7.0\VaultLib.Support.ProStreet.dll" />
+  </files>
+</package>

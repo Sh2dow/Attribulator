@@ -1,6 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Attribulator.API.Data;
+using VaultLib.Core;
+using VaultLib.Core.DataInterfaces;
+using VaultLib.Core.DB;
 
 namespace Attribulator.API.Serialization
 {
@@ -13,8 +17,10 @@ namespace Attribulator.API.Serialization
         ///     Deserializes and returns the INFORMATION about the database stored in the given directory.
         /// </summary>
         /// <param name="sourceDirectory">The path to the directory to read data from.</param>
+        /// <param name="destinationDatabase"></param>
         /// <returns>A new instance of the <see cref="SerializedDatabaseInfo" /> object containing information about the database.</returns>
-        SerializedDatabaseInfo LoadInfo(string sourceDirectory);
+        SerializedDatabaseInfo LoadInfo<TKey>(string sourceDirectory, Database<TKey> destinationDatabase)
+            where TKey : struct, IKey<TKey>;
 
         /// <summary>
         ///     Deserializes data in the given directory and loads it into the given database.
@@ -25,8 +31,9 @@ namespace Attribulator.API.Serialization
         /// <returns>
         ///     An enumerable object of <see cref="LoadedFile" /> instances.
         /// </returns>
-        Task<IEnumerable<LoadedFile>> DeserializeAsync(string sourceDirectory, Database destinationDatabase,
-            IEnumerable<string> fileNames = null);
+        Task<IEnumerable<LoadedFile<TKey>>> DeserializeAsync<TKey>(string sourceDirectory,
+            Database<TKey> destinationDatabase,
+            IEnumerable<string> fileNames = null) where TKey : struct, IKey<TKey>;
 
         /// <summary>
         ///     Serializes data in the given database to files in the given directory.
@@ -34,7 +41,20 @@ namespace Attribulator.API.Serialization
         /// <param name="sourceDatabase">The <see cref="Database" /> instance to load data from.</param>
         /// <param name="destinationDirectory">The path to the directory to write data to.</param>
         /// <param name="loadedFiles">The loaded files</param>
-        void Serialize(Database sourceDatabase, string destinationDirectory, IEnumerable<LoadedFile> loadedFiles);
+        /// <param name="filterFunc"></param>
+        void Serialize<TKey>(Database<TKey> sourceDatabase, string destinationDirectory,
+            IEnumerable<LoadedFile<TKey>> loadedFiles,
+            Func<Vault<TKey>, bool> filterFunc = null) where TKey : struct, IKey<TKey>;
+
+        /// <summary>
+        ///     Generates backups of the given files.
+        /// </summary>
+        /// <param name="srcDirectory"></param>
+        /// <param name="destinationDirectory">The path to the directory to write backups to.</param>
+        /// <param name="file"></param>
+        /// <param name="vaults"></param>
+        void Backup<TKey>(string srcDirectory, string destinationDirectory, LoadedFile<TKey> file,
+            IEnumerable<Vault<TKey>> vaults) where TKey : struct, IKey<TKey>;
 
         /// <summary>
         ///     Gets the identifier of the storage format.

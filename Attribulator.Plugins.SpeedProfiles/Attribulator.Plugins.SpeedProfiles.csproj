@@ -4,26 +4,27 @@
         <Authors>heyitsleo/NFSTools</Authors>
         <Company>NFSTools</Company>
         <Description>Plugin providing profiles for the Speed engine games</Description>
-        <Platforms>x86</Platforms>
         <Product>Attribulator - Speed Profiles</Product>
-        <LangVersion>default</LangVersion>
-        <TargetFramework>net9.0-windows</TargetFramework>
-        <Version>2.0.0</Version>
         <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
-        <LangVersion>default</LangVersion>
+        <TargetFramework>net9.0</TargetFramework>
+        <Version>3.0.0-dev</Version>
+        <Configurations>Debug;Release</Configurations>
+        <Platforms>AnyCPU</Platforms>
+        <Nullable>enable</Nullable>
     </PropertyGroup>
 
     <ItemGroup>
         <EmbeddedResource Include="Resources\hashes.txt">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </EmbeddedResource>
-        <EmbeddedResource Include="Resources\UserHashes.txt">
-          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        <None Remove="Resources\hashes_bin.txt" />
+        <EmbeddedResource Include="Resources\hashes_bin.txt">
+          <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </EmbeddedResource>
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Attribulator.API\Attribulator.API.csproj" />
+        <ProjectReference Include="..\Attribulator.API\Attribulator.API.csproj"/>
         <ProjectReference Include="..\Modules\VaultLib\VaultLib.Core\VaultLib.Core.csproj" />
         <ProjectReference Include="..\Modules\VaultLib\VaultLib.Support.Carbon\VaultLib.Support.Carbon.csproj" />
         <ProjectReference Include="..\Modules\VaultLib\VaultLib.Support.MostWanted\VaultLib.Support.MostWanted.csproj" />
@@ -32,11 +33,10 @@
         <ProjectReference Include="..\Modules\VaultLib\VaultLib.Support.World\VaultLib.Support.World.csproj" />
     </ItemGroup>
 
-    <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="'$(SolutionDir)' != '' and '$(SolutionDir)' != '*Undefined*'">
+	<Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="'$(SolutionDir)' != '' and '$(SolutionDir)' != '*Undefined*'">
         <Exec Command="if not exist $(SolutionDir)Attribulator.UI\bin\$(Configuration)\net9.0-windows\plugins\Attribulator.Plugins.SpeedProfiles mkdir $(SolutionDir)Attribulator.UI\bin\$(Configuration)\net9.0-windows\plugins\Attribulator.Plugins.SpeedProfiles" />
         <Exec Command="xcopy /Y $(OutDir) $(SolutionDir)Attribulator.UI\bin\$(Configuration)\net9.0-windows\plugins\Attribulator.Plugins.SpeedProfiles" />
         <Exec Command="if not exist $(SolutionDir)Attribulator.UI\bin\$(Configuration)\net9.0-windows\plugins\Attribulator.Plugins.SpeedProfiles\Resources mkdir $(SolutionDir)Attribulator.UI\bin\$(Configuration)\net9.0-windows\plugins\Attribulator.Plugins.SpeedProfiles\Resources" />
         <Exec Command="xcopy /Y Resources $(SolutionDir)Attribulator.UI\bin\$(Configuration)\net9.0-windows\plugins\Attribulator.Plugins.SpeedProfiles\Resources" />
     </Target>
-
 </Project>

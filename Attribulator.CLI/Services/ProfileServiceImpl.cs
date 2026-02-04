@@ -33,32 +33,11 @@ namespace Attribulator.CLI.Services
 
         public IProfile GetProfile(string profileId)
         {
-            if (string.IsNullOrWhiteSpace(profileId))
-                throw new KeyNotFoundException("Cannot find profile: (empty)");
-
             foreach (var profile in _profiles)
-                if (string.Equals(profile.GetProfileId(), profileId, StringComparison.OrdinalIgnoreCase))
-                    return profile;
-
-            var normalizedInput = NormalizeProfileId(profileId);
-            foreach (var profile in _profiles)
-                if (NormalizeProfileId(profile.GetProfileId()) == normalizedInput)
+                if (profile.GetProfileId() == profileId)
                     return profile;
 
             throw new KeyNotFoundException($"Cannot find profile: {profileId}");
-        }
-
-        private static string NormalizeProfileId(string profileId)
-        {
-            var buffer = new char[profileId.Length];
-            var count = 0;
-            foreach (var ch in profileId.Trim().ToUpperInvariant())
-            {
-                if (ch >= 'A' && ch <= 'Z' || ch >= '0' && ch <= '9')
-                    buffer[count++] = ch;
-            }
-
-            return new string(buffer, 0, count);
         }
     }
 }

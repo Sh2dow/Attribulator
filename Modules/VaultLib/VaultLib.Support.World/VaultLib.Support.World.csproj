@@ -14,11 +14,7 @@
     <LangVersion>13</LangVersion>
     <Nullable>enable</Nullable>
   </PropertyGroup>
-
-  <ItemGroup>
-    <PackageReference Include="NFSTools.Core.ModuleSystem" Version="2.0.0" />
-  </ItemGroup>
-
+  
   <ItemGroup>
     <ProjectReference Include="..\VaultLib.Frameworks.Speed\VaultLib.Frameworks.Speed.csproj" />
     <ProjectReference Include="..\VaultLib.ModernBase\VaultLib.ModernBase.csproj" />

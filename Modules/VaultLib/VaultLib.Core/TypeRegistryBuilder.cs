@@ -167,16 +167,16 @@ public class TypeRegistryBuilder<TKey> where TKey : struct, IKey<TKey>
         }
     }
 
-    public TypeRegistry<TKey> Build(Database<TKey> database)
-    {
-        return new TypeRegistry<TKey>(
-            database,
-            new ReadOnlyDictionary<(TKey, TKey), Type>(_fieldOverrides),
-            new ReadOnlyDictionary<TKey, Type>(_typeDictionary),
-            new ReadOnlyDictionary<Type, ObjectActivator<object>>(_activators),
-            new ReadOnlyDictionary<Type, TypeReader<TKey>>(_readers),
-            new ReadOnlyDictionary<Type, TypeWriter<TKey>>(_writers));
-    }
+    // public TypeRegistry<TKey> Build(Database<TKey> database)
+    // {
+    //     return new TypeRegistry<TKey>(
+    //         database,
+    //         new ReadOnlyDictionary<(TKey, TKey), Type>(_fieldOverrides),
+    //         new ReadOnlyDictionary<TKey, Type>(_typeDictionary),
+    //         new ReadOnlyDictionary<Type, ObjectActivator<object>>(_activators),
+    //         new ReadOnlyDictionary<Type, TypeReader<TKey>>(_readers),
+    //         new ReadOnlyDictionary<Type, TypeWriter<TKey>>(_writers));
+    // }
 
     private void AddType(string typeName, Type type)
     {
@@ -214,7 +214,7 @@ public class TypeRegistryBuilder<TKey> where TKey : struct, IKey<TKey>
 
     private void RegisterStruct(string typeId, Type type)
     {
-        // if (ByteOrder == ByteOrder.Big)
+        if (ByteOrder == ByteOrder.Big)
         {
             if (!typeof(IComplexType).IsAssignableFrom(type))
             {

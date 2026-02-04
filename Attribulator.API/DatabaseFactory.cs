@@ -1,7 +1,7 @@
 using System;
-using CoreLibraries.IO;
 using VaultLib.Core;
 using VaultLib.Core.DataInterfaces;
+using VaultLib.Core.DB;
 using VaultLib.Support.Carbon;
 using VaultLib.Support.MostWanted;
 using VaultLib.Support.ProStreet;
@@ -35,10 +35,10 @@ namespace Attribulator.API
                 };
             }
 
-            var typeRegistryBuilder = new TypeRegistryBuilder<Key32>(ByteOrder.Little);
-            module.RegisterTypes(typeRegistryBuilder);
             var exportFactory = module.CreateExportFactory();
-            return new Database(exportFactory, typeRegistryBuilder);
+            var database = new Database(options, exportFactory);
+            module.RegisterTypes(database.TypeRegistry);
+            return database;
         }
     }
 }

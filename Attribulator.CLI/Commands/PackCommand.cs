@@ -1,9 +1,10 @@
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Attribulator.API;
 using Attribulator.API.Data;
 using Attribulator.API.Exceptions;
 using Attribulator.API.Plugin;
@@ -16,8 +17,8 @@ using JetBrains.Annotations;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using VaultLib.Core.DataInterfaces;
 using VaultLib.Core.DB;
-using Attribulator.API;
 
 namespace Attribulator.CLI.Commands
 {
@@ -46,10 +47,6 @@ namespace Attribulator.CLI.Commands
         [UsedImplicitly]
         public bool MakeBackup { get; set; }
 
-        [Option('r', "override-rules", HelpText = "Allow YAML data to override attribute constraints (e.g., array size limits).")]
-        [UsedImplicitly]
-        public bool OverrideRules { get; set; }
-
         public override void SetServiceProvider(IServiceProvider serviceProvider)
         {
             base.SetServiceProvider(serviceProvider);
@@ -65,8 +62,6 @@ namespace Attribulator.CLI.Commands
             if (!Directory.Exists(OutputDirectory)) Directory.CreateDirectory(OutputDirectory);
 
             var profile = ServiceProvider.GetRequiredService<IProfileService>().GetProfile(ProfileName);
-            var serializationOptions = ServiceProvider.GetRequiredService<SerializationOptions>();
-            serializationOptions.AllowArraySizeOverride = OverrideRules;
             var storageFormatService = ServiceProvider.GetRequiredService<IStorageFormatService>();
             var storageFormat = storageFormatService.GetStorageFormats()
                 .FirstOrDefault(testStorageFormat => testStorageFormat.CanDeserializeFrom(InputDirectory));
@@ -75,6 +70,26 @@ namespace Attribulator.CLI.Commands
                 throw new CommandException(
                     $"Cannot find storage format that is compatible with directory [{InputDirectory}].");
 
+            switch (profile)
+            {
+                case IProfile<Key32> profile32:
+                    await ExecuteInternal(profile32, storageFormat);
+                    break;
+                case IProfile<Key64> profile64:
+                    await ExecuteInternal(profile64, storageFormat);
+                    break;
+                default:
+                    throw new CommandException("Profile is not supported");
+            }
+
+            _logger.LogInformation("Done!");
+            return 0;
+        }
+
+        private async Task ExecuteInternal<TKey>(IProfile<TKey> profile, IDatabaseStorageFormat storageFormat)
+            where TKey : struct, IKey<TKey>
+        {
+            var database = profile.CreateDatabase();
 
             // Parallel hash check
             // TODO refactor build cache system to be reusable
@@ -83,7 +98,7 @@ namespace Attribulator.CLI.Commands
             var dbInternalPath = Path.Combine(InputDirectory, ".db");
             var cacheFilePath = Path.Combine(dbInternalPath, ".cache.json");
 
-            var dbInfo = storageFormat.LoadInfo(InputDirectory);
+            var dbInfo = storageFormat.LoadInfo(InputDirectory, database);
 
             if (UseCache)
             {
@@ -133,9 +148,8 @@ namespace Attribulator.CLI.Commands
                 fileNamesToCompile = new ConcurrentBag<string>(dbInfo.Files.Select(f => f.Name));
             }
 
-            if (fileNamesToCompile.Count > 0)
+            if (!fileNamesToCompile.IsEmpty)
             {
-                var database = DatabaseFactory.Create(new DatabaseOptions(profile.GetGameId(), profile.GetDatabaseType()));
                 _logger.LogInformation("Loading database from disk...");
                 var files =
                     (await storageFormat.DeserializeAsync(InputDirectory, database, fileNamesToCompile)).ToList();
@@ -179,14 +193,11 @@ namespace Attribulator.CLI.Commands
             {
                 _logger.LogInformation("Binaries are up-to-date.");
             }
-
-            _logger.LogInformation("Done!");
-            return 0;
         }
 
-        private static HashSet<string> ComputeDependencies(IReadOnlyDictionary<string, string> vaultFileMap,
-            LoadedFile file,
-            Database database)
+        private static HashSet<string> ComputeDependencies<TKey>(IReadOnlyDictionary<string, string> vaultFileMap,
+            LoadedFile<TKey> file,
+            Database<TKey> database) where TKey : struct, IKey<TKey>
         {
             var fileDependencies = new HashSet<string>();
             foreach (var vault in file.Vaults)

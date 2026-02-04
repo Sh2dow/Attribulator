@@ -1,10 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Attribulator.API;
 using Attribulator.API.Data;
-using VaultLib.Core;
+using VaultLib.Core.DataInterfaces;
 using VaultLib.Core.DB;
 using VaultLib.Core.Pack;
 
@@ -13,22 +12,28 @@ namespace Attribulator.Plugins.SpeedProfiles
     /// <summary>
     ///     Basic profile for PC 32-bit NFS Most Wanted
     /// </summary>
-    public class MostWantedProfile : IProfile
+    public class MostWantedProfile : IProfile<Key32>
     {
-        public IEnumerable<LoadedFile> LoadFiles(Database database, string directory)
+        public Database<Key32> CreateDatabase()
         {
-            return GetFilesToLoad().Select(file =>
-            {
-                var path = Path.Combine(directory, file);
-                var standardVaultPack = new StandardVaultPack();
-                using var br = new BinaryReader(File.OpenRead(path));
-                var vaults = standardVaultPack.Load(br, database, new PackLoadingOptions());
-
-                return new LoadedFile(Path.GetFileNameWithoutExtension(file), "main", vaults);
-            }).ToList();
+            var module = new VaultLib.Support.MostWanted.ModuleDef32();
+            var database = new Database<Key32>(new DatabaseOptions(GetGameId(), GetDatabaseType()),
+                module.CreateExportFactory());
+            module.RegisterTypes(database.TypeRegistry);
+            return database;
         }
 
-        public void SaveFiles(Database database, string directory, IEnumerable<LoadedFile> files)
+        public IEnumerable<LoadedFile<Key32>> LoadFiles(Database<Key32> database, string directory)
+        {
+            return (from file in GetFilesToLoad()
+                let path = Path.Combine(directory, file)
+                let standardVaultPack = new StandardVaultPack()
+                let br = new BinaryReader(File.OpenRead(path))
+                let vaults = standardVaultPack.Load(br, database, new PackLoadingOptions())
+                select new LoadedFile<Key32>(Path.GetFileNameWithoutExtension(file), "main", vaults)).ToList();
+        }
+
+        public void SaveFiles(Database<Key32> database, string directory, IEnumerable<LoadedFile<Key32>> files)
         {
             foreach (var file in files)
             {
@@ -38,12 +43,7 @@ namespace Attribulator.Plugins.SpeedProfiles
                 Directory.CreateDirectory(Path.Combine(directory, file.Group));
                 var outPath = Path.Combine(directory, file.Group, file.Name + ".bin");
                 using var bw = new BinaryWriter(File.Open(outPath, FileMode.Create, FileAccess.ReadWrite));
-                var writeOptions = new VaultWriteOptions();
-                writeOptions.Quirks.StartChunkBeforeDepChunk = true;
-                writeOptions.Quirks.EnableBinEndChunk = true;
-                var savingOptions = new PackSavingOptions(vaultWriteOptions: writeOptions);
-
-                vaultPack.Save(bw, file.Vaults.OrderBy(x => x.Name, StringComparer.Ordinal).ToList(), savingOptions);
+                vaultPack.Save(bw, file.Vaults.ToList(), new PackSavingOptions());
                 bw.Close();
 
                 if (file.Name == "gameplay")
@@ -53,11 +53,11 @@ namespace Attribulator.Plugins.SpeedProfiles
                     using var inStream = new FileStream(outPath, FileMode.Open, FileAccess.Read);
                     using var outWriter = new BinaryWriter(outStream);
                     outWriter.Write(0x57574152); // RAWW
-                    outWriter.Write((byte) 0x01);
-                    outWriter.Write((byte) 0x10);
-                    outWriter.Write((ushort) 0);
-                    outWriter.Write((int) inStream.Length);
-                    outWriter.Write((int) (inStream.Length + 16));
+                    outWriter.Write((byte)0x01);
+                    outWriter.Write((byte)0x10);
+                    outWriter.Write((ushort)0);
+                    outWriter.Write((int)inStream.Length);
+                    outWriter.Write((int)(inStream.Length + 16));
                     inStream.CopyTo(outStream);
                 }
             }
@@ -85,7 +85,7 @@ namespace Attribulator.Plugins.SpeedProfiles
 
         private static IEnumerable<string> GetFilesToLoad()
         {
-            return new[] {"attributes.bin", "fe_attrib.bin", "gameplay.bin"};
+            return new[] { "attributes.bin", "fe_attrib.bin", "gameplay.bin" };
         }
     }
 }

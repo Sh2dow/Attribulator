@@ -1,6 +1,8 @@
 // Global aliases for Key32-based VaultLib types used across Attribulator.
 global using Key32 = VaultLib.Core.DataInterfaces.Key32;
 global using Database = VaultLib.Core.DB.Database<VaultLib.Core.DataInterfaces.Key32>;
+global using DatabaseHelper = Attribulator.ModScript.API.DatabaseHelper<VaultLib.Core.DataInterfaces.Key32>;
+global using LoadedFile = Attribulator.API.Data.LoadedFile<VaultLib.Core.DataInterfaces.Key32>;
 global using Vault = VaultLib.Core.Vault<VaultLib.Core.DataInterfaces.Key32>;
 global using VltClass = VaultLib.Core.Data.VltClass<VaultLib.Core.DataInterfaces.Key32>;
 global using VltClassField = VaultLib.Core.Data.VltClassField<VaultLib.Core.DataInterfaces.Key32>;

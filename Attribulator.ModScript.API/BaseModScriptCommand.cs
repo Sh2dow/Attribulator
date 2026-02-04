@@ -1,7 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Globalization;
 using VaultLib.Core.Data;
+using VaultLib.Core.DataInterfaces;
 using VaultLib.Core.Hashing;
 
 namespace Attribulator.ModScript.API
@@ -11,25 +11,15 @@ namespace Attribulator.ModScript.API
     /// </summary>
     public abstract class BaseModScriptCommand : IModScriptCommand
     {
-        private static readonly Dictionary<(string, string), VltClassField>
-            FieldCache = new Dictionary<(string, string), VltClassField>();
-
-        private static readonly Dictionary<(string, string), VltCollection> CollectionCache =
-            new Dictionary<(string, string), VltCollection>();
-
-        protected static string ResolveName(Key32 key)
-        {
-            return HashManager.ResolveVlt(key.Hash) ?? key.ToString();
-        }
-
         public string Line { get; set; }
         public long LineNumber { get; set; }
 
-        /// <inheritdoc />
-        public abstract void Parse(List<string> parts);
+        void IModScriptCommand.Execute<TKey>(DatabaseHelper<TKey> databaseHelper)
+        {
+            Execute(databaseHelper);
+        }
 
-        /// <inheritdoc />
-        public abstract void Execute(DatabaseHelper databaseHelper);
+        protected abstract void Execute<TKey>(DatabaseHelper<TKey> databaseHelper) where TKey : struct, IKey<TKey>;
 
         /// <summary>
         ///     Finds the collection with the given name in the given class.
@@ -40,65 +30,26 @@ namespace Attribulator.ModScript.API
         /// <param name="throwOnMissing">Whether to throw an exception if the collection is not found.</param>
         /// <returns>An instance of the <see cref="VltCollection" /> class.</returns>
         /// <exception cref="CommandExecutionException">if the collection cannot be found</exception>
-        protected static VltCollection GetCollection(DatabaseHelper database, string className, string collectionName,
-            bool throwOnMissing = true)
+        protected static VltCollection<TKey>? GetCollection<TKey>(DatabaseHelper<TKey> database, string className,
+            string collectionName,
+            bool throwOnMissing = true) where TKey : struct, IKey<TKey>
         {
-            if (CollectionCache.TryGetValue((className, collectionName), out var collection)) return collection;
+            var collection = database.FindCollectionByName(className, collectionName);
 
-            collection = database.FindCollectionByName(className, collectionName);
-
-            if (collection != null) return CollectionCache[(className, collectionName)] = collection;
+            if (collection != null)
+            {
+                return collection;
+            }
 
             if (throwOnMissing)
                 throw new CommandExecutionException($"Cannot find collection: {className}/{collectionName}");
             return null;
         }
 
-        /// <summary>
-        ///     Finds the field with the given name in the given class.
-        /// </summary>
-        /// <param name="vltClass">The <see cref="VltClass" /> object to search in.</param>
-        /// <param name="fieldName">The field name.</param>
-        /// <returns>An instance of the <see cref="VltClassField" /> class.</returns>
-        /// <exception cref="CommandExecutionException">if the field cannot be found</exception>
-        protected static VltClassField GetField(VltClass vltClass, string fieldName)
+        protected static void RemoveCollectionFromCache<TKey>(VltCollection<TKey> vltCollection)
+            where TKey : struct, IKey<TKey>
         {
-            if (vltClass == null) throw new CommandExecutionException("GetField() was given a null VltClass!");
-
-            var className = ResolveName(vltClass.Key);
-            if (FieldCache.TryGetValue((className, fieldName), out var field)) return field;
-
-            return FieldCache[(className, fieldName)] = vltClass.FindField(fieldName);
-        }
-
-        /// <summary>
-        ///     Converts the given hash-string to its source string if possible.
-        /// </summary>
-        /// <param name="hashString">The string to convert.</param>
-        /// <returns>The original string.</returns>
-        protected string CleanHashString(string hashString)
-        {
-            if (hashString.ToLowerInvariant().StartsWith("0x", StringComparison.Ordinal))
-                hashString =
-                    HashManager.ResolveVlt(uint.Parse(hashString.Substring(2), NumberStyles.AllowHexSpecifier));
-
-            return hashString;
-        }
-
-        protected static void RemoveCollectionFromCache(VltCollection vltCollection)
-        {
-            var className = ResolveName(vltCollection.Class.Key);
-            var collectionName = ResolveName(vltCollection.Key);
-            CollectionCache.Remove((className, collectionName));
-        }
-
-        /// <summary>
-        /// Clear CollectionCache.
-        /// </summary>
-        public static void ClearCache()
-        {
-            CollectionCache.Clear();
-            FieldCache.Clear();
+            // CollectionCache.Remove((vltCollection.Class.Name, vltCollection.Name));
         }
     }
 }

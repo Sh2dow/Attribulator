@@ -1,0 +1,135 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v9.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v9.0": {
+      "VaultLib.Support.ProStreet/3.0.0-dev": {
+        "dependencies": {
+          "CoreLibraries.ModuleSystem": "2.0.0",
+          "VaultLib.Frameworks.Speed": "3.0.0-dev",
+          "VaultLib.ModernBase": "3.0.0-dev"
+        },
+        "runtime": {
+          "VaultLib.Support.ProStreet.dll": {}
+        }
+      },
+      "System.ComponentModel.Composition/10.0.2": {
+        "runtime": {
+          "lib/net9.0/System.ComponentModel.Composition.dll": {
+            "assemblyVersion": "10.0.0.2",
+            "fileVersion": "10.0.225.61305"
+          }
+        }
+      },
+      "CompLib/1.0.0": {
+        "runtime": {
+          "CompLib.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      },
+      "CoreLibraries.IO/2.0.0": {
+        "runtime": {
+          "CoreLibraries.IO.dll": {
+            "assemblyVersion": "2.0.0.0",
+            "fileVersion": "2.0.0.0"
+          }
+        }
+      },
+      "CoreLibraries.ModuleSystem/2.0.0": {
+        "dependencies": {
+          "System.ComponentModel.Composition": "10.0.2"
+        },
+        "runtime": {
+          "CoreLibraries.ModuleSystem.dll": {
+            "assemblyVersion": "2.0.0.0",
+            "fileVersion": "2.0.0.0"
+          }
+        }
+      },
+      "VaultLib.Core/3.0.0-dev": {
+        "dependencies": {
+          "CoreLibraries.IO": "2.0.0"
+        },
+        "runtime": {
+          "VaultLib.Core.dll": {
+            "assemblyVersion": "3.0.0.0",
+            "fileVersion": "3.0.0.0"
+          }
+        }
+      },
+      "VaultLib.Frameworks.Speed/3.0.0-dev": {
+        "dependencies": {
+          "CompLib": "1.0.0",
+          "CoreLibraries.ModuleSystem": "2.0.0",
+          "VaultLib.Core": "3.0.0-dev"
+        },
+        "runtime": {
+          "VaultLib.Frameworks.Speed.dll": {
+            "assemblyVersion": "3.0.0.0",
+            "fileVersion": "3.0.0.0"
+          }
+        }
+      },
+      "VaultLib.ModernBase/3.0.0-dev": {
+        "dependencies": {
+          "VaultLib.Core": "3.0.0-dev"
+        },
+        "runtime": {
+          "VaultLib.ModernBase.dll": {
+            "assemblyVersion": "3.0.0.0",
+            "fileVersion": "3.0.0.0"
+          }
+        }
+      }
+    }
+  },
+  "libraries": {
+    "VaultLib.Support.ProStreet/3.0.0-dev": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "System.ComponentModel.Composition/10.0.2": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-z2jrrqavHteGsK2/8nQstxSEQb/WQNOmLxWpTFf5HMDcdzZKd/Ohn+ZEXUMyJ7RdtkIw/ZXLU+/8oRdw1QBYCA==",
+      "path": "system.componentmodel.composition/10.0.2",
+      "hashPath": "system.componentmodel.composition.10.0.2.nupkg.sha512"
+    },
+    "CompLib/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "CoreLibraries.IO/2.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "CoreLibraries.ModuleSystem/2.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "VaultLib.Core/3.0.0-dev": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "VaultLib.Frameworks.Speed/3.0.0-dev": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "VaultLib.ModernBase/3.0.0-dev": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}

@@ -1,40 +1,46 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using Attribulator.ModScript.API;
 using VaultLib.Core.Data;
+using VaultLib.Core.DataInterfaces;
 
 namespace Attribulator.Plugins.ModScript.Commands
 {
     // move_node class node [parent]
-    public class MoveNodeModScriptCommand : BaseModScriptCommand
+    public class MoveNodeModScriptCommand : BaseModScriptCommand, IParseableModScriptCommand<MoveNodeModScriptCommand>
     {
-        public string ClassName { get; set; }
-        public string CollectionName { get; set; }
-        public string ParentName { get; set; }
+        public required string ClassName { get; init; }
+        public required string CollectionName { get; init; }
+        public required string? ParentName { get; init; }
 
-        public override void Parse(List<string> parts)
+        public static MoveNodeModScriptCommand Parse(List<string> parts)
         {
-            if (parts.Count < 3 || parts.Count > 4)
+            if (parts.Count is < 3 or > 4)
                 throw new CommandParseException("Expected command to be in format: move_node class node [parent]");
 
-            ClassName = CleanHashString(parts[1]);
-            CollectionName = CleanHashString(parts[2]);
-            ParentName = parts.Count == 4 ? parts[3] : null;
+            var className = parts[1];
+            var collectionName = parts[2];
+            var parentName = parts.Count == 4 ? parts[3] : null;
 
-            if (ParentName == CollectionName)
+            if (parentName == collectionName)
                 throw new CommandParseException("Parent name cannot be the same as collection name.");
+            return new MoveNodeModScriptCommand
+            {
+                ClassName = className,
+                CollectionName = collectionName,
+                ParentName = parentName,
+            };
         }
 
-        public override void Execute(DatabaseHelper databaseHelper)
+        protected override void Execute<TKey>(DatabaseHelper<TKey> databaseHelper)
         {
-            var collectionToMove = GetCollection(databaseHelper, ClassName, CollectionName);
-            VltCollection newParentCollection = null;
+            var collectionToMove = GetCollection(databaseHelper, ClassName, CollectionName)!;
+            VltCollection<TKey>? newParentCollection = null;
 
             if (ParentName != null)
             {
-                newParentCollection = GetCollection(databaseHelper, ClassName, ParentName);
+                newParentCollection = GetCollection(databaseHelper, ClassName, ParentName)!;
 
-                if (IsChild(databaseHelper, collectionToMove, newParentCollection))
+                if (IsChild(collectionToMove, newParentCollection))
                     throw new CommandExecutionException(
                         $"Requested parent collection {ParentName} is a child of {CollectionName}.");
             }
@@ -42,28 +48,32 @@ namespace Attribulator.Plugins.ModScript.Commands
             // Did the parent change?
             if (ReferenceEquals(newParentCollection, collectionToMove.Parent)) return;
 
-            // Disassociated from parent? Add to DB
+            var oldVault = collectionToMove.Vault;
+
             if (newParentCollection == null)
             {
-                collectionToMove.SetParent(null);
-                if (!databaseHelper.Database.RowManager.GetCollections().Contains(collectionToMove))
-                    databaseHelper.Database.RowManager.AddCollection(collectionToMove);
+                collectionToMove.Parent!.RemoveChild(collectionToMove);
             }
             else
             {
-                if (collectionToMove.Parent == null)
-                    databaseHelper.Database.RowManager.RemoveCollection(collectionToMove);
-                collectionToMove.SetParent(newParentCollection);
+                newParentCollection.AddChild(collectionToMove);
             }
+
+            databaseHelper.MarkVaultAsModified(oldVault);
+            if (oldVault != collectionToMove.Vault)
+                databaseHelper.MarkVaultAsModified(collectionToMove.Vault);
         }
 
-        private bool IsChild(DatabaseHelper databaseHelper, VltCollection root, VltCollection test)
+        private static bool IsChild<TKey>(VltCollection<TKey> root, VltCollection<TKey> possibleChild)
+            where TKey : struct, IKey<TKey>
         {
-            var current = test;
-            while (current != null)
+            var parent = possibleChild.Parent;
+
+            while (parent != null)
             {
-                if (ReferenceEquals(current, root)) return true;
-                current = current.Parent;
+                if (parent == root)
+                    return true;
+                parent = parent.Parent;
             }
 
             return false;
