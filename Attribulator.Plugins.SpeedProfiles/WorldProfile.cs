@@ -50,6 +50,17 @@ namespace Attribulator.Plugins.SpeedProfiles
 
         public void SaveFiles(Database<Key32> database, string directory, IEnumerable<LoadedFile<Key32>> files)
         {
+            var savingOptions = new PackSavingOptions(vaultWriteOptions: new VaultWriteOptions
+            {
+                Quirks = new VaultWriteQuirks
+                {
+                    WriteVersionChunk = true,
+                    StartChunkBeforeDepChunk = true,
+                    EnableBinEndChunk = true,
+                    EnableVltEndChunk = true
+                }
+            });
+
             foreach (var file in files)
             {
                 var vaultsToSave = file.Vaults.ToList();
@@ -64,14 +75,7 @@ namespace Attribulator.Plugins.SpeedProfiles
                 var outPath = Path.Combine(directory, file.Group, file.Name + ".bin");
                 Debug.WriteLine("Saving file '{0}' to '{1}' ({2} vaults)", file.Name, outPath, vaultsToSave.Count);
                 using var bw = new BinaryWriter(File.Open(outPath, FileMode.Create, FileAccess.ReadWrite));
-                vaultPack.Save(bw, vaultsToSave, new PackSavingOptions(vaultWriteOptions: new VaultWriteOptions
-                {
-                    Quirks = new VaultWriteQuirks
-                    {
-                        StartChunkBeforeDepChunk = true,
-                        EnableBinEndChunk = true
-                    }
-                }));
+                vaultPack.Save(bw, vaultsToSave, savingOptions);
                 bw.Close();
             }
         }

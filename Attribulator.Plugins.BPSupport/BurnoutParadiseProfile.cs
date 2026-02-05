@@ -8,8 +8,9 @@ using VaultLib.Core.DataInterfaces;
 using VaultLib.Core.DB;
 using VaultLib.Core.Exports;
 using VaultLib.Core.Pack;
-using VaultLib.ModernBase.Exports;
+using VaultLib.LegacyBase.Exports;
 using VaultLib.ModernBase.Structures;
+using ClassLoad64 = VaultLib.ModernBase.Exports.ClassLoad64;
 
 namespace Attribulator.Plugins.BPSupport
 {

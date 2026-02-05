@@ -36,6 +36,16 @@ namespace Attribulator.Plugins.SpeedProfiles
 
         public void SaveFiles(Database<Key32> database, string directory, IEnumerable<LoadedFile<Key32>> files)
         {
+            var savingOptions = new PackSavingOptions(vaultWriteOptions: new VaultWriteOptions
+            {
+                Quirks = new VaultWriteQuirks
+                {
+                    WriteVersionChunk = true,
+                    StartChunkBeforeDepChunk = true,
+                    EnableVltEndChunk = false
+                }
+            });
+
             foreach (var file in files)
             {
                 IVaultPack vaultPack = new StandardVaultPack();
@@ -44,13 +54,7 @@ namespace Attribulator.Plugins.SpeedProfiles
                 Directory.CreateDirectory(Path.Combine(directory, file.Group));
                 var outPath = Path.Combine(directory, file.Group, file.Name + ".bin");
                 using var bw = new BinaryWriter(File.Open(outPath, FileMode.Create, FileAccess.ReadWrite));
-                vaultPack.Save(bw, file.Vaults.ToList(), new PackSavingOptions(vaultWriteOptions: new VaultWriteOptions
-                {
-                    Quirks = new VaultWriteQuirks
-                    {
-                        StartChunkBeforeDepChunk = true
-                    }
-                }));
+                vaultPack.Save(bw, file.Vaults.ToList(), savingOptions);
                 bw.Close();
 
                 if (file.Name == "gameplay")

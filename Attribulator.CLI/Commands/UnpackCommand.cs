@@ -11,6 +11,7 @@ using CommandLine;
 using JetBrains.Annotations;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using VaultLib.Core;
 using VaultLib.Core.DataInterfaces;
 using VaultLib.Core.DB;
 using VaultLib.Core.Hashing;
@@ -42,6 +43,10 @@ namespace Attribulator.CLI.Commands
         [UsedImplicitly]
         public string? HashDictionaryPath { get; set; }
 
+        [Option("override-rules", HelpText = "Bypass strict validation checks during load.")]
+        [UsedImplicitly]
+        public bool OverrideRules { get; set; }
+
         public override void SetServiceProvider(IServiceProvider serviceProvider)
         {
             base.SetServiceProvider(serviceProvider);
@@ -60,6 +65,8 @@ namespace Attribulator.CLI.Commands
             var profile = ServiceProvider.GetRequiredService<IProfileService>().GetProfile(ProfileName);
             var storageFormat = ServiceProvider.GetRequiredService<IStorageFormatService>()
                 .GetStorageFormat(StorageFormatName);
+
+            VaultReadOptions.Current.AllowLayoutOverread = OverrideRules;
 
             if (!string.IsNullOrEmpty(HashDictionaryPath))
             {

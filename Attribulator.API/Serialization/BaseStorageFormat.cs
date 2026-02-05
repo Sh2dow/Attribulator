@@ -118,7 +118,15 @@ namespace Attribulator.API.Serialization
                         new VltCollection<TKey>(newVault, vltClass, collectionKey);
                     var newCollectionIdentifier = VltUtils.CreateCollectionIdentifier(newCollection);
                     if (!seenCollections.Add(newCollectionIdentifier))
-                        throw new Exception("Duplicate collection detected");
+                    {
+                        if (!SerializationOptions.Current.AllowDuplicateCollections)
+                            throw new Exception("Duplicate collection detected");
+
+                        // Skip duplicates when override is enabled.
+                        Debug.WriteLine("Duplicate collection skipped: {0}/{1}",
+                            vltClass.Key, loadedCollection.Name);
+                        continue;
+                    }
 
                     foreach (var entry in loadedCollection.Data.GetEntries())
                     {
