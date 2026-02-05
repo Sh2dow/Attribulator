@@ -14,15 +14,23 @@ jobs:
         with:
           dotnet-version: 9.0.x
 
-      # 1️⃣ Build EVERYTHING once
+      # 1️⃣ Clone required modules
+      - name: Clone required modules
+        shell: pwsh
+        run: |
+          git clone https://github.com/Sh2dow/VaultLib Modules/VaultLib
+          git clone https://github.com/Sh2dow/CompLib Modules/CompLib
+          git clone https://github.com/Sh2dow/CoreLibraries Modules/CoreLibraries
+          
+      # 2️⃣ Build EVERYTHING once
       - name: Build solution
         run: dotnet build Attribulator.sln -c Release
 
-      # 2️⃣ Publish UI (entrypoint)
+      # 3️⃣ Publish UI (entrypoint)
       - name: Publish Attribulator.UI
         run: dotnet publish Attribulator.UI/Attribulator.UI.csproj -c Release
 
-      # 3️⃣ Install plugins (now guaranteed to exist)
+      # 4️⃣ Install plugins (now guaranteed to exist)
       - name: Install plugins
         shell: pwsh
         run: |
@@ -54,7 +62,7 @@ jobs:
             throw "SpeedProfiles Resources folder missing"
           }
       
-      # 4️⃣ Upload UI artifact
+      # 5️⃣ Upload UI artifact
       - name: Upload UI artifact
         uses: actions/upload-artifact@v4
         with:
