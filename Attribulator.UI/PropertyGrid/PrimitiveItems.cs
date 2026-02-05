@@ -8,10 +8,10 @@ namespace Attribulator.UI.PropertyGrid
 {
     public class PrimitiveItem : BaseEditItem, ICommandName
     {
-        private readonly Func<IConvertible> getValue;
-        private readonly Action<IConvertible> setValue;
+        private readonly Func<object> getValue;
+        private readonly Action<object> setValue;
 
-        public PrimitiveItem(IParent parent, string name, Func<IConvertible> getValue, Action<IConvertible> setValue,
+        public PrimitiveItem(IParent parent, string name, Func<object> getValue, Action<object> setValue,
             int padding) : base(parent, name, padding)
         {
             this.getValue = getValue;
@@ -23,9 +23,9 @@ namespace Attribulator.UI.PropertyGrid
             return this.name;
         }
 
-        public override IConvertible GetValue() => this.getValue();
+        public override object GetValue() => this.getValue();
 
-        public override void SetValue(IConvertible value) => this.setValue(value);
+        public override void SetValue(object value) => this.setValue(value);
     }
 
     public class PrimitiveBoolItem : BaseBoolItem, ICommandName
@@ -54,10 +54,10 @@ namespace Attribulator.UI.PropertyGrid
     public class PrimitiveEnumItem : BaseEnumItem, ICommandName
     {
         private readonly Func<Enum> getValue;
-        private readonly Action<IConvertible> setValue;
+        private readonly Action<object> setValue;
         private string name;
 
-        public PrimitiveEnumItem(IParent parent, string name, Func<Enum> getValue, Action<IConvertible> setValue,
+        public PrimitiveEnumItem(IParent parent, string name, Func<Enum> getValue, Action<object> setValue,
             int padding) : base(parent, name, padding)
         {
             this.getValue = getValue;
@@ -72,7 +72,7 @@ namespace Attribulator.UI.PropertyGrid
 
         public override Enum GetValue() => this.getValue();
 
-        public override void SetValue(IConvertible val) => this.setValue(val);
+        public override void SetValue(object val) => this.setValue(val);
     }
 
     public class BlobItem : Control

@@ -388,6 +388,7 @@ namespace AttribulatorUI
 					};
 
 					var collections = this.database.RowManager.EnumerateCollections(cls.Key)
+						.Where(c => c.Parent == null)
 						.OrderBy(x => VltUiUtils.GetName(x));
 					foreach (var collection in collections)
 					{

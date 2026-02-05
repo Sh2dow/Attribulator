@@ -1,6 +1,8 @@
 ﻿using AttribulatorUI;
 using System;
+using System.ComponentModel;
 using System.Collections;
+using System.Reflection;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -10,8 +12,8 @@ namespace Attribulator.UI.PropertyGrid
 {
     public static class GridHelper
     {
-        public static Control ResolvePrimitiveItem(IParent parent, string name, Func<IConvertible> getValue,
-            Action<IConvertible> setValue, int padding)
+        public static Control ResolvePrimitiveItem(IParent parent, string name, Func<object> getValue,
+            Action<object> setValue, int padding)
         {
             var type = getValue().GetType();
             if (type == typeof(bool))
@@ -21,6 +23,45 @@ namespace Attribulator.UI.PropertyGrid
                 return new PrimitiveEnumItem(parent, name, () => (Enum)getValue(), setValue, padding);
 
             return new PrimitiveItem(parent, name, getValue, setValue, padding);
+        }
+
+        public static bool IsEditablePrimitive(Type type)
+        {
+            if (type == null)
+                return false;
+
+            if (type.IsEnum || type == typeof(bool))
+                return true;
+
+            if (typeof(IConvertible).IsAssignableFrom(type))
+                return true;
+
+            var underlying = Nullable.GetUnderlyingType(type);
+            if (underlying != null)
+                return IsEditablePrimitive(underlying);
+
+            var converter = TypeDescriptor.GetConverter(type);
+            return converter != null &&
+                   converter.CanConvertFrom(typeof(string)) &&
+                   converter.CanConvertTo(typeof(string));
+        }
+
+        public static bool IsStructWithPublicMembers(Type type)
+        {
+            if (type == null)
+                return false;
+
+            if (!type.IsValueType || type.IsEnum || type.IsPrimitive)
+                return false;
+
+            if (typeof(IConvertible).IsAssignableFrom(type))
+                return false;
+
+            if (type.GetFields(BindingFlags.Public | BindingFlags.Instance).Length > 0)
+                return true;
+
+            return type.GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                .Any(p => p.CanRead);
         }
 
         public static string ResolveName(Key32 key)
@@ -39,7 +80,11 @@ namespace Attribulator.UI.PropertyGrid
             this.parent = parent;
             this.name = name;
 
-            var props = prop.GetType().GetProperties().OrderBy(x => x.Name).ToList();
+            var propType = prop.GetType();
+            var props = propType.GetProperties()
+                .Where(pi => ShouldDisplayProperty(propType, pi))
+                .OrderBy(x => x.Name)
+                .ToList();
             for (int i = 0; i < props.Count; i++)
             {
                 var pi = props[i];
@@ -61,11 +106,14 @@ namespace Attribulator.UI.PropertyGrid
                 {
                     this.AddChild(new PropertyEnumItem(this, pi, prop, subPadding));
                 }
+                else if (GridHelper.IsStructWithPublicMembers(type))
+                {
+                    this.AddChild(new StructItem(this, pi, prop, subPadding));
+                }
                 else if (type.IsArray || type.GetInterfaces().Contains(typeof(IList)))
                 {
                     var array = pi.GetValue(prop) as IList;
                     int maxCount = array.Count;
-                    var propType = prop.GetType();
                     if (propType.IsGenericType)
                     {
                         var genericType = propType.GetGenericTypeDefinition();
@@ -78,7 +126,7 @@ namespace Attribulator.UI.PropertyGrid
 
                     this.AddChild(new PropertyArrayItem(this, pi, prop, maxCount, subPadding));
                 }
-                else
+                else if (GridHelper.IsEditablePrimitive(type))
                 {
                     this.AddChild(new PropertyItem(this, pi, prop, subPadding));
                 }
@@ -102,6 +150,223 @@ namespace Attribulator.UI.PropertyGrid
             if (this.parent != null)
             {
                 (this.parent as IParentUpdate)?.Update();
+            }
+        }
+
+        private static bool ShouldDisplayProperty(Type ownerType, PropertyInfo propertyInfo)
+        {
+            if (ownerType == null || propertyInfo == null)
+                return false;
+
+            var ownerNs = ownerType.Namespace ?? string.Empty;
+            var declaringNs = propertyInfo.DeclaringType?.Namespace ?? string.Empty;
+
+            // For non-core types, hide properties inherited from core container types
+            if (!ownerNs.StartsWith("VaultLib.Core.Types", StringComparison.Ordinal) &&
+                declaringNs.StartsWith("VaultLib.Core.Types", StringComparison.Ordinal))
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+    }
+
+    public class StructItem : CollapseItem, ICommandName
+    {
+        private readonly IParent parent;
+        private readonly string name;
+        private readonly PropertyInfo propertyInfo;
+        private readonly VLTBaseType owner;
+
+        public StructItem(IParent parent, PropertyInfo propertyInfo, VLTBaseType owner, int padding)
+            : base(propertyInfo.GetValue(owner), propertyInfo.Name, propertyInfo.ToString(), padding)
+        {
+            this.parent = parent;
+            this.name = propertyInfo.Name;
+            this.propertyInfo = propertyInfo;
+            this.owner = owner;
+
+            this.BuildFields(padding + 21);
+        }
+
+        public string GetName()
+        {
+            string namePrefix = "";
+            if (this.parent is ICommandName icm)
+            {
+                namePrefix = $"{icm.GetName()} ";
+            }
+
+            return namePrefix + this.name;
+        }
+
+        private object GetStruct()
+        {
+            return this.propertyInfo.GetValue(this.owner);
+        }
+
+        private void SetStruct(object value)
+        {
+            this.propertyInfo.SetValue(this.owner, value);
+        }
+
+        private void BuildFields(int padding)
+        {
+            var structType = this.propertyInfo.PropertyType;
+            var fields = structType.GetFields(BindingFlags.Public | BindingFlags.Instance)
+                .OrderBy(f => f.Name)
+                .ToList();
+
+            foreach (var field in fields)
+            {
+                var fieldName = field.Name;
+                var fieldType = field.FieldType;
+
+                if (!GridHelper.IsEditablePrimitive(fieldType) && !fieldType.IsEnum && fieldType != typeof(bool))
+                {
+                    continue;
+                }
+
+                this.AddChild(GridHelper.ResolvePrimitiveItem(
+                    this,
+                    fieldName,
+                    () =>
+                    {
+                        var boxed = GetStruct();
+                        return field.GetValue(boxed);
+                    },
+                    v =>
+                    {
+                        var boxed = GetStruct();
+                        field.SetValue(boxed, v);
+                        SetStruct(boxed);
+                    },
+                    padding));
+            }
+
+            var props = structType.GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                .Where(p => p.CanRead && p.CanWrite && p.GetIndexParameters().Length == 0)
+                .OrderBy(p => p.Name)
+                .ToList();
+
+            foreach (var prop in props)
+            {
+                var propType = prop.PropertyType;
+                if (!GridHelper.IsEditablePrimitive(propType) && !propType.IsEnum && propType != typeof(bool))
+                {
+                    continue;
+                }
+
+                this.AddChild(GridHelper.ResolvePrimitiveItem(
+                    this,
+                    prop.Name,
+                    () =>
+                    {
+                        var boxed = GetStruct();
+                        return prop.GetValue(boxed);
+                    },
+                    v =>
+                    {
+                        var boxed = GetStruct();
+                        prop.SetValue(boxed, v);
+                        SetStruct(boxed);
+                    },
+                    padding));
+            }
+        }
+    }
+
+    public class StructValueItem : CollapseItem, ICommandName
+    {
+        private readonly IParent parent;
+        private readonly string name;
+        private readonly Func<object> getValue;
+        private readonly Action<object> setValue;
+
+        public StructValueItem(IParent parent, string name, Func<object> getValue, Action<object> setValue, int padding)
+            : base(getValue(), name, getValue().ToString(), padding)
+        {
+            this.parent = parent;
+            this.name = name;
+            this.getValue = getValue;
+            this.setValue = setValue;
+
+            this.BuildFields(padding + 21);
+        }
+
+        public string GetName()
+        {
+            string namePrefix = "";
+            if (this.parent is ICommandName icm)
+            {
+                namePrefix = $"{icm.GetName()} ";
+            }
+
+            return namePrefix + this.name;
+        }
+
+        private void BuildFields(int padding)
+        {
+            var structType = this.getValue().GetType();
+            var fields = structType.GetFields(BindingFlags.Public | BindingFlags.Instance)
+                .OrderBy(f => f.Name)
+                .ToList();
+
+            foreach (var field in fields)
+            {
+                var fieldType = field.FieldType;
+                if (!GridHelper.IsEditablePrimitive(fieldType) && !fieldType.IsEnum && fieldType != typeof(bool))
+                {
+                    continue;
+                }
+
+                this.AddChild(GridHelper.ResolvePrimitiveItem(
+                    this,
+                    field.Name,
+                    () =>
+                    {
+                        var boxed = this.getValue();
+                        return field.GetValue(boxed);
+                    },
+                    v =>
+                    {
+                        var boxed = this.getValue();
+                        field.SetValue(boxed, v);
+                        this.setValue(boxed);
+                    },
+                    padding));
+            }
+
+            var props = structType.GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                .Where(p => p.CanRead && p.CanWrite && p.GetIndexParameters().Length == 0)
+                .OrderBy(p => p.Name)
+                .ToList();
+
+            foreach (var prop in props)
+            {
+                var propType = prop.PropertyType;
+                if (!GridHelper.IsEditablePrimitive(propType) && !propType.IsEnum && propType != typeof(bool))
+                {
+                    continue;
+                }
+
+                this.AddChild(GridHelper.ResolvePrimitiveItem(
+                    this,
+                    prop.Name,
+                    () =>
+                    {
+                        var boxed = this.getValue();
+                        return prop.GetValue(boxed);
+                    },
+                    v =>
+                    {
+                        var boxed = this.getValue();
+                        prop.SetValue(boxed, v);
+                        this.setValue(boxed);
+                    },
+                    padding));
             }
         }
     }
@@ -167,12 +432,38 @@ namespace Attribulator.UI.PropertyGrid
                     continue;
                 }
 
-                this.AddChild(GridHelper.ResolvePrimitiveItem(
-                    this,
-                    itemName,
-                    () => (IConvertible)prop.Items[i],
-                    v => prop.SetValue(i, v),
-                    this.padding + 21));
+                var index = i;
+                var itemType = item?.GetType();
+                if (itemType != null && GridHelper.IsStructWithPublicMembers(itemType))
+                {
+                    this.AddChild(new StructValueItem(
+                        this,
+                        itemName,
+                        () => index >= 0 && index < prop.Items.Count ? prop.Items[index] : null,
+                        v =>
+                        {
+                            if (index >= 0 && index < prop.Items.Count)
+                            {
+                                prop.SetValue(index, v);
+                            }
+                        },
+                        this.padding));
+                }
+                else
+                {
+                    this.AddChild(GridHelper.ResolvePrimitiveItem(
+                        this,
+                        itemName,
+                        () => index >= 0 && index < prop.Items.Count ? prop.Items[index] : null,
+                        v =>
+                        {
+                            if (index >= 0 && index < prop.Items.Count)
+                            {
+                                prop.SetValue(index, v);
+                            }
+                        },
+                        this.padding + 21));
+                }
             }
         }
 
@@ -219,7 +510,9 @@ namespace Attribulator.UI.PropertyGrid
 
             if (Collection != null)
             {
-                var properties = Collection.GetData().OrderBy(x => x.Key);
+                var properties = Collection.GetData()
+                    .Where(x => Collection.Class.HasField(x.Key))
+                    .OrderBy(x => x.Key);
                 this.stackPanel.Children.Add(new VaultNameItem(Collection.Vault.Name));
                 foreach (var property in properties)
                 {
@@ -232,12 +525,21 @@ namespace Attribulator.UI.PropertyGrid
                         var maxCount = field.IsInLayout ? field.MaxCount : int.MaxValue;
                         child = new ArrayItem(this, name, type as VLTArrayType, maxCount, 0);
                     }
-                    else if (type is IConvertible)
+                    else if (GridHelper.IsStructWithPublicMembers(type.GetType()))
+                    {
+                        child = new StructValueItem(
+                            this,
+                            name,
+                            () => Collection.GetRawValue(property.Key),
+                            v => Collection.SetRawValue(property.Key, v),
+                            0);
+                    }
+                    else if (GridHelper.IsEditablePrimitive(type.GetType()))
                     {
                         child = GridHelper.ResolvePrimitiveItem(
                             this,
                             name,
-                            () => (IConvertible)Collection.GetRawValue(property.Key),
+                            () => Collection.GetRawValue(property.Key),
                             v => Collection.SetRawValue(property.Key, v),
                             21);
                     }

@@ -53,7 +53,7 @@ namespace Attribulator.UI.PropertyGrid
             return (Enum)this.propertyInfo.GetValue(this.prop);
         }
 
-        public override void SetValue(IConvertible value)
+        public override void SetValue(object value)
         {
             this.propertyInfo.SetValue(this.prop, value);
         }
@@ -75,12 +75,12 @@ namespace Attribulator.UI.PropertyGrid
             return this.propertyInfo.Name;
         }
 
-        public override IConvertible GetValue()
+        public override object GetValue()
         {
-            return this.propertyInfo.GetValue(this.prop) as IConvertible;
+            return this.propertyInfo.GetValue(this.prop);
         }
 
-        public override void SetValue(IConvertible value)
+        public override void SetValue(object value)
         {
             this.propertyInfo.SetValue(this.prop, value);
         }
@@ -102,12 +102,12 @@ namespace Attribulator.UI.PropertyGrid
             return this.name;
         }
 
-        public override IConvertible GetValue()
+        public override object GetValue()
         {
-            return this.array[this.index] as IConvertible;
+            return this.array[this.index];
         }
 
-        public override void SetValue(IConvertible value)
+        public override void SetValue(object value)
         {
             this.array[this.index] = value;
         }
@@ -144,6 +144,16 @@ namespace Attribulator.UI.PropertyGrid
                 if (type.IsSubclassOf(typeof(VLTBaseType)))
                 {
                     this.AddChild(new ClassItem(this, $"[{i}]", array[i] as VLTBaseType, padding + 21));
+                }
+                else if (GridHelper.IsStructWithPublicMembers(type))
+                {
+                    var index = i;
+                    this.AddChild(new StructValueItem(
+                        this,
+                        $"[{i}]",
+                        () => this.array[index],
+                        v => this.array[index] = v,
+                        padding));
                 }
                 else
                 {
@@ -269,7 +279,7 @@ namespace Attribulator.UI.PropertyGrid
             };
         }
 
-        private void SetMatrixValue(int index, IConvertible value)
+        private void SetMatrixValue(int index, object value)
         {
             var matrix = GetMatrix();
             var converted = Convert.ToSingle(value);
@@ -299,10 +309,10 @@ namespace Attribulator.UI.PropertyGrid
 
     public class MatrixElementItem : BaseEditItem, ICommandName
     {
-        private readonly Func<IConvertible> getValue;
-        private readonly Action<IConvertible> setValue;
+        private readonly Func<object> getValue;
+        private readonly Action<object> setValue;
 
-        public MatrixElementItem(IParent parent, Func<IConvertible> getValue, Action<IConvertible> setValue, string name,
+        public MatrixElementItem(IParent parent, Func<object> getValue, Action<object> setValue, string name,
             int padding) : base(parent, name, padding)
         {
             this.getValue = getValue;
@@ -314,12 +324,12 @@ namespace Attribulator.UI.PropertyGrid
             return this.name;
         }
 
-        public override IConvertible GetValue()
+        public override object GetValue()
         {
             return this.getValue();
         }
 
-        public override void SetValue(IConvertible value)
+        public override void SetValue(object value)
         {
             this.setValue(value);
         }

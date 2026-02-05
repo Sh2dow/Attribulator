@@ -113,7 +113,7 @@ namespace Attribulator.UI.PropertyGrid
             textBlock.Padding = new Thickness(this.padding, 0, 0, 0);
             textBlock.ContextMenu = contextMenu;
 
-            textBox.Text = val?.ToString(CultureInfo.InvariantCulture);
+            textBox.Text = Convert.ToString(val, CultureInfo.InvariantCulture);
             textBox.ContextMenu = contextMenu;
             this.lastValue = textBox.Text;
             textBox.LostFocus += this.TextBoxUpdated;
@@ -129,7 +129,7 @@ namespace Attribulator.UI.PropertyGrid
                 {
                     var converter = TypeDescriptor.GetConverter(type);
                     var result = converter.ConvertFromInvariantString(textBox.Text);
-                    this.SetValue(result as IConvertible);
+                    this.SetValue(result);
                     this.lastValue = textBox.Text;
                     MainWindow.UnsavedChanges = true;
                     this.GenerateUpdateCommand(textBox.Text);
@@ -145,11 +145,11 @@ namespace Attribulator.UI.PropertyGrid
 
         protected override string GetStringValue()
         {
-            return this.GetValue().ToString(CultureInfo.InvariantCulture);
+            return Convert.ToString(this.GetValue(), CultureInfo.InvariantCulture);
         }
 
-        public abstract IConvertible GetValue();
-        public abstract void SetValue(IConvertible value);
+        public abstract object GetValue();
+        public abstract void SetValue(object value);
     }
 
     public abstract class BaseBoolItem : BaseItem
@@ -261,7 +261,7 @@ namespace Attribulator.UI.PropertyGrid
                             var intType = Enum.GetUnderlyingType(type);
                             var converter = TypeDescriptor.GetConverter(intType);
                             var result = converter.ConvertFromInvariantString(comboBox.Text);
-                            this.SetValue(result as IConvertible);
+                            this.SetValue(result);
 
                             if (Enum.IsDefined(type, result))
                             {
@@ -289,7 +289,7 @@ namespace Attribulator.UI.PropertyGrid
 
         public abstract Enum GetValue();
 
-        public abstract void SetValue(IConvertible val);
+        public abstract void SetValue(object val);
     }
 
     public class VaultNameItem : Control
