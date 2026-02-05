@@ -150,7 +150,7 @@ namespace AttribulatorUI
 
 		private void SetTitle()
 		{
-			this.Title = $"OGVI v1.4 by ARCHIE";
+			this.Title = $"OGVI v1.5 by ARCHIE";
 			var selectedGame = this.settings.Root.SelectedGame;
 			if (selectedGame != null)
 			{

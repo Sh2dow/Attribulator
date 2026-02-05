@@ -5,11 +5,11 @@
     <LangVersion>default</LangVersion>
     <TargetFramework>net9.0-windows</TargetFramework>
     <UseWPF>true</UseWPF>
-    <PlatformTarget>x86</PlatformTarget>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <ApplicationIcon>Resources\icon.ico</ApplicationIcon>
     <AssemblyName>OGVI</AssemblyName>
-    <FileVersion>1.4</FileVersion>
-    <AssemblyVersion>1.4</AssemblyVersion>
+    <FileVersion>1.5</FileVersion>
+    <AssemblyVersion>1.5</AssemblyVersion>
   </PropertyGroup>
 
   <ItemGroup>

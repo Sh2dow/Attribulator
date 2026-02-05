@@ -24,7 +24,7 @@ jobs:
           
       # 2️⃣ Build EVERYTHING once
       - name: Build solution
-        run: dotnet build Attribulator.sln -c Release
+        run: dotnet build Attribulator.slnx -c Release
 
       # 3️⃣ Publish UI (entrypoint)
       - name: Publish Attribulator.UI
@@ -36,18 +36,21 @@ jobs:
         run: |
           $uiPlugins = "Attribulator.UI\bin\Release\net9.0-windows\publish\plugins"
 
+          Write-Host "=== Plugin outputs ==="
+          Get-ChildItem Attribulator.Plugins.*\bin\Release -Directory -Recurse
+          
           # --- ModScript ---
           New-Item -ItemType Directory -Force "$uiPlugins\Attribulator.Plugins.ModScript"
-          Copy-Item Attribulator.Plugins.ModScript\bin\x86\Release\net9.0-windows\*.dll `
+          Copy-Item Attribulator.Plugins.ModScript\bin\Release\net9.0\*.dll `
             "$uiPlugins\Attribulator.Plugins.ModScript" -Force
 
           # --- YAMLSupport ---
           New-Item -ItemType Directory -Force "$uiPlugins\Attribulator.Plugins.YAMLSupport"
-          Copy-Item Attribulator.Plugins.YAMLSupport\bin\x86\Release\net9.0-windows\*.dll `
+          Copy-Item Attribulator.Plugins.YAMLSupport\bin\Release\net9.0\*.dll `
             "$uiPlugins\Attribulator.Plugins.YAMLSupport" -Force
 
           # --- SpeedProfiles (DLL + Resources) ---
-          $speedSrc = "Attribulator.Plugins.SpeedProfiles\bin\x86\Release\net9.0-windows"
+          $speedSrc = "Attribulator.Plugins.SpeedProfiles\bin\Release\net9.0"
           $speedDst = "$uiPlugins\Attribulator.Plugins.SpeedProfiles"
 
           New-Item -ItemType Directory -Force $speedDst

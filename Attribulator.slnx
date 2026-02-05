@@ -1,0 +1,34 @@
+<Solution>
+  <Configurations>
+    <Platform Name="Any CPU" />
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Folder Name="/Modules/">
+    <Project Path="Modules/CompLib/CompLib.csproj" />
+  </Folder>
+  <Folder Name="/Modules/CoreLibraries/">
+    <Project Path="Modules/CoreLibraries/CoreLibraries.GameUtilities/CoreLibraries.GameUtilities.csproj" />
+    <Project Path="Modules/CoreLibraries/CoreLibraries.IO/CoreLibraries.IO.csproj" />
+    <Project Path="Modules/CoreLibraries/CoreLibraries.ModuleSystem/CoreLibraries.ModuleSystem.csproj" />
+  </Folder>
+  <Folder Name="/Modules/VaultLib/">
+    <Project Path="Modules/VaultLib/VaultLib.Core/VaultLib.Core.csproj" />
+    <Project Path="Modules/VaultLib/VaultLib.Frameworks.Speed/VaultLib.Frameworks.Speed.csproj" />
+    <Project Path="Modules/VaultLib/VaultLib.LegacyBase/VaultLib.LegacyBase.csproj" />
+    <Project Path="Modules/VaultLib/VaultLib.ModernBase/VaultLib.ModernBase.csproj" />
+    <Project Path="Modules/VaultLib/VaultLib.Support.Carbon/VaultLib.Support.Carbon.csproj" />
+    <Project Path="Modules/VaultLib/VaultLib.Support.MostWanted/VaultLib.Support.MostWanted.csproj" />
+    <Project Path="Modules/VaultLib/VaultLib.Support.ProStreet/VaultLib.Support.ProStreet.csproj" />
+    <Project Path="Modules/VaultLib/VaultLib.Support.Undercover/VaultLib.Support.Undercover.csproj" />
+    <Project Path="Modules/VaultLib/VaultLib.Support.World/VaultLib.Support.World.csproj" />
+  </Folder>
+  <Project Path="Attribulator.API/Attribulator.API.csproj" />
+  <Project Path="Attribulator.CLI/Attribulator.CLI.csproj" />
+  <Project Path="Attribulator.ModScript.API/Attribulator.ModScript.API.csproj" />
+  <Project Path="Attribulator.Plugins.BPSupport/Attribulator.Plugins.BPSupport.csproj" />
+  <Project Path="Attribulator.Plugins.ModScript/Attribulator.Plugins.ModScript.csproj" />
+  <Project Path="Attribulator.Plugins.SpeedProfiles/Attribulator.Plugins.SpeedProfiles.csproj" />
+  <Project Path="Attribulator.Plugins.YAMLSupport/Attribulator.Plugins.YAMLSupport.csproj" />
+  <Project Path="Attribulator.UI/Attribulator.UI.csproj" />
+</Solution>
