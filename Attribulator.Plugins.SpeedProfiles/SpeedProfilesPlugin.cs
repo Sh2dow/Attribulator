@@ -17,8 +17,29 @@ namespace Attribulator.Plugins.SpeedProfiles
         {
             var assemblyDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!;
             var resourcesDir = Path.Combine(assemblyDir, "Resources");
-            HashManager.LoadDictionary(Path.Combine(resourcesDir, "hashes.txt"));
-            KeyUtils.LoadBinDictionary(Path.Combine(resourcesDir, "hashes_bin.txt"));
+            Directory.CreateDirectory(resourcesDir);
+
+            var hashesPath = Path.Combine(resourcesDir, "hashes.txt");
+            var hashesBinPath = Path.Combine(resourcesDir, "hashes_bin.txt");
+
+            EnsureResourceFile(hashesPath, "Attribulator.Plugins.SpeedProfiles.Resources.hashes.txt");
+            EnsureResourceFile(hashesBinPath, "Attribulator.Plugins.SpeedProfiles.Resources.hashes_bin.txt");
+
+            HashManager.LoadDictionary(hashesPath);
+            KeyUtils.LoadBinDictionary(hashesBinPath);
+        }
+
+        private static void EnsureResourceFile(string targetPath, string resourceName)
+        {
+            if (File.Exists(targetPath))
+                return;
+
+            using var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(resourceName);
+            if (stream == null)
+                return;
+
+            using var file = File.Create(targetPath);
+            stream.CopyTo(file);
         }
     }
 }

@@ -23,6 +23,8 @@ using System.Windows.Media.Imaging;
 using VaultLib.Core.Data;
 using VaultLib.Core.DB;
 using VaultLib.Core.Hashing;
+using Attribulator.API.Utils;
+using System.Collections;
 using Forms = System.Windows.Forms;
 
 namespace AttribulatorUI
@@ -41,6 +43,8 @@ namespace AttribulatorUI
 
 		private Database database;
 		private DatabaseHelper modScriptDatabase;
+
+		public Database Database => this.database;
 		private IEnumerable<LoadedFile> files;
 
 		private List<MenuItem> gameMenuItems;
@@ -93,6 +97,7 @@ namespace AttribulatorUI
 				Program.LoadProfiles(services, serviceProvider);
 				Program.LoadStorageFormats(services, serviceProvider);
 				Program.LoadPlugins(plugins, serviceProvider);
+				this.LoadHashDictionariesFallback();
 
 				this.classContextMenu = new ContextMenu();
 				this.collectionContextMenu = new ContextMenu();
@@ -119,6 +124,26 @@ namespace AttribulatorUI
 		{
 			this.SearchHighlight = (SolidColorBrush)FindResource("ABrush.Search.Highlight");
 			this.SearchParentHighlight = (SolidColorBrush)FindResource("ABrush.Search.Parent.Highlight");
+		}
+
+		private void LoadHashDictionariesFallback()
+		{
+			try
+			{
+				var appDir = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location)!;
+				var resourcesDir = System.IO.Path.Combine(appDir, "plugins", "Attribulator.Plugins.SpeedProfiles", "Resources");
+				var hashesPath = System.IO.Path.Combine(resourcesDir, "hashes.txt");
+				var hashesBinPath = System.IO.Path.Combine(resourcesDir, "hashes_bin.txt");
+
+				if (System.IO.File.Exists(hashesPath))
+					HashManager.LoadDictionary(hashesPath);
+				if (System.IO.File.Exists(hashesBinPath))
+					KeyUtils.LoadBinDictionary(hashesBinPath);
+			}
+			catch
+			{
+				// Best-effort fallback; ignore failures here.
+			}
 		}
 
 		private void Window_SourceInitialized(object sender, EventArgs e)
@@ -357,13 +382,14 @@ namespace AttribulatorUI
 		private void PopulateTreeNode(VltCollection collection, TreeViewItem node)
 		{
 			var children = VltUiUtils.GetChildren(this.database, collection);
-			foreach (var childCollection in children.OrderBy(x => VltUiUtils.GetName(x)))
+			foreach (var childCollection in children.OrderBy(x => VltUiUtils.GetName(x), StringComparer.InvariantCultureIgnoreCase))
 			{
 				var childNode = this.CreateTreeViewItem(childCollection, node);
 
 				node.Items.Add(childNode);
 				PopulateTreeNode(childCollection, childNode);
 			}
+			SortTreeViewItems(node);
 		}
 
 		public void PopulateTreeView()
@@ -377,7 +403,7 @@ namespace AttribulatorUI
 
 			try
 			{
-				var classes = this.database.Classes.OrderBy(x => VltUiUtils.GetName(x));
+				var classes = this.database.Classes.OrderBy(x => VltUiUtils.GetName(x), StringComparer.InvariantCultureIgnoreCase);
 				foreach (var cls in classes)
 				{
 					var classNode = new TreeViewItem
@@ -389,7 +415,7 @@ namespace AttribulatorUI
 
 					var collections = this.database.RowManager.EnumerateCollections(cls.Key)
 						.Where(c => c.Parent == null)
-						.OrderBy(x => VltUiUtils.GetName(x));
+						.OrderBy(x => VltUiUtils.GetName(x), StringComparer.InvariantCultureIgnoreCase);
 					foreach (var collection in collections)
 					{
 						var childNode = this.CreateTreeViewItem(collection, classNode);
@@ -397,6 +423,7 @@ namespace AttribulatorUI
 						classNode.Items.Add(childNode);
 						PopulateTreeNode(collection, childNode);
 					}
+					SortTreeViewItems(classNode);
 
 					this.TreeView.Items.Add(classNode);
 				}
@@ -432,6 +459,24 @@ namespace AttribulatorUI
 					}
 				}
 			}
+		}
+
+		private static void SortTreeViewItems(ItemsControl parent)
+		{
+			if (parent == null || parent.Items.Count <= 1)
+				return;
+
+			var items = parent.Items.Cast<object>()
+				.OfType<TreeViewItem>()
+				.OrderBy(item => item.Header?.ToString() ?? string.Empty, StringComparer.InvariantCultureIgnoreCase)
+				.ToList();
+
+			if (items.Count != parent.Items.Count)
+				return;
+
+			parent.Items.Clear();
+			foreach (var item in items)
+				parent.Items.Add(item);
 		}
 
 		private void TreeViewItem_Selected(object sender, RoutedEventArgs e)

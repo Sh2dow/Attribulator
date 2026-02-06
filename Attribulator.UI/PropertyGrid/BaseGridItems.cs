@@ -1,8 +1,10 @@
-﻿using Attribulator.UI.Windows;
+﻿using Attribulator.API.Utils;
+using Attribulator.UI.Windows;
 using AttribulatorUI;
 using System;
 using System.ComponentModel;
 using System.Globalization;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -113,7 +115,7 @@ namespace Attribulator.UI.PropertyGrid
             textBlock.Padding = new Thickness(this.padding, 0, 0, 0);
             textBlock.ContextMenu = contextMenu;
 
-            textBox.Text = Convert.ToString(val, CultureInfo.InvariantCulture);
+            textBox.Text = FormatValue(val);
             textBox.ContextMenu = contextMenu;
             this.lastValue = textBox.Text;
             textBox.LostFocus += this.TextBoxUpdated;
@@ -127,8 +129,17 @@ namespace Attribulator.UI.PropertyGrid
             {
                 if (textBox.Text != this.lastValue)
                 {
-                    var converter = TypeDescriptor.GetConverter(type);
-                    var result = converter.ConvertFromInvariantString(textBox.Text);
+                    object result;
+                    var keyResult = TryParseKey(type, textBox.Text);
+                    if (keyResult != null)
+                    {
+                        result = keyResult;
+                    }
+                    else
+                    {
+                        var converter = TypeDescriptor.GetConverter(type);
+                        result = converter.ConvertFromInvariantString(textBox.Text);
+                    }
                     this.SetValue(result);
                     this.lastValue = textBox.Text;
                     MainWindow.UnsavedChanges = true;
@@ -145,7 +156,30 @@ namespace Attribulator.UI.PropertyGrid
 
         protected override string GetStringValue()
         {
-            return Convert.ToString(this.GetValue(), CultureInfo.InvariantCulture);
+            return FormatValue(this.GetValue());
+        }
+
+        protected static string FormatValue(object value)
+        {
+            if (value == null)
+                return string.Empty;
+
+            return GridHelper.FormatValue(value);
+        }
+
+        private static object? TryParseKey(Type type, string text)
+        {
+            var keyInterface = type.GetInterfaces()
+                .FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(VaultLib.Core.DataInterfaces.IKey<>));
+            if (keyInterface == null)
+                return null;
+
+            var keyType = keyInterface.GetGenericArguments()[0];
+            var method = typeof(KeyUtils).GetMethod(nameof(KeyUtils.StringToKey))?.MakeGenericMethod(keyType);
+            if (method == null)
+                return null;
+
+            return method.Invoke(null, new object[] { text, true });
         }
 
         public abstract object GetValue();

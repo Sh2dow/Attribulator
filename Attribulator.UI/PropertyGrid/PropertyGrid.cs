@@ -36,6 +36,9 @@ namespace Attribulator.UI.PropertyGrid
             if (typeof(IConvertible).IsAssignableFrom(type))
                 return true;
 
+            if (ImplementsGenericInterface(type, typeof(VaultLib.Core.DataInterfaces.IKey<>)))
+                return true;
+
             var underlying = Nullable.GetUnderlyingType(type);
             if (underlying != null)
                 return IsEditablePrimitive(underlying);
@@ -57,6 +60,9 @@ namespace Attribulator.UI.PropertyGrid
             if (typeof(IConvertible).IsAssignableFrom(type))
                 return false;
 
+            if (ImplementsGenericInterface(type, typeof(VaultLib.Core.DataInterfaces.IKey<>)))
+                return false;
+
             if (type.GetFields(BindingFlags.Public | BindingFlags.Instance).Length > 0)
                 return true;
 
@@ -64,9 +70,78 @@ namespace Attribulator.UI.PropertyGrid
                 .Any(p => p.CanRead);
         }
 
+        private static bool ImplementsGenericInterface(Type type, Type genericInterface)
+        {
+            return type.GetInterfaces().Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == genericInterface);
+        }
+
         public static string ResolveName(Key32 key)
         {
             return HashManager.ResolveVlt(key.Hash) ?? key.ToString();
+        }
+
+        public static string FormatValue(object value)
+        {
+            if (value == null)
+                return string.Empty;
+
+            if (value is VLTArrayType array)
+            {
+                if (array.Items.Count == 0)
+                    return "[]";
+
+                // Use first element to provide a meaningful summary (matches previous UI behavior).
+                var first = array.Items[0];
+                return FormatValue(first);
+            }
+
+            var keyString = TryFormatKey(value);
+            if (keyString != null)
+                return keyString;
+
+            if (TryFormatRefSpec(value, out var refSpecString))
+                return refSpecString;
+
+            return value.ToString();
+        }
+
+        private static string? TryFormatKey(object value)
+        {
+            var valueType = value.GetType();
+            var keyInterface = valueType.GetInterfaces()
+                .FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(VaultLib.Core.DataInterfaces.IKey<>));
+            if (keyInterface == null)
+                return null;
+
+            var keyType = keyInterface.GetGenericArguments()[0];
+            var method = typeof(Attribulator.API.Utils.KeyUtils).GetMethod(nameof(Attribulator.API.Utils.KeyUtils.KeyToString))
+                ?.MakeGenericMethod(keyType);
+            if (method == null)
+                return null;
+
+            return method.Invoke(null, new[] { value }) as string;
+        }
+
+        private static bool TryFormatRefSpec(object value, out string formatted)
+        {
+            formatted = string.Empty;
+
+            var type = value.GetType();
+            var classKeyProp = type.GetProperty("ClassKey");
+            var collectionKeyProp = type.GetProperty("CollectionKey");
+
+            if (classKeyProp == null || collectionKeyProp == null)
+                return false;
+
+            var classKey = classKeyProp.GetValue(value);
+            var collectionKey = collectionKeyProp.GetValue(value);
+            if (classKey == null || collectionKey == null)
+                return false;
+
+            var classKeyStr = TryFormatKey(classKey) ?? classKey.ToString();
+            var collectionKeyStr = TryFormatKey(collectionKey) ?? collectionKey.ToString();
+            formatted = $"{classKeyStr} -> {collectionKeyStr}";
+            return true;
         }
     }
 
@@ -75,7 +150,7 @@ namespace Attribulator.UI.PropertyGrid
         private IParent parent;
         private string name;
 
-        public ClassItem(IParent parent, string name, VLTBaseType prop, int padding) : base(prop, name, prop.ToString(), padding)
+        public ClassItem(IParent parent, string name, VLTBaseType prop, int padding) : base(prop, name, GridHelper.FormatValue(prop), padding)
         {
             this.parent = parent;
             this.name = name;
@@ -181,7 +256,7 @@ namespace Attribulator.UI.PropertyGrid
         private readonly VLTBaseType owner;
 
         public StructItem(IParent parent, PropertyInfo propertyInfo, VLTBaseType owner, int padding)
-            : base(propertyInfo.GetValue(owner), propertyInfo.Name, propertyInfo.ToString(), padding)
+            : base(propertyInfo.GetValue(owner), propertyInfo.Name, GridHelper.FormatValue(propertyInfo.GetValue(owner)), padding)
         {
             this.parent = parent;
             this.name = propertyInfo.Name;
@@ -275,6 +350,7 @@ namespace Attribulator.UI.PropertyGrid
                     },
                     padding));
             }
+            this.SortChildren();
         }
     }
 
@@ -286,7 +362,7 @@ namespace Attribulator.UI.PropertyGrid
         private readonly Action<object> setValue;
 
         public StructValueItem(IParent parent, string name, Func<object> getValue, Action<object> setValue, int padding)
-            : base(getValue(), name, getValue().ToString(), padding)
+            : base(getValue(), name, GridHelper.FormatValue(getValue()), padding)
         {
             this.parent = parent;
             this.name = name;
@@ -368,6 +444,7 @@ namespace Attribulator.UI.PropertyGrid
                     },
                     padding));
             }
+            this.SortChildren();
         }
     }
 
@@ -465,6 +542,7 @@ namespace Attribulator.UI.PropertyGrid
                         this.padding + 21));
                 }
             }
+            this.SortChildren();
         }
 
         public bool CanAdd()
@@ -512,7 +590,7 @@ namespace Attribulator.UI.PropertyGrid
             {
                 var properties = Collection.GetData()
                     .Where(x => Collection.Class.HasField(x.Key))
-                    .OrderBy(x => x.Key);
+                    .OrderBy(x => GridHelper.ResolveName(x.Key), StringComparer.InvariantCultureIgnoreCase);
                 this.stackPanel.Children.Add(new VaultNameItem(Collection.Vault.Name));
                 foreach (var property in properties)
                 {

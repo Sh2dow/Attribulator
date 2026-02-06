@@ -1,4 +1,6 @@
-﻿using System.Windows.Controls.Primitives;
+﻿using System;
+using System.Linq;
+using System.Windows.Controls.Primitives;
 using System.Windows.Controls;
 using System.Windows;
 using AttribulatorUI;
@@ -149,6 +151,23 @@ namespace Attribulator.UI.PropertyGrid
             this.collapsePanel.Children.Add(child);
         }
 
+        protected void SortChildren()
+        {
+            var sorted = this.collapsePanel.Children
+                .OfType<UIElement>()
+                .OrderBy(child =>
+                {
+                    if (child is ICommandName named)
+                        return named.GetName();
+                    return child.GetType().Name;
+                }, StringComparer.InvariantCultureIgnoreCase)
+                .ToList();
+
+            this.collapsePanel.Children.Clear();
+            foreach (var child in sorted)
+                this.collapsePanel.Children.Add(child);
+        }
+
         public void Expand()
         {
             this.collapsePanel.Visibility = Visibility.Visible;
@@ -161,7 +180,7 @@ namespace Attribulator.UI.PropertyGrid
 
         public virtual void Update()
         {
-            this.headerItem.UpdateValueText(this.prop.ToString());
+            this.headerItem.UpdateValueText(GridHelper.FormatValue(this.prop));
         }
 
         protected void ClearChildren()
@@ -187,7 +206,7 @@ namespace Attribulator.UI.PropertyGrid
         {
             this.prop = prop;
             this.collapsePanel = new StackPanel();
-            this.headerItem = new ArrayCollapseHeader(this, name, value, padding);
+            this.headerItem = new ArrayCollapseHeader(this, name, GridHelper.FormatValue(prop), padding);
 
             this.Children.Add(this.headerItem);
             this.Children.Add(this.collapsePanel);

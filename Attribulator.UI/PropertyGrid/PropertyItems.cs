@@ -160,6 +160,7 @@ namespace Attribulator.UI.PropertyGrid
                     this.AddChild(new PropertyArraySubItem(parent, array, i, $"[{i}]", padding + 21));
                 }
             }
+            this.SortChildren();
         }
 
         public void AddItem()
