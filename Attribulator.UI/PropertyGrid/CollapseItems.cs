@@ -158,7 +158,13 @@ namespace Attribulator.UI.PropertyGrid
                 .OrderBy(child =>
                 {
                     if (child is ICommandName named)
-                        return named.GetName();
+                    {
+                        // Many items return a fully-qualified command path ("parent child").
+                        // For UI sorting we want the local name.
+                        var n = named.GetName() ?? string.Empty;
+                        var lastSpace = n.LastIndexOf(' ');
+                        return lastSpace >= 0 ? n[(lastSpace + 1)..] : n;
+                    }
                     return child.GetType().Name;
                 }, StringComparer.InvariantCultureIgnoreCase)
                 .ToList();

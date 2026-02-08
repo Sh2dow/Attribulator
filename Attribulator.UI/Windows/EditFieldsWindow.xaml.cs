@@ -21,9 +21,12 @@ namespace Attribulator.UI
 
             var data = this.collection.GetData().Select(x => x.Key).ToList();
             var optionalFields = collection.Class.Fields.Values.Where(x => !x.IsInLayout);
-            foreach (var field in optionalFields.OrderBy(x => x.Key))
+            foreach (var item in optionalFields
+                         .Select(f => new { Field = f, Name = VltUiUtils.ResolveName(f.Key) })
+                         .OrderBy(x => x.Name, StringComparer.InvariantCultureIgnoreCase))
             {
-                var fieldName = VltUiUtils.ResolveName(field.Key);
+                var field = item.Field;
+                var fieldName = item.Name;
                 this.FieldStack.Items.Add(new ListBoxItem
                 {
                     Content = new EditFieldItem(fieldName, data.Contains(field.Key))

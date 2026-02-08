@@ -80,10 +80,29 @@ namespace Attribulator.UI.PropertyGrid
             return HashManager.ResolveVlt(key.Hash) ?? key.ToString();
         }
 
-        public static string FormatValue(object value)
+        public static string FormatValue(object value) => FormatValue(value, 0);
+
+        private static string FormatValue(object value, int depth)
         {
             if (value == null)
                 return string.Empty;
+
+            // Prevent runaway recursion on nested complex objects.
+            if (depth > 2)
+                return string.Empty;
+
+            // Common container types: provide a meaningful summary using the first element.
+            // This matches OGVI 1.3 behavior for list-like fields (e.g. EffectLinkageRecord arrays).
+            if (value is IList list)
+            {
+                if (list.Count == 0)
+                    return "[]";
+
+                object first;
+                try { first = list[0]; }
+                catch { return "[]"; }
+                return FormatValue(first, depth + 1);
+            }
 
             if (value is VLTArrayType array)
             {
@@ -92,7 +111,7 @@ namespace Attribulator.UI.PropertyGrid
 
                 // Use first element to provide a meaningful summary (matches previous UI behavior).
                 var first = array.Items[0];
-                return FormatValue(first);
+                return FormatValue(first, depth + 1);
             }
 
             var keyString = TryFormatKey(value);
@@ -102,7 +121,83 @@ namespace Attribulator.UI.PropertyGrid
             if (TryFormatRefSpec(value, out var refSpecString))
                 return refSpecString;
 
-            return value.ToString();
+            var type = value.GetType();
+
+            // If this is a complex struct/class with public members, summarize a couple meaningful members
+            // instead of showing the CLR type name (default ToString()).
+            if (IsStructWithPublicMembers(type))
+            {
+                var summary = TryFormatMemberSummary(value, depth + 1);
+                if (!string.IsNullOrWhiteSpace(summary))
+                    return summary;
+            }
+
+            var s = value.ToString() ?? string.Empty;
+            if (s == type.FullName || s == type.Name)
+            {
+                var summary = TryFormatMemberSummary(value, depth + 1);
+                if (!string.IsNullOrWhiteSpace(summary))
+                    return summary;
+                return string.Empty;
+            }
+
+            return s;
+        }
+
+        private static string? TryFormatMemberSummary(object value, int depth)
+        {
+            var type = value.GetType();
+            var parts = new System.Collections.Generic.List<string>(capacity: 2);
+
+            // Prefer "interesting" members over incidental ones by using a simple score.
+            static int ScoreMember(string name, Type memberType)
+            {
+                // Keys and refspec-like members are the most useful summaries.
+                if (ImplementsGenericInterface(memberType, typeof(VaultLib.Core.DataInterfaces.IKey<>)))
+                    return 0;
+
+                if (memberType.GetProperty("ClassKey") != null && memberType.GetProperty("CollectionKey") != null)
+                    return 1;
+
+                if (memberType == typeof(string))
+                    return 2;
+
+                if (typeof(IConvertible).IsAssignableFrom(memberType))
+                    return 3;
+
+                // Otherwise last.
+                return 10;
+            }
+
+            var fields = type.GetFields(BindingFlags.Public | BindingFlags.Instance)
+                .Select(f => (Name: f.Name, Type: f.FieldType, Get: (Func<object?>)(() => f.GetValue(value))))
+                .ToList();
+
+            var props = type.GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                .Where(p => p.CanRead && p.GetIndexParameters().Length == 0)
+                .Select(p => (Name: p.Name, Type: p.PropertyType, Get: (Func<object?>)(() =>
+                {
+                    try { return p.GetValue(value); }
+                    catch { return null; }
+                })))
+                .ToList();
+
+            var members = fields.Concat(props)
+                .OrderBy(m => ScoreMember(m.Name, m.Type))
+                .ThenBy(m => m.Name, StringComparer.InvariantCultureIgnoreCase)
+                .ToList();
+
+            foreach (var m in members)
+            {
+                var mv = m.Get();
+                if (mv == null) continue;
+                var fs = FormatValue(mv, depth);
+                if (string.IsNullOrWhiteSpace(fs)) continue;
+                parts.Add($"{m.Name}={fs}");
+                if (parts.Count >= 2) break;
+            }
+
+            return parts.Count == 0 ? null : string.Join(", ", parts);
         }
 
         private static string? TryFormatKey(object value)
